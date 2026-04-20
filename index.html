@@ -1743,7 +1743,7 @@ function makePOLine(containerId){
             oninput="poProdSearch(this,'${lid}_drop')" onfocus="poProdSearch(this,'${lid}_drop')" autocomplete="off">
           <button onclick="poAddNewProduct(this,'${lid}')" class="btn btn-success" style="white-space:nowrap;font-size:10px" title="新增产品">＋ 新品</button>
         </div>
-        <div id="${lid}_drop" style="display:none;position:absolute;left:10px;right:10px;top:52px;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:200;max-height:220px;overflow-y:auto"></div>
+        <div id="${lid}_drop" style="display:none;position:absolute;left:10px;right:10px;top:52px;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:200;max-height:280px;overflow-y:auto"></div>
         <div id="${lid}_info" style="font-size:10px;color:var(--color-text-tertiary);min-height:14px;margin-top:2px"></div>
         <select class="pi-p" style="display:none"><option value="">-</option></select>
       </div>
@@ -1796,37 +1796,50 @@ function makePOLine(containerId){
   c.appendChild(div);
   // Click outside to close dropdown
   div.querySelector('.po-name-input').addEventListener('blur', function(){
-    setTimeout(()=>{ const d=document.getElementById(lid+'_drop'); if(d)d.style.display='none'; }, 200);
+    setTimeout(()=>{ const d=document.getElementById(lid+'_drop'); if(d)d.style.display='none'; }, 300);
   });
 }
 
-// 产品名称搜索下拉
+// 产品名称搜索下拉（优化版：限制条数、高亮关键词、最少2字符触发）
 function poProdSearch(inputEl, dropId){
   const q = inputEl.value.trim().toLowerCase();
   const dropEl = document.getElementById(dropId);
   if(!dropEl) return;
-  const row = inputEl.closest('.po-line-row');
-  const infoEl = row ? row.querySelector('[id$="_info"]') : null;
-  if(!q){ dropEl.style.display='none'; return; }
-  const matched = DB.products.filter(p =>
+  // 少于2个字符不触发搜索，避免无效大量结果
+  if(q.length < 2){ dropEl.style.display='none'; return; }
+  const MAX_SHOW = 8; // 最多显示8条
+  const allMatched = DB.products.filter(p =>
     (p.name||'').toLowerCase().includes(q) ||
     (p.spec||'').toLowerCase().includes(q) ||
     (p.code||'').toLowerCase().includes(q)
-  ).slice(0, 30);
+  );
+  const matched = allMatched.slice(0, MAX_SHOW);
+  const extra = allMatched.length - matched.length;
+  // 高亮关键词辅助函数
+  function hl(str){
+    if(!str) return '';
+    const idx = str.toLowerCase().indexOf(q);
+    if(idx<0) return str;
+    return str.slice(0,idx)+'<mark style="background:#FFF3CC;color:#7A4F00;border-radius:2px;padding:0 1px">'+str.slice(idx,idx+q.length)+'</mark>'+str.slice(idx+q.length);
+  }
   if(!matched.length){
     dropEl.style.display='block';
     dropEl.innerHTML = `<div style="padding:10px;font-size:11px;color:var(--color-text-tertiary)">未找到"${q}"，可点【＋ 新品】新增</div>`;
     return;
   }
   dropEl.style.display = 'block';
-  dropEl.innerHTML = matched.map(p => `
+  const items = matched.map(p => `
     <div onclick="poSelectProduct('${p.id}','${dropId}')"
-      style="padding:8px 12px;cursor:pointer;font-size:11px;border-bottom:0.5px solid var(--color-border-tertiary)"
+      style="padding:8px 12px;cursor:pointer;font-size:12px;border-bottom:0.5px solid var(--color-border-tertiary)"
       onmouseover="this.style.background='var(--color-background-secondary)'"
       onmouseout="this.style.background=''">
-      <div style="font-weight:500">${p.name}${p.spec?' <span style="color:var(--color-text-tertiary);font-weight:400">'+p.spec+'</span>':''}</div>
-      <div style="color:var(--color-text-tertiary);font-size:10px;margin-top:1px">${p.code} | ${p.category||''} | ${p.unit||'-'} | 成本价 ¥${p.costPrice||0}</div>
+      <div style="font-weight:500">${hl(p.name)}${p.spec?' <span style="color:var(--color-text-tertiary);font-weight:400">'+hl(p.spec)+'</span>':''}</div>
+      <div style="color:var(--color-text-tertiary);font-size:10px;margin-top:2px">${hl(p.code)} | ${p.category||'-'} | ${p.unit||'-'} | 成本价 ¥${p.costPrice||0}</div>
     </div>`).join('');
+  const footer = extra > 0
+    ? `<div style="padding:6px 12px;font-size:10px;color:var(--color-text-tertiary);background:var(--color-background-secondary);text-align:center">还有 ${extra} 条结果，请输入更精确的关键词</div>`
+    : '';
+  dropEl.innerHTML = items + footer;
 }
 
 // 选中产品
