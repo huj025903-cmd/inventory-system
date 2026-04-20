@@ -1075,9 +1075,9 @@ function sname(id){const s=DB.suppliers.find(x=>x.id===id);return s?s.name:id;}
 function cname(id){const c=DB.customers.find(x=>x.id===id);return c?c.name:id;}
 
 function getProductOpts(){return DB.products.map(p=>`<option value="${p.id}">${p.code} - ${p.name}</option>`).join('');}
-function getWHOpts(){return DB.warehouses.map(w=>`<option value="${w.id}">${w.name}</option>`).join('');}
+function getWHOpts(sel=''){return DB.warehouses.map(w=>`<option value="${w.id}"${w.id===sel?' selected':''}>${w.name}</option>`).join('');}
 function getSupOpts(sel=''){return DB.suppliers.map(s=>`<option value="${s.id}"${s.id===sel?' selected':''}>${s.name}</option>`).join('');}
-function getCustOpts(){return DB.customers.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');}
+function getCustOpts(sel=''){return DB.customers.map(c=>`<option value="${c.id}"${c.id===sel?' selected':''}>${c.name}</option>`).join('');}
 
 /* ── Navigation ── */
 function nav(page){
@@ -1281,7 +1281,7 @@ function approvePO(id){const r=DB.po.find(x=>x.id===id);if(r){r.approved=true;sa
 function approveSO(id){const r=DB.so.find(x=>x.id===id);if(r){r.approved=true;saveStore('so');renderSO();writeLog('审核','销售','审核销售订单 '+r.no);showToast('销售订单已审核');}}
 
 function renderPR(){
-  document.getElementById('prTbl').innerHTML=DB.pr.map(r=>`<tr><td style="text-align:center"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="pr"></td><td>${r.no}</td><td>${r.poNo||'-'}</td><td>${sname(r.supplierId)}</td><td>${r.handler||'-'}</td><td>${wname(r.warehouseId)}</td><td>${r.date||'-'}</td><td>${fmtMoney(r.totalAmt)}</td><td><span class="badge badge-${r.status==='done'?'green':'amber'}">${r.status==='done'?'已入库':'待处理'}</span></td><td style="color:var(--color-text-secondary);font-size:10px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.remark||''}">${r.remark||'-'}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('pr','${r.id}')">查看</button> <button class="btn" onclick="editRemark('pr','${r.id}',renderPR)" title="编辑备注">备注</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('pr','${r.id}',renderPR)">删除</button>`:''}</td></tr>`).join('')||'<tr><td colspan="11" style="text-align:center;color:var(--color-text-tertiary)">暂无入库单</td></tr>';
+  document.getElementById('prTbl').innerHTML=DB.pr.map(r=>`<tr><td style="text-align:center"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="pr"></td><td>${r.no}</td><td>${r.poNo||'-'}</td><td>${sname(r.supplierId)}</td><td>${r.handler||'-'}</td><td>${wname(r.warehouseId)}</td><td>${r.date||'-'}</td><td>${fmtMoney(r.totalAmt)}</td><td><span class="badge badge-${r.status==='done'?'green':'amber'}">${r.status==='done'?'已入库':'待处理'}</span></td><td style="color:var(--color-text-secondary);font-size:10px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.remark||''}">${r.remark||'-'}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('pr','${r.id}')">查看</button> <button class="btn btn-warning" onclick="editBill('pr','${r.id}')">编辑</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('pr','${r.id}',renderPR)">删除</button>`:''}</td></tr>`).join('')||'<tr><td colspan="11" style="text-align:center;color:var(--color-text-tertiary)">暂无入库单</td></tr>';
 }
 
 function renderPT(){
@@ -1293,7 +1293,7 @@ function renderSO(){
 }
 
 function renderSD(){
-  document.getElementById('sdTbl').innerHTML=DB.sd.map(r=>`<tr><td style="text-align:center"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="sd"></td><td>${r.no}</td><td>${r.soNo||'-'}</td><td>${cname(r.customerId)}</td><td>${wname(r.warehouseId)}</td><td>${r.handler||'-'}</td><td>${r.date||'-'}</td><td>${fmtMoney(r.totalAmt)}</td><td><span class="badge badge-${r.status==='done'?'green':'amber'}">${r.status==='done'?'已出库':'待处理'}</span></td><td style="color:var(--color-text-secondary);font-size:10px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.remark||''}">${r.remark||'-'}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('sd','${r.id}')">查看</button> <button class="btn" onclick="editRemark('sd','${r.id}',renderSD)" title="编辑备注">备注</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('sd','${r.id}',renderSD)">删除</button>`:''}</td></tr>`).join('')||'<tr><td colspan="11" style="text-align:center;color:var(--color-text-tertiary)">暂无出库单</td></tr>';
+  document.getElementById('sdTbl').innerHTML=DB.sd.map(r=>`<tr><td style="text-align:center"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="sd"></td><td>${r.no}</td><td>${r.soNo||'-'}</td><td>${cname(r.customerId)}</td><td>${wname(r.warehouseId)}</td><td>${r.handler||'-'}</td><td>${r.date||'-'}</td><td>${fmtMoney(r.totalAmt)}</td><td><span class="badge badge-${r.status==='done'?'green':'amber'}">${r.status==='done'?'已出库':'待处理'}</span></td><td style="color:var(--color-text-secondary);font-size:10px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.remark||''}">${r.remark||'-'}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('sd','${r.id}')">查看</button> <button class="btn btn-warning" onclick="editBill('sd','${r.id}')">编辑</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('sd','${r.id}',renderSD)">删除</button>`:''}</td></tr>`).join('')||'<tr><td colspan="11" style="text-align:center;color:var(--color-text-tertiary)">暂无出库单</td></tr>';
 }
 
 function renderSR(){
@@ -1301,7 +1301,7 @@ function renderSR(){
 }
 
 function renderOI(){
-  document.getElementById('oiTbl').innerHTML=DB.otherIn.map(r=>`<tr><td style="text-align:center"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="otherIn"></td><td>${r.no}</td><td>${r.type||'-'}</td><td>${r.handler||'-'}</td><td>${wname(r.warehouseId)}</td><td>${r.date||'-'}</td><td>${fmtMoney(r.totalAmt)}</td><td>${r.note||'-'}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('otherIn','${r.id}')">查看</button> <button class="btn" onclick="editRemark('otherIn','${r.id}',renderOI)" title="编辑备注">备注</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('otherIn','${r.id}',renderOI)">删除</button>`:''}</td></tr>`).join('')||'<tr><td colspan="9" style="text-align:center;color:var(--color-text-tertiary)">暂无记录</td></tr>';
+  document.getElementById('oiTbl').innerHTML=DB.otherIn.map(r=>`<tr><td style="text-align:center"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="otherIn"></td><td>${r.no}</td><td>${r.type||'-'}</td><td>${r.handler||'-'}</td><td>${wname(r.warehouseId)}</td><td>${r.date||'-'}</td><td>${fmtMoney(r.totalAmt)}</td><td>${r.note||'-'}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('otherIn','${r.id}')">查看</button> <button class="btn btn-warning" onclick="editBill('otherIn','${r.id}')">编辑</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('otherIn','${r.id}',renderOI)">删除</button>`:''}</td></tr>`).join('')||'<tr><td colspan="9" style="text-align:center;color:var(--color-text-tertiary)">暂无记录</td></tr>';
 }
 
 function renderOO(){
@@ -1599,21 +1599,22 @@ function openModal(type,data){
     const prePo = prePoId ? DB.po.find(p=>p.id===prePoId) : null;
     const preSup = prePo ? prePo.supplierId : '';
     html=wrap('新建采购入库单',
-      `<div class="form-row c2"><div class="form-group"><label>经办人</label><input id="fprh" type="text" placeholder="请输入经办人姓名" value="${prePo&&prePo.handler?prePo.handler:''}"></div><div class="form-group"><label>日期</label><input id="fprd" type="date" value="${today()}"></div></div>
-      <div class="form-row c3">
+      `<div class="form-row c3">
         <div class="form-group"><label>关联采购单</label><select id="fpro" onchange="prFillFromPO(this.value)"><option value="">无/直接入库</option>${DB.po.filter(p=>p.approved&&p.arriveStatus!=='done').map(p=>`<option value="${p.id}"${p.id===prePoId?' selected':''}>${p.no} — ${sname(p.supplierId)}</option>`).join('')}</select></div>
         <div class="form-group"><label>供应商*</label><select id="fprs"><option value="">选择</option>${getSupOpts(preSup)}</select></div>
         <div class="form-group"><label>仓库*</label><select id="fprw"><option value="">选择</option>${getWHOpts()}</select></div>
       </div>
-      <div style="font-size:11px;font-weight:500;margin:8px 0 4px">入库明细 <span style="font-size:10px;font-weight:400;color:var(--color-text-tertiary)">（可修改数量和单价）</span></div>
+      <div class="form-row c2"><div class="form-group"><label>经办人</label><input id="fprh" type="text" placeholder="请输入经办人姓名" value="${prePo&&prePo.handler?prePo.handler:''}"></div><div class="form-group"><label>日期</label><input id="fprd" type="date" value="${today()}"></div></div>
+      <div style="font-size:11px;font-weight:500;margin:8px 0 4px">入库明细 <span style="font-size:10px;font-weight:400;color:var(--color-text-tertiary)">（下拉选择商品，数量和单价均可修改，✕ 可删行）</span></div>
       <div id="prLines"></div>
-      <button class="btn" style="margin-top:4px" onclick="makeCodeLine('prLines',true,false)">+ 添加行</button>`,
+      <button class="btn" style="margin-top:6px" onclick="addEditableLine('prLines','采购')">+ 添加行</button>
+      <div id="prTotal" style="text-align:right;font-size:12px;font-weight:600;color:#185FA5;margin-top:6px">合计：¥0.00</div>`,
       `<button class="btn btn-primary" onclick="savePR()">确认入库</button>`);
     setTimeout(()=>{
       if(prePo&&prePo.items&&prePo.items.length){
-        preFillCodeLines('prLines', prePo.items, true);
+        prefillEditableLines('prLines', prePo.items, '采购');
       } else {
-        makeCodeLine('prLines',true,false);
+        addEditableLine('prLines','采购');
       }
       if(preSup){const el=document.getElementById('fprs');if(el)el.value=preSup;}
     },50);
@@ -2827,12 +2828,260 @@ function viewBill(type,id){
       <div class="modal-body">${previewHtml}</div>
       <div class="modal-footer" style="gap:8px">
         <button class="btn" onclick="closeModal()">关闭</button>
+        ${['pr','sd','otherIn'].includes(type)?`<button class="btn btn-warning" onclick="closeModal();editBill('${type}','${id}')">✏️ 编辑</button>`:''}
         <button class="btn btn-primary" onclick="(${printBill.toString()})()">🖨️ 打印 / 下载PDF</button>
       </div>
     </div>
   </div>`;
 }
 
+
+
+// ══════════════════════════════════════════════════
+// 编辑已有入库/出库单
+// ══════════════════════════════════════════════════
+function editBill(type, id){
+  const r = DB[type].find(x=>x.id===id);
+  if(!r){ showToast('未找到记录','error'); return; }
+
+  const mc = document.getElementById('modalContainer');
+  const typeNames = {pr:'采购入库单', sd:'销售出库单', otherIn:'其他入库单'};
+  const typeName = typeNames[type] || type;
+
+  // 构建头部字段
+  let headerHTML = '';
+  if(type==='pr'){
+    const poOpts = DB.po.filter(p=>p.approved).map(p=>`<option value="${p.id}"${p.id===r.poId?' selected':''}>${p.no} — ${sname(p.supplierId)}</option>`).join('');
+    headerHTML = `
+      <div class="form-row c3">
+        <div class="form-group"><label>关联采购单</label>
+          <select id="eb_po"><option value="">无/直接入库</option>${poOpts}</select>
+        </div>
+        <div class="form-group"><label>供应商*</label>
+          <select id="eb_sup"><option value="">选择</option>${getSupOpts(r.supplierId)}</select>
+        </div>
+        <div class="form-group"><label>仓库*</label>
+          <select id="eb_wh"><option value="">选择</option>${getWHOpts(r.warehouseId)}</select>
+        </div>
+      </div>
+      <div class="form-row c2">
+        <div class="form-group"><label>经办人</label><input id="eb_handler" type="text" value="${r.handler||''}"></div>
+        <div class="form-group"><label>日期</label><input id="eb_date" type="date" value="${r.date||''}"></div>
+      </div>`;
+  } else if(type==='sd'){
+    const soOpts = DB.so.filter(s=>s.approved).map(s=>`<option value="${s.id}"${s.id===r.soId?' selected':''}>${s.no} — ${cname(s.customerId)}</option>`).join('');
+    headerHTML = `
+      <div class="form-row c3">
+        <div class="form-group"><label>关联销售单</label>
+          <select id="eb_so"><option value="">无/直接出库</option>${soOpts}</select>
+        </div>
+        <div class="form-group"><label>客户*</label>
+          <select id="eb_cust"><option value="">选择</option>${getCustOpts(r.customerId)}</select>
+        </div>
+        <div class="form-group"><label>仓库*</label>
+          <select id="eb_wh"><option value="">选择</option>${getWHOpts(r.warehouseId)}</select>
+        </div>
+      </div>
+      <div class="form-row c2">
+        <div class="form-group"><label>经办人</label><input id="eb_handler" type="text" value="${r.handler||''}"></div>
+        <div class="form-group"><label>日期</label><input id="eb_date" type="date" value="${r.date||''}"></div>
+      </div>`;
+  } else if(type==='otherIn'){
+    const typeOpts = ['盘盈','礼品入库','调拨入库','其他'].map(t=>`<option${t===r.type?' selected':''}>${t}</option>`).join('');
+    headerHTML = `
+      <div class="form-row c3">
+        <div class="form-group"><label>类型</label><select id="eb_otype">${typeOpts}</select></div>
+        <div class="form-group"><label>仓库*</label>
+          <select id="eb_wh"><option value="">选择</option>${getWHOpts(r.warehouseId)}</select>
+        </div>
+        <div class="form-group"><label>日期</label><input id="eb_date" type="date" value="${r.date||''}"></div>
+      </div>
+      <div class="form-row c2">
+        <div class="form-group"><label>经办人</label><input id="eb_handler" type="text" value="${r.handler||''}"></div>
+        <div class="form-group"><label>备注</label><input id="eb_note" type="text" value="${r.note||''}"></div>
+      </div>`;
+  }
+
+  mc.innerHTML = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal" style="width:680px;max-width:96%">
+      <div class="modal-header">
+        <span>✏️ 编辑 ${typeName} — ${r.no||r.id}</span>
+        <button class="btn" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warn" style="margin-bottom:12px">⚠ 编辑后将更新库存数据，请确认修改内容后再保存</div>
+        ${headerHTML}
+        <div style="font-size:11px;font-weight:500;margin:10px 0 6px">
+          明细行
+          <span style="font-weight:400;color:var(--color-text-tertiary);font-size:10px">（可修改商品、数量、单价，✕ 删行，+ 加行）</span>
+        </div>
+        <div id="eb_lines"></div>
+        <button class="btn" style="margin-top:6px;font-size:11px" onclick="ebAddLine()">+ 添加行</button>
+        <div id="eb_total" style="text-align:right;font-size:12px;font-weight:600;color:#185FA5;margin-top:8px">合计：¥0.00</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveBillEdit('${type}','${id}')">💾 保存修改</button>
+      </div>
+    </div>
+  </div>`;
+  mc.style.pointerEvents = 'all';
+  document.body.style.overflow = 'hidden';
+
+  // 渲染现有明细行
+  setTimeout(()=>{
+    if(r.items && r.items.length){
+      r.items.forEach(item => ebAddLine(item));
+    } else {
+      ebAddLine();
+    }
+    ebUpdateTotal();
+  }, 50);
+}
+
+// 编辑弹窗：添加一行明细
+function ebAddLine(item){
+  const c = document.getElementById('eb_lines');
+  if(!c) return;
+  const idx = c.querySelectorAll('.eb-row').length + 1;
+  const div = document.createElement('div');
+  div.className = 'eb-row';
+  div.style.cssText = 'background:#F5F5F3;border:0.5px solid var(--color-border-tertiary);border-radius:6px;padding:8px 10px;margin-bottom:6px';
+
+  // 预选商品
+  const selectedPid = item ? item.productId : '';
+  const prodOptions = DB.products.map(p =>
+    `<option value="${p.id}"${p.id===selectedPid?' selected':''}>${p.code} — ${p.name}${p.spec?' '+p.spec:''}</option>`
+  ).join('');
+
+  div.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 90px 100px auto;gap:8px;align-items:center">
+      <div>
+        <select class="eb-prod" onchange="ebOnSelect(this)"
+          style="width:100%;font-size:12px;background:#fff;border:0.5px solid var(--color-border-secondary);border-radius:4px;padding:6px 8px">
+          <option value="">— 选择商品 —</option>${prodOptions}
+        </select>
+        <div class="eb-info" style="font-size:10px;color:#1D9E75;margin-top:3px;min-height:14px">${item&&selectedPid?(()=>{const p=DB.products.find(x=>x.id===selectedPid)||{};return p.code?`✓ ${p.code} | ${p.category||'-'} | ${p.unit||'-'}`:''})():''}</div>
+      </div>
+      <div>
+        <label style="font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:2px">数量*</label>
+        <input class="eb-qty" type="number" value="${item?item.qty:1}" min="0.01" step="0.01"
+          style="width:100%;font-size:12px;background:#fff;border:0.5px solid var(--color-border-secondary);border-radius:4px;padding:5px 7px"
+          oninput="ebUpdateTotal()">
+      </div>
+      <div>
+        <label style="font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:2px">单价</label>
+        <input class="eb-price" type="number" value="${item?item.price||0:0}" step="0.01"
+          style="width:100%;font-size:12px;background:#fff;border:0.5px solid var(--color-border-secondary);border-radius:4px;padding:5px 7px"
+          oninput="ebUpdateTotal()">
+      </div>
+      <div>
+        <button onclick="this.closest('.eb-row').remove();ebUpdateTotal()"
+          class="btn btn-danger" style="padding:4px 8px;font-size:11px;margin-top:16px">✕</button>
+      </div>
+    </div>`;
+  c.appendChild(div);
+}
+
+// 选商品时自动带入成本价
+function ebOnSelect(sel){
+  const pid = sel.value;
+  const row = sel.closest('.eb-row');
+  const infoEl = row ? row.querySelector('.eb-info') : null;
+  if(!pid){ if(infoEl) infoEl.textContent=''; return; }
+  const p = DB.products.find(x=>x.id===pid);
+  if(!p) return;
+  const priceEl = row ? row.querySelector('.eb-price') : null;
+  if(priceEl && (!priceEl.value || parseFloat(priceEl.value)===0)) priceEl.value = p.costPrice||0;
+  if(infoEl) infoEl.innerHTML = `<span style="color:#1D9E75">✓ ${p.code} | ${p.category||'-'} | ${p.unit||'-'} | 成本价 ¥${p.costPrice||0}</span>`;
+  ebUpdateTotal();
+}
+
+// 实时合计
+function ebUpdateTotal(){
+  let total = 0;
+  document.querySelectorAll('#eb_lines .eb-row').forEach(row=>{
+    const q = parseFloat((row.querySelector('.eb-qty')||{}).value||0);
+    const r = parseFloat((row.querySelector('.eb-price')||{}).value||0);
+    total += q * r;
+  });
+  const el = document.getElementById('eb_total');
+  if(el) el.textContent = '合计：¥' + total.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+// 读取编辑弹窗明细行
+function ebGetItems(){
+  return Array.from(document.querySelectorAll('#eb_lines .eb-row')).map(row=>{
+    const pid = (row.querySelector('.eb-prod')||{}).value||'';
+    const qty = parseFloat((row.querySelector('.eb-qty')||{}).value||0);
+    const price = parseFloat((row.querySelector('.eb-price')||{}).value||0);
+    if(pid && qty>0) return {productId:pid, qty, price, total:qty*price};
+    return null;
+  }).filter(Boolean);
+}
+
+// 保存编辑
+function saveBillEdit(type, id){
+  const r = DB[type].find(x=>x.id===id);
+  if(!r){ showToast('记录不存在','error'); return; }
+
+  const items = ebGetItems();
+  if(!items.length){ showToast('请至少保留一行有效明细','error'); return; }
+
+  // 字段读取
+  const warehouseId = (document.getElementById('eb_wh')||{}).value || r.warehouseId;
+  if(!warehouseId){ showToast('请选择仓库','error'); return; }
+  const handler = (document.getElementById('eb_handler')||{}).value || r.handler || '';
+  const date = (document.getElementById('eb_date')||{}).value || r.date || '';
+  const totalAmt = items.reduce((s,i)=>s+i.total, 0);
+
+  // 库存回滚：撤销原来的库存影响，再应用新的
+  if(type==='pr'){
+    const supplierId = (document.getElementById('eb_sup')||{}).value;
+    if(!supplierId){ showToast('请选择供应商','error'); return; }
+    const poId = (document.getElementById('eb_po')||{}).value || '';
+    const poNo = poId ? (DB.po.find(p=>p.id===poId)||{}).no||'' : '';
+    // 回滚原入库库存（减回去）
+    r.items.forEach(i=>{ /* 库存通过 getStock 动态计算，删原 items 重写即可 */ });
+    // 更新记录
+    Object.assign(r, {supplierId, warehouseId, handler, date, poId, poNo, items, totalAmt});
+
+  } else if(type==='sd'){
+    const customerId = (document.getElementById('eb_cust')||{}).value;
+    if(!customerId){ showToast('请选择客户','error'); return; }
+    // 库存检查：新明细是否足量（原出库已扣，需净差）
+    for(const item of items){
+      const origItem = r.items.find(x=>x.productId===item.productId);
+      const origQty = origItem ? origItem.qty : 0;
+      const extraQty = item.qty - origQty; // 新增出库量
+      if(extraQty > 0){
+        const stock = getStock(item.productId, warehouseId);
+        if(stock < extraQty){
+          showToast(`${pname(item.productId)} 库存不足，新增出库量 ${extraQty}，当前可用库存 ${stock}`,'error');
+          return;
+        }
+      }
+    }
+    const soId = (document.getElementById('eb_so')||{}).value || '';
+    const soNo = soId ? (DB.so.find(s=>s.id===soId)||{}).no||'' : '';
+    Object.assign(r, {customerId, warehouseId, handler, date, soId, soNo, items, totalAmt});
+
+  } else if(type==='otherIn'){
+    const note = (document.getElementById('eb_note')||{}).value || r.note || '';
+    const otype = (document.getElementById('eb_otype')||{}).value || r.type || '';
+    Object.assign(r, {type:otype, warehouseId, handler, date, items, totalAmt, note});
+  }
+
+  const storeMap = {pr:'pr', sd:'sd', otherIn:'otherIn'};
+  saveStore(storeMap[type]);
+  closeModal();
+  if(type==='pr') renderPR();
+  else if(type==='sd') renderSD();
+  else if(type==='otherIn') renderOI();
+  renderDashboard();
+  writeLog('编辑', type==='pr'?'采购':type==='sd'?'销售':'其他', `编辑${type==='pr'?'采购入库单':type==='sd'?'销售出库单':'其他入库单'} ${r.no}`);
+  showToast('✓ 修改已保存，库存数据已更新');
+}
 
 // ── 批量打印 ──
 function toggleAllCheck(type, masterCb){
