@@ -3,7 +3,7 @@
 <h2 class="sr-only">产品进销存管理系统 V2 — 含 IndexedDB 持久化存储与 Excel 导出功能</h2>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font-sans);font-size:14px;color:var(--color-text-primary)}
+body{font-family:var(--font-sans);font-size:15px;color:var(--color-text-primary)}
 .app{display:flex;height:100vh;min-height:600px;background:var(--color-background-tertiary)}
 .sidebar{width:200px;min-width:200px;background:var(--color-background-primary);border-right:0.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;overflow-y:auto}
 .sidebar-logo{padding:14px 16px;border-bottom:0.5px solid var(--color-border-tertiary);font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px}
@@ -18,7 +18,7 @@ body{font-family:var(--font-sans);font-size:14px;color:var(--color-text-primary)
 .topbar{height:46px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;padding:0 16px;gap:10px;justify-content:space-between}
 .topbar-title{font-size:13px;font-weight:500}
 .topbar-right{display:flex;gap:6px;align-items:center}
-.btn{padding:5px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;font-size:11px;font-family:var(--font-sans)}
+.btn{padding:5px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;font-size:12px;font-family:var(--font-sans)}
 .btn:hover{background:var(--color-background-secondary)}
 .btn:active{transform:scale(.98)}
 .btn-primary{background:#378ADD;color:#fff;border-color:#378ADD}
@@ -39,9 +39,9 @@ body{font-family:var(--font-sans);font-size:14px;color:var(--color-text-primary)
 .metric-value{font-size:20px;font-weight:500}
 .metric-sub{font-size:10px;color:var(--color-text-tertiary);margin-top:3px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-table{width:100%;border-collapse:collapse;font-size:11px}
-th{background:var(--color-background-secondary);padding:7px 9px;text-align:left;font-weight:500;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary)}
-td{padding:6px 9px;border-bottom:0.5px solid var(--color-border-tertiary)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--color-background-secondary);padding:8px 10px;text-align:left;font-weight:500;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary)}
+td{padding:7px 10px;border-bottom:0.5px solid var(--color-border-tertiary)}
 tr:hover td{background:var(--color-background-secondary)}
 .badge{display:inline-block;padding:2px 6px;border-radius:9px;font-size:10px;font-weight:500}
 .badge-green{background:#EAF3DE;color:#3B6D11}
@@ -327,8 +327,8 @@ input:focus,select:focus{outline:none;border-color:#378ADD;box-shadow:0 0 0 2px 
           </div>
         </div>
         <div class="card">
-          <div class="card-header"><div class="card-title">库存数量排行</div></div>
-          <div id="topChart" class="chart-bar-wrap"></div>
+          <div class="card-header"><div class="card-title">📊 各仓库库存数量及金额</div></div>
+          <div id="topChart"></div>
         </div>
       </div>
 
@@ -1063,8 +1063,53 @@ function renderDashboard(){
   document.getElementById('recPR').innerHTML=recPR.length?recPR.map(r=>`<tr><td>${r.no}</td><td>${sname(r.supplierId)}</td><td>${fmtMoney(r.totalAmt)}</td><td>${r.date||'-'}</td></tr>`).join(''):'<tr><td colspan="4" style="color:var(--color-text-tertiary)">暂无记录</td></tr>';
   const recSD=DB.sd.filter(r=>r.status==='done').slice(-4).reverse();
   document.getElementById('recSD').innerHTML=recSD.length?recSD.map(r=>`<tr><td>${r.no}</td><td>${cname(r.customerId)}</td><td>${fmtMoney(r.totalAmt)}</td><td>${r.date||'-'}</td></tr>`).join(''):'<tr><td colspan="4" style="color:var(--color-text-tertiary)">暂无记录</td></tr>';
-  const maxV=Math.max(...DB.products.map(p=>getTotalStock(p.id)),1);
-  document.getElementById('topChart').innerHTML=DB.products.length?DB.products.slice(0,8).map((p,i)=>{const v=getTotalStock(p.id);return`<div class="chart-bar-row"><div class="chart-bar-label">${p.name}</div><div class="chart-bar-track"><div class="chart-bar-fill" style="width:${Math.round(Math.max(0,v)/maxV*100)}%;background:${colors[i%6]}"></div></div><div class="chart-bar-val">${v}</div></div>`;}).join(''):'<p style="font-size:11px;color:var(--color-text-tertiary)">暂无商品</p>';
+  // 各仓库库存数量及金额
+  const whEl = document.getElementById('topChart');
+  if(whEl && DB.warehouses.length){
+    const whRows = DB.warehouses.map(w=>{
+      let totalQty=0, totalAmt=0;
+      DB.products.forEach(p=>{
+        const q = getStock(p.id, w.id);
+        if(q>0){ totalQty+=q; totalAmt+=q*(p.costPrice||0); }
+      });
+      return {w, totalQty, totalAmt};
+    }).filter(r=>r.totalQty>0||r.totalAmt>0);
+    const maxQty = Math.max(...whRows.map(r=>r.totalQty), 1);
+    whEl.innerHTML = whRows.length ? `
+      <table style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead><tr>
+          <th style="padding:8px 10px;background:var(--color-background-secondary);font-weight:500;font-size:12px;border-bottom:0.5px solid var(--color-border-tertiary)">仓库名称</th>
+          <th style="padding:8px 10px;background:var(--color-background-secondary);font-weight:500;font-size:12px;border-bottom:0.5px solid var(--color-border-tertiary);text-align:center">库存数量</th>
+          <th style="padding:8px 10px;background:var(--color-background-secondary);font-weight:500;font-size:12px;border-bottom:0.5px solid var(--color-border-tertiary)">数量占比</th>
+          <th style="padding:8px 10px;background:var(--color-background-secondary);font-weight:500;font-size:12px;border-bottom:0.5px solid var(--color-border-tertiary);text-align:right">库存金额</th>
+        </tr></thead>
+        <tbody>
+          ${whRows.map((r,i)=>`
+            <tr>
+              <td style="padding:8px 10px;border-bottom:0.5px solid var(--color-border-tertiary);font-weight:500">${r.w.name}</td>
+              <td style="padding:8px 10px;border-bottom:0.5px solid var(--color-border-tertiary);text-align:center">
+                <span style="font-size:15px;font-weight:600;color:${colors[i%6]}">${r.totalQty}</span>
+              </td>
+              <td style="padding:8px 10px;border-bottom:0.5px solid var(--color-border-tertiary)">
+                <div style="display:flex;align-items:center;gap:8px">
+                  <div style="flex:1;background:var(--color-background-secondary);border-radius:3px;height:10px;overflow:hidden">
+                    <div style="width:${Math.round(r.totalQty/maxQty*100)}%;height:100%;background:${colors[i%6]};border-radius:3px"></div>
+                  </div>
+                  <span style="font-size:11px;color:var(--color-text-secondary);width:36px">${Math.round(r.totalQty/maxQty*100)}%</span>
+                </div>
+              </td>
+              <td style="padding:8px 10px;border-bottom:0.5px solid var(--color-border-tertiary);text-align:right;font-weight:600;color:#185FA5">${fmtMoney(r.totalAmt)}</td>
+            </tr>`).join('')}
+          <tr style="background:var(--color-background-secondary)">
+            <td style="padding:8px 10px;font-weight:700">合计</td>
+            <td style="padding:8px 10px;text-align:center;font-weight:700;font-size:15px">${whRows.reduce((s,r)=>s+r.totalQty,0)}</td>
+            <td style="padding:8px 10px"></td>
+            <td style="padding:8px 10px;text-align:right;font-weight:700;color:#185FA5">${fmtMoney(whRows.reduce((s,r)=>s+r.totalAmt,0))}</td>
+          </tr>
+        </tbody>
+      </table>` 
+    : '<p style="font-size:12px;color:var(--color-text-tertiary);padding:10px">暂无库存数据</p>';
+  }
   // ⚡ 电助力自行车库存按规格型号统计
   const EBIKE_CAT = '电助力自行车';
   const ebikeProds = DB.products.filter(p => p.category === EBIKE_CAT || p.name === EBIKE_CAT);
