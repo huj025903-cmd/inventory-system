@@ -58,11 +58,11 @@ tr:hover td{background:var(--color-background-secondary)}
 label{font-size:14px;color:var(--color-text-primary);font-weight:500}
 input,select,textarea{padding:8px 11px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-size:14px;font-family:var(--font-sans);width:100%}
 input:focus,select:focus{outline:none;border-color:#378ADD;box-shadow:0 0 0 2px rgba(55,138,221,.12)}
-.modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,.38);display:flex;align-items:center;justify-content:center;z-index:100}
-.modal{background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);width:540px;max-width:95%;max-height:82vh;overflow-y:auto}
-.modal-header{padding:14px 16px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:600}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;z-index:9999;pointer-events:all}
+.modal{background:#ffffff;border-radius:12px;border:none;width:560px;max-width:96%;max-height:88vh;overflow-y:auto;box-shadow:0 8px 40px rgba(0,0,0,.35)}
+.modal-header{padding:14px 16px;border-bottom:0.5px solid var(--color-border-tertiary);display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:600;background:#ffffff}
 .modal-body{padding:16px}
-.modal-footer{padding:10px 14px;border-top:0.5px solid var(--color-border-tertiary);display:flex;justify-content:flex-end;gap:6px}
+.modal-footer{padding:12px 16px;border-top:1px solid #f0f0f0;display:flex;justify-content:flex-end;gap:8px;background:#ffffff}
 .alert{padding:7px 10px;border-radius:var(--border-radius-md);font-size:11px;margin-bottom:8px;display:flex;align-items:flex-start;gap:7px}
 .alert-warn{background:#FAEEDA;color:#854F0B;border:0.5px solid #FAC775}
 .alert-danger{background:#FCEBEB;color:#A32D2D;border:0.5px solid #F7C1C1}
@@ -702,7 +702,7 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
 </div>
 
 <div class="toast" id="toast"><span class="toast-icon" id="toastIcon">✓</span><span id="toastMsg"></span></div>
-<div id="modalContainer"></div>
+<div id="modalContainer" style="position:fixed;inset:0;z-index:9998;pointer-events:none"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
@@ -1509,7 +1509,7 @@ function editItem(store,id){
 }
 
 /* ── Modals ── */
-function closeModal(){document.getElementById('modalContainer').innerHTML='';document.body.style.overflow='';}
+function closeModal(){const mc=document.getElementById('modalContainer');mc.innerHTML='';mc.style.pointerEvents='none';document.body.style.overflow='';}
 
 function addLine(cid){
   const c=document.getElementById(cid);const div=document.createElement('div');div.className='form-row c3';div.style.marginBottom='6px';
