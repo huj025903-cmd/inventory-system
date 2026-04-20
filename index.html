@@ -54,9 +54,9 @@ tr:hover td{background:var(--color-background-secondary)}
 .form-row.c2{grid-template-columns:1fr 1fr}
 .form-row.c3{grid-template-columns:1fr 1fr 1fr}
 .form-row.c4{grid-template-columns:1fr 1fr 1fr 1fr}
-.form-group{display:flex;flex-direction:column;gap:4px}
-label{font-size:13px;color:var(--color-text-primary);font-weight:500}
-input,select,textarea{padding:7px 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-size:13px;font-family:var(--font-sans);width:100%}
+.form-group{display:flex;flex-direction:column;gap:5px}
+label{font-size:14px;color:var(--color-text-primary);font-weight:500}
+input,select,textarea{padding:8px 11px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-size:14px;font-family:var(--font-sans);width:100%}
 input:focus,select:focus{outline:none;border-color:#378ADD;box-shadow:0 0 0 2px rgba(55,138,221,.12)}
 .modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,.38);display:flex;align-items:center;justify-content:center;z-index:100}
 .modal{background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);width:540px;max-width:95%;max-height:82vh;overflow-y:auto}
@@ -204,6 +204,86 @@ input:focus,select:focus{outline:none;border-color:#378ADD;box-shadow:0 0 0 2px 
 input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-size:13px}
 
 @media(max-width:768px){.modal-body{padding:14px 16px}.form-group label{font-size:14px}.modal-header{font-size:15px}input,select,textarea{font-size:14px;padding:9px 11px;min-height:42px}}
+
+/* ══ 移动端表单全面升级 ══ */
+@media (max-width: 768px){
+  /* 弹窗全屏化，更像原生App */
+  .modal-overlay{align-items:flex-end;padding:0}
+  .modal{
+    width:100%!important;max-width:100%!important;
+    border-radius:20px 20px 0 0;
+    max-height:92dvh;
+    box-shadow:0 -4px 24px rgba(0,0,0,.18);
+  }
+  .modal-header{
+    padding:16px 18px 12px;
+    font-size:17px!important;font-weight:700!important;
+    border-bottom:1px solid var(--color-border-tertiary);
+    position:sticky;top:0;background:var(--color-background-primary);z-index:10;
+  }
+  .modal-body{padding:16px 18px;overflow-y:auto}
+  .modal-footer{
+    padding:12px 18px;
+    position:sticky;bottom:0;
+    background:var(--color-background-primary);
+    border-top:1px solid var(--color-border-tertiary);
+  }
+  /* 表单标签 */
+  .form-group label,label{
+    font-size:14px!important;
+    color:var(--color-text-secondary)!important;
+    font-weight:600!important;
+    margin-bottom:4px!important;
+  }
+  /* 输入框 - 16px防止iOS缩放 */
+  input,select,textarea{
+    font-size:16px!important;
+    padding:12px 14px!important;
+    min-height:48px!important;
+    border-radius:10px!important;
+    border:1.5px solid var(--color-border-secondary)!important;
+    color:var(--color-text-primary)!important;
+  }
+  input:focus,select:focus,textarea:focus{
+    border-color:#378ADD!important;
+    box-shadow:0 0 0 3px rgba(55,138,221,.15)!important;
+    outline:none!important;
+  }
+  /* form-row 手机全部单列 */
+  .form-row,.form-row.c2,.form-row.c3,.form-row.c4{
+    grid-template-columns:1fr!important;
+    gap:12px!important;
+    margin-bottom:12px!important;
+  }
+  /* 按钮更大 */
+  .modal-footer .btn{
+    padding:13px 20px!important;
+    font-size:15px!important;
+    min-height:48px!important;
+    border-radius:10px!important;
+    flex:1;
+  }
+  .modal-footer .btn-primary{font-weight:700!important}
+  /* placeholder */
+  input::placeholder,textarea::placeholder{
+    font-size:15px!important;
+    color:var(--color-text-tertiary)!important;
+  }
+  /* 明细行 */
+  .po-line-row,.code-line-row{
+    padding:12px!important;
+    border-radius:10px!important;
+  }
+  .po-line-row input,.code-line-row input,.po-line-row select,.code-line-row select{
+    font-size:16px!important;
+    min-height:46px!important;
+  }
+  /* badge */
+  .badge{font-size:12px!important;padding:4px 8px!important}
+  /* 搜索下拉 */
+  #poLines [id$="_drop"] div,
+  [id$="_drop"] div{font-size:15px!important;padding:12px 14px!important}
+}
 </style>
 
 <!-- 登录界面 -->
