@@ -2848,6 +2848,26 @@ function editBill(type, id){
   const typeNames = {pr:'采购入库单', sd:'销售出库单', otherIn:'其他入库单'};
   const typeName = typeNames[type] || type;
 
+  // ── 兼容旧数据：warehouseId 可能存的是名称字符串而非 id ──
+  let resolvedWHId = r.warehouseId || '';
+  if(resolvedWHId && !DB.warehouses.find(w=>w.id===resolvedWHId)){
+    // 尝试按名称匹配
+    const matched = DB.warehouses.find(w=>w.name===resolvedWHId);
+    if(matched) resolvedWHId = matched.id;
+  }
+
+  // 同理处理 supplierId / customerId
+  let resolvedSupId = r.supplierId || '';
+  if(resolvedSupId && !DB.suppliers.find(s=>s.id===resolvedSupId)){
+    const matched = DB.suppliers.find(s=>s.name===resolvedSupId);
+    if(matched) resolvedSupId = matched.id;
+  }
+  let resolvedCustId = r.customerId || '';
+  if(resolvedCustId && !DB.customers.find(c=>c.id===resolvedCustId)){
+    const matched = DB.customers.find(c=>c.name===resolvedCustId);
+    if(matched) resolvedCustId = matched.id;
+  }
+
   // 构建头部字段
   let headerHTML = '';
   if(type==='pr'){
@@ -2858,10 +2878,10 @@ function editBill(type, id){
           <select id="eb_po"><option value="">无/直接入库</option>${poOpts}</select>
         </div>
         <div class="form-group"><label>供应商*</label>
-          <select id="eb_sup"><option value="">选择</option>${getSupOpts(r.supplierId)}</select>
+          <select id="eb_sup"><option value="">选择</option>${getSupOpts(resolvedSupId)}</select>
         </div>
         <div class="form-group"><label>仓库*</label>
-          <select id="eb_wh"><option value="">选择</option>${getWHOpts(r.warehouseId)}</select>
+          <select id="eb_wh"><option value="">选择</option>${getWHOpts(resolvedWHId)}</select>
         </div>
       </div>
       <div class="form-row c2">
@@ -2876,10 +2896,10 @@ function editBill(type, id){
           <select id="eb_so"><option value="">无/直接出库</option>${soOpts}</select>
         </div>
         <div class="form-group"><label>客户*</label>
-          <select id="eb_cust"><option value="">选择</option>${getCustOpts(r.customerId)}</select>
+          <select id="eb_cust"><option value="">选择</option>${getCustOpts(resolvedCustId)}</select>
         </div>
         <div class="form-group"><label>仓库*</label>
-          <select id="eb_wh"><option value="">选择</option>${getWHOpts(r.warehouseId)}</select>
+          <select id="eb_wh"><option value="">选择</option>${getWHOpts(resolvedWHId)}</select>
         </div>
       </div>
       <div class="form-row c2">
@@ -2892,7 +2912,7 @@ function editBill(type, id){
       <div class="form-row c3">
         <div class="form-group"><label>类型</label><select id="eb_otype">${typeOpts}</select></div>
         <div class="form-group"><label>仓库*</label>
-          <select id="eb_wh"><option value="">选择</option>${getWHOpts(r.warehouseId)}</select>
+          <select id="eb_wh"><option value="">选择</option>${getWHOpts(resolvedWHId)}</select>
         </div>
         <div class="form-group"><label>日期</label><input id="eb_date" type="date" value="${r.date||''}"></div>
       </div>
