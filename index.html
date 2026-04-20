@@ -2516,10 +2516,7 @@ async function init(){
       document.getElementById('loginScreen').style.display='flex';
       document.getElementById('app').style.display='none';
     }
-    // 后台数据注入
-    autoInjectOpenStock();
-    setTimeout(()=>{ injectPurchaseData(); }, 2000);
-    setTimeout(()=>{ injectRawMaterialData(); }, 4000);
+    // 数据已在云端，无需重新注入
     startPolling();
   }catch(e){
     console.error('[云端连接失败]',e);
