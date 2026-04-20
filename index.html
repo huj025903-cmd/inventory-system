@@ -632,6 +632,8 @@ async function sbFetch(path,opts={}){
   try{
     res=await fetch(SUPABASE_URL+path,{
       ...opts,
+      mode:'cors',
+      credentials:'omit',
       headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation',...(opts.headers||{})}
     });
   }catch(netErr){
