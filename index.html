@@ -1743,7 +1743,7 @@ function makePOLine(containerId){
             oninput="poProdSearch(this,'${lid}_drop')" onfocus="poProdSearch(this,'${lid}_drop')" autocomplete="off">
           <button onclick="poAddNewProduct(this,'${lid}')" class="btn btn-success" style="white-space:nowrap;font-size:10px" title="新增产品">＋ 新品</button>
         </div>
-        <div id="${lid}_drop" style="display:none;position:absolute;left:10px;right:10px;top:52px;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:200;max-height:280px;overflow-y:auto"></div>
+        <div id="${lid}_drop" style="display:none;position:absolute;left:10px;right:10px;top:52px;background:#F5F5F3;border:0.5px solid var(--color-border-secondary);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:200;max-height:280px;overflow-y:auto"></div>
         <div id="${lid}_info" style="font-size:10px;color:var(--color-text-tertiary);min-height:14px;margin-top:2px"></div>
         <select class="pi-p" style="display:none"><option value="">-</option></select>
       </div>
@@ -1798,6 +1798,113 @@ function makePOLine(containerId){
   div.querySelector('.po-name-input').addEventListener('blur', function(){
     setTimeout(()=>{ const d=document.getElementById(lid+'_drop'); if(d)d.style.display='none'; }, 300);
   });
+}
+
+// ── 通用明细行（销售订单、销售出库、BOM物料等）──
+// showPrice: 是否显示单价列；isBom: 是否为BOM物料行（隐藏单价，仅显示用量）
+function makeCodeLine(containerId, showPrice, isBom){
+  const c = document.getElementById(containerId);
+  if(!c) return;
+  const idx = c.querySelectorAll('.code-line-row').length + 1;
+  const lid = containerId + '_cl' + idx;
+  const div = document.createElement('div');
+  div.className = 'code-line-row';
+  div.style.cssText = 'background:#F5F5F3;border:0.5px solid var(--color-border-tertiary);border-radius:6px;padding:8px 10px;margin-bottom:8px;position:relative';
+  const priceCol = showPrice ? `
+      <div>
+        <label style="font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:3px">单价*</label>
+        <input class="pi-r" type="number" value="0" step="0.01" style="font-size:11px;width:100%">
+      </div>` : `<input class="pi-r" type="hidden" value="0">`;
+  div.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 80px ${showPrice?'100px ':''} auto;gap:8px;align-items:start">
+      <div>
+        <input class="cl-name-input pi-name" type="text" placeholder="输入产品名/编号搜索..." style="flex:1;font-size:11px;width:100%;margin-bottom:4px"
+          oninput="clProdSearch(this,'${lid}_drop')" autocomplete="off">
+        <div id="${lid}_drop" style="display:none;position:absolute;left:10px;right:10px;top:46px;background:#F5F5F3;border:0.5px solid var(--color-border-secondary);border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,.15);z-index:200;max-height:260px;overflow-y:auto"></div>
+        <div id="${lid}_info" style="font-size:10px;color:var(--color-text-tertiary);min-height:14px;margin-top:2px"></div>
+        <select class="pi-p" style="display:none"><option value="">-</option>${getProductOpts()}</select>
+      </div>
+      <div>
+        <label style="font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:3px">${isBom?'用量*':'数量*'}</label>
+        <input class="pi-q" type="number" value="1" min="0.01" step="0.01" style="font-size:11px;width:100%">
+      </div>
+      ${priceCol}
+      <div style="padding-top:18px">
+        <button onclick="this.closest('.code-line-row').remove()" class="btn btn-danger" style="padding:4px 8px;font-size:11px">✕</button>
+      </div>
+    </div>
+  `;
+  c.appendChild(div);
+  // blur关闭下拉，延迟300ms防止点击候选项时误关
+  div.querySelector('.cl-name-input').addEventListener('blur', function(){
+    setTimeout(()=>{ const d=document.getElementById(lid+'_drop'); if(d)d.style.display='none'; }, 300);
+  });
+}
+
+// 通用明细行产品搜索
+function clProdSearch(inputEl, dropId){
+  const q = inputEl.value.trim().toLowerCase();
+  const dropEl = document.getElementById(dropId);
+  if(!dropEl) return;
+  if(q.length < 2){ dropEl.style.display='none'; return; }
+  const MAX_SHOW = 8;
+  const allMatched = DB.products.filter(p =>
+    (p.name||'').toLowerCase().includes(q) ||
+    (p.spec||'').toLowerCase().includes(q) ||
+    (p.code||'').toLowerCase().includes(q)
+  );
+  const matched = allMatched.slice(0, MAX_SHOW);
+  const extra = allMatched.length - matched.length;
+  function hl(str){
+    if(!str) return '';
+    const idx = str.toLowerCase().indexOf(q);
+    if(idx<0) return str;
+    return str.slice(0,idx)+'<mark style="background:#FFF3CC;color:#7A4F00;border-radius:2px;padding:0 1px">'+str.slice(idx,idx+q.length)+'</mark>'+str.slice(idx+q.length);
+  }
+  if(!matched.length){
+    dropEl.style.display='block';
+    dropEl.innerHTML = `<div style="padding:10px;font-size:11px;color:var(--color-text-tertiary)">未找到"${q}"</div>`;
+    return;
+  }
+  dropEl.style.display = 'block';
+  const items = matched.map(p => `
+    <div onclick="clSelectProduct('${p.id}','${dropId}')"
+      style="padding:8px 12px;cursor:pointer;font-size:12px;border-bottom:0.5px solid var(--color-border-tertiary);background:#F5F5F3"
+      onmouseover="this.style.background='#EAEAE8'"
+      onmouseout="this.style.background='#F5F5F3'">
+      <div style="font-weight:500">${hl(p.name)}${p.spec?' <span style="color:var(--color-text-tertiary);font-weight:400">'+hl(p.spec)+'</span>':''}</div>
+      <div style="color:var(--color-text-tertiary);font-size:10px;margin-top:2px">${hl(p.code)} | ${p.category||'-'} | ${p.unit||'-'} | 成本价 ¥${p.costPrice||0}</div>
+    </div>`).join('');
+  const footer = extra > 0
+    ? `<div style="padding:6px 12px;font-size:10px;color:var(--color-text-tertiary);background:#EAEAE8;text-align:center">还有 ${extra} 条，请输入更精确的关键词</div>`
+    : '';
+  dropEl.innerHTML = items + footer;
+}
+
+// 通用明细行选中产品
+function clSelectProduct(pid, dropId){
+  const p = DB.products.find(x=>x.id===pid);
+  if(!p) return;
+  const dropEl = document.getElementById(dropId);
+  if(dropEl) dropEl.style.display='none';
+  const lid = dropId.replace('_drop','');
+  const row = dropEl ? dropEl.closest('.code-line-row') : null;
+  if(!row) return;
+  const nameInput = row.querySelector('.cl-name-input');
+  const selectEl = row.querySelector('.pi-p');
+  const priceEl = row.querySelector('.pi-r');
+  const infoEl = document.getElementById(lid+'_info');
+  if(nameInput) nameInput.value = p.name + (p.spec?' '+p.spec:'');
+  if(selectEl){
+    if(!selectEl.querySelector(`option[value="${p.id}"]`)){
+      const opt = document.createElement('option');
+      opt.value = p.id; opt.textContent = p.name;
+      selectEl.appendChild(opt);
+    }
+    selectEl.value = p.id;
+  }
+  if(priceEl && priceEl.type!=='hidden' && (!priceEl.value || parseFloat(priceEl.value)===0)) priceEl.value = p.salePrice||0;
+  if(infoEl) infoEl.innerHTML = `<span style="color:#1D9E75">✓ ${p.code} | ${p.category||'-'} | ${p.unit||'-'} | 成本价 ¥${p.costPrice||0}</span>`;
 }
 
 // 产品名称搜索下拉（优化版：限制条数、高亮关键词、最少2字符触发）
@@ -2062,7 +2169,7 @@ function searchBomProduct(){
   const info = document.getElementById('fbpInfo');
   if(!matched.length){ if(info) info.innerHTML = '<span style="color:#E24B4A;font-size:10px">✗ 未找到匹配商品</span>'; return; }
   const opts = matched.map(p=>`<option value="${p.id}" data-code="${p.code}">${p.code} | ${p.name}${p.spec?' '+p.spec:''}</option>`).join('');
-  if(info) info.innerHTML = `<select onchange="applyBomProduct(this)" style="font-size:10px;width:100%;margin-top:2px"><option value="">-- 选择成品 --</option>${opts}</select>`;
+  if(info) info.innerHTML = `<select onchange="applyBomProduct(this)" style="font-size:11px;width:100%;margin-top:4px;background:#F5F5F3;border:0.5px solid var(--color-border-secondary);border-radius:4px;padding:5px 8px"><option value="">-- 选择成品 --</option>${opts}</select>`;
 }
 
 function applyBomProduct(sel){
