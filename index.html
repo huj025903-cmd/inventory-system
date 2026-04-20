@@ -10,8 +10,8 @@ body{font-family:var(--font-sans);font-size:15px;color:var(--color-text-primary)
 .db-status{width:8px;height:8px;border-radius:50%;background:#E24B4A;flex-shrink:0;transition:background .3s}
 .db-status.connected{background:#639922}
 .nav-group{padding:6px 0}
-.nav-label{padding:5px 16px;font-size:10px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.06em}
-.nav-item{padding:7px 16px;cursor:pointer;font-size:12px;color:var(--color-text-secondary);display:flex;align-items:center;gap:7px;border-left:2px solid transparent}
+.nav-label{padding:6px 16px;font-size:12px;color:var(--color-text-tertiary);text-transform:uppercase;letter-spacing:.06em}
+.nav-item{padding:8px 16px;cursor:pointer;font-size:14px;color:var(--color-text-secondary);display:flex;align-items:center;gap:7px;border-left:2px solid transparent}
 .nav-item:hover{background:var(--color-background-secondary);color:var(--color-text-primary)}
 .nav-item.active{background:var(--color-background-info);color:var(--color-text-info);border-left-color:#378ADD;font-weight:500}
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
@@ -174,7 +174,7 @@ input:focus,select:focus{outline:none;border-color:#378ADD;box-shadow:0 0 0 2px 
   .tab{padding:8px 10px}
 }
 @media (max-width: 420px){
-  .nav-item{min-width:48px;font-size:8px;padding:5px 6px}
+  .nav-item{min-width:52px;font-size:10px;padding:5px 8px}
   .metric-grid{grid-template-columns:1fr 1fr}
   #ebikeStockGrid>div{flex:1 1 calc(50% - 4px)}
   .export-grid{grid-template-columns:1fr}
@@ -232,44 +232,44 @@ input:focus,select:focus{outline:none;border-color:#378ADD;box-shadow:0 0 0 2px 
     </div>
     <div class="nav-group">
       <div class="nav-label">概览</div>
-      <div class="nav-item active" onclick="nav('dashboard')">📊 仪表盘</div>
+      <div class="nav-item active" onclick="closeMobileMenu();nav('dashboard')">📊 仪表盘</div>
     </div>
     <div class="nav-group">
       <div class="nav-label">基础资料</div>
-      <div class="nav-item" onclick="nav('products')">🏷️ 商品管理</div>
-      <div class="nav-item" onclick="nav('warehouses')">🏢 仓库管理</div>
-      <div class="nav-item" onclick="nav('suppliers')">🚚 供应商</div>
-      <div class="nav-item" onclick="nav('customers')">👥 客户</div>
-      <div class="nav-item" onclick="nav('units')">📏 计量单位</div>
-      <div class="nav-item" onclick="nav('openstock')">📋 期初库存</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('products')">🏷️ 商品管理</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('warehouses')">🏢 仓库管理</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('suppliers')">🚚 供应商</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('customers')">👥 客户</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('units')">📏 计量单位</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('openstock')">📋 期初库存</div>
     </div>
     <div class="nav-group">
       <div class="nav-label">采购管理</div>
-      <div class="nav-item" onclick="nav('po')">📝 采购订单</div>
-      <div class="nav-item" onclick="nav('pr')">📥 采购入库</div>
-      <div class="nav-item" onclick="nav('preturn')">↩️ 采购退货</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('po')">📝 采购订单</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('pr')">📥 采购入库</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('preturn')">↩️ 采购退货</div>
     </div>
     <div class="nav-group">
       <div class="nav-label">销售管理</div>
-      <div class="nav-item" onclick="nav('so')">📋 销售订单</div>
-      <div class="nav-item" onclick="nav('sd')">📤 销售出库</div>
-      <div class="nav-item" onclick="nav('sreturn')">↩️ 销售退货</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('so')">📋 销售订单</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('sd')">📤 销售出库</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('sreturn')">↩️ 销售退货</div>
     </div>
     <div class="nav-group">
       <div class="nav-label">库存管理</div>
-      <div class="nav-item" onclick="nav('otherIn')">⬇️ 其他入库</div>
-      <div class="nav-item" onclick="nav('otherOut')">⬆️ 其他出库</div>
-      <div class="nav-item" onclick="nav('bom')">🔧 BOM表</div>
-      <div class="nav-item" onclick="nav('assembly')">⚙️ 组装单</div>
-      <div class="nav-item" onclick="nav('stockQuery')">🔍 库存查询</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('otherIn')">⬇️ 其他入库</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('otherOut')">⬆️ 其他出库</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('bom')">🔧 BOM表</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('assembly')">⚙️ 组装单</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('stockQuery')">🔍 库存查询</div>
     </div>
     <div class="nav-group">
       <div class="nav-label">系统</div>
-      <div class="nav-item" onclick="nav('export')">📊 导出Excel</div>
-      <div class="nav-item" onclick="nav('users')">👤 用户管理</div>
-      <div class="nav-item" onclick="nav('logs')">📋 操作日志</div>
-      <div class="nav-item" onclick="nav('permissions')">🔐 权限管理</div>
-      <div class="nav-item" onclick="nav('backup')">💾 备份恢复</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('export')">📊 导出Excel</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('users')">👤 用户管理</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('logs')">📋 操作日志</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('permissions')">🔐 权限管理</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('backup')">💾 备份恢复</div>
     </div>
   </div>
 
@@ -285,7 +285,7 @@ input:focus,select:focus{outline:none;border-color:#378ADD;box-shadow:0 0 0 2px 
         <button class="btn" onclick="changePasswordModal()" style="font-size:10px">🔑 改密</button>
         <button class="btn btn-danger" onclick="logout()" style="font-size:10px">退出</button>
         <button class="btn btn-success" onclick="manualSave()" style="display:var(--desktop-only,flex)">💾 保存</button>
-        <button class="btn" onclick="nav('export')" style="display:var(--desktop-only,flex)">📊 Excel导出</button>
+        <button class="btn" onclick="closeMobileMenu();nav('export')" style="display:var(--desktop-only,flex)">📊 Excel导出</button>
       </div>
     </div>
     <div class="db-info-bar">
@@ -1055,7 +1055,14 @@ function renderDashboard(){
   const al=document.getElementById('alertList');
   al.innerHTML=alr.length?alr.map(p=>`<div class="alert alert-danger" style="padding:5px 8px;font-size:10px">⚠ ${p.name}：库存 ${getTotalStock(p.id)} &lt; 安全库存 ${p.safeQty}</div>`).join(''):'<p style="font-size:11px;color:var(--color-text-tertiary)">暂无预警</p>';
   const colors=['#378ADD','#1D9E75','#D85A30','#BA7517','#D4537E','#639922'];
-  const topItems=DB.products.map(p=>({name:p.name,val:getTotalStock(p.id)})).sort((a,b)=>b.val-a.val).slice(0,5);
+  // 按产品类别汇总库存数量
+  const catMap={};
+  DB.products.forEach(p=>{
+    const cat=p.category||'其他';
+    const qty=getTotalStock(p.id);
+    if(qty>0) catMap[cat]=(catMap[cat]||0)+qty;
+  });
+  const topItems=Object.entries(catMap).map(([name,val])=>({name,val})).sort((a,b)=>b.val-a.val).slice(0,6);
   const total=topItems.reduce((s,i)=>s+Math.max(0,i.val),0)||1;
   const pie=document.getElementById('stockPie');
   pie.innerHTML=topItems.length?`<div class="mini-donut"><svg width="72" height="72" viewBox="0 0 72 72">${(()=>{let off=0;return topItems.map((it,i)=>{const pct=Math.max(0,it.val)/total;const dash=pct*226.2;const el=`<circle cx="36" cy="36" r="27" fill="none" stroke="${colors[i%6]}" stroke-width="16" stroke-dasharray="${dash} ${226.2-dash}" stroke-dashoffset="${-off}" transform="rotate(-90 36 36)"/>`;off+=dash;return el;}).join('');})()}</svg><div class="donut-legend">${topItems.map((it,i)=>`<div class="donut-item"><div class="donut-dot" style="background:${colors[i%6]}"></div>${it.name}: ${it.val}</div>`).join('')}</div></div>`:'<p style="font-size:11px;color:var(--color-text-tertiary)">暂无库存数据</p>';
@@ -2597,12 +2604,7 @@ function closeMobileMenu(){
   document.body.style.overflow = '';
 }
 
-// 点导航项时关闭移动端菜单
-const _origNav = nav;
-function nav(page){
-  closeMobileMenu();
-  _origNav(page);
-}
+// 移动端菜单关闭已集成在 nav-item onclick 里
 
 // 移动端弹窗关闭优化 - 支持下拉关闭
 function initMobileSwipe(){
