@@ -89,8 +89,8 @@ body{font-family:var(--font-sans);font-size:15px;color:var(--color-text-primary)
 .db-status{width:8px;height:8px;border-radius:50%;background:#E24B4A;flex-shrink:0;transition:background .3s}
 .db-status.connected{background:#639922}
 .nav-group{padding:6px 0}
-.nav-label{padding:6px 16px;font-size:12px;color:var(--sidebar-label,var(--color-text-tertiary));text-transform:uppercase;letter-spacing:.06em}
-.nav-item{padding:8px 16px;cursor:pointer;font-size:14px;color:var(--sidebar-text,var(--color-text-secondary));display:flex;align-items:center;gap:7px;border-left:2px solid transparent}
+.nav-label{padding:6px 16px;font-size:calc(var(--sidebar-font-size,14px) - 2px);color:var(--sidebar-label,var(--color-text-tertiary));text-transform:uppercase;letter-spacing:.06em}
+.nav-item{padding:8px 16px;cursor:pointer;font-size:var(--sidebar-font-size,14px);color:var(--sidebar-text,var(--color-text-secondary));display:flex;align-items:center;gap:7px;border-left:2px solid transparent}
 .nav-item:hover{background:var(--sidebar-hover-bg,var(--color-background-secondary));color:var(--sidebar-text-active,var(--color-text-primary))}
 .nav-item.active{background:var(--sidebar-active-bg,var(--color-background-info));color:var(--sidebar-text-active,var(--color-text-info));border-left-color:#378ADD;font-weight:600}
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
@@ -904,7 +904,8 @@ async function checkSession(){
 function openSysSettings(){
   const curDec   = getMoneyDecimals();
   const curTheme = localStorage.getItem('inv_theme')||'light';
-  const curFont  = parseInt(localStorage.getItem('inv_fontSize')||'14',10);
+  const curFont   = parseInt(localStorage.getItem('inv_fontSize')||'14',10);
+  const curSbFont  = parseInt(localStorage.getItem('inv_sbFontSize')||'13',10);
   const curAuto  = localStorage.getItem('inv_autoBackup')||'off';
   const themes = [
     {k:'light',       label:'☀ 默认白',  bg:'#FFFFFF', fg:'#1A1A1A'},
@@ -972,15 +973,29 @@ function openSysSettings(){
         <!-- 字体大小 -->
         <div>
           <div style="font-size:12px;font-weight:600;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--color-border-tertiary);color:var(--color-text-secondary)">🔠 字体大小</div>
-          <div style="display:flex;align-items:center;gap:12px">
-            <div style="display:flex;gap:6px">
-              ${fonts.map(f=>`<button onclick="setSysFont(${f})" id="fontBtn_${f}"
-                style="padding:6px 12px;border-radius:5px;border:1.5px solid ${f===curFont?'#185FA5':'var(--color-border-secondary)'};
-                background:${f===curFont?'#185FA5':'var(--color-background-primary)'};
-                color:${f===curFont?'#fff':'var(--color-text-primary)'};
-                cursor:pointer;font-size:${f}px;font-weight:${f===curFont?'600':'400'}">${f}</button>`).join('')}
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:11px;color:var(--color-text-secondary);width:72px;flex-shrink:0">主内容区</span>
+              <div style="display:flex;gap:5px">
+                ${fonts.map(f=>`<button onclick="setSysFont(${f},'content')" id="fontBtn_${f}"
+                  style="padding:5px 10px;border-radius:5px;border:1.5px solid ${f===curFont?'#185FA5':'var(--color-border-secondary)'};
+                  background:${f===curFont?'#185FA5':'var(--color-background-primary)'};
+                  color:${f===curFont?'#fff':'var(--color-text-primary)'};
+                  cursor:pointer;font-size:${f}px;font-weight:${f===curFont?'600':'400'}">${f}</button>`).join('')}
+              </div>
+              <span id="fontPrevText" style="font-size:${curFont}px;color:var(--color-text-tertiary);white-space:nowrap">Aa 数字123</span>
             </div>
-            <span id="fontPrevText" style="font-size:${curFont}px;color:var(--color-text-tertiary)">预览文字 Aa 123</span>
+            <div style="display:flex;align-items:center;gap:10px">
+              <span style="font-size:11px;color:var(--color-text-secondary);width:72px;flex-shrink:0">侧边导航</span>
+              <div style="display:flex;gap:5px">
+                ${fonts.map(f=>`<button onclick="setSysFont(${f},'sidebar')" id="sbFontBtn_${f}"
+                  style="padding:5px 10px;border-radius:5px;border:1.5px solid ${f===curSbFont?'#185FA5':'var(--color-border-secondary)'};
+                  background:${f===curSbFont?'#185FA5':'var(--color-background-primary)'};
+                  color:${f===curSbFont?'#fff':'var(--color-text-primary)'};
+                  cursor:pointer;font-size:${f}px;font-weight:${f===curSbFont?'600':'400'}">${f}</button>`).join('')}
+              </div>
+              <span id="sbFontPrevText" style="font-size:${curSbFont}px;color:var(--color-text-tertiary);white-space:nowrap">导航菜单</span>
+            </div>
           </div>
         </div>
 
@@ -1114,22 +1129,39 @@ function applySidebarMode(mode){
   }
 }
 
-function setSysFont(size){
-  localStorage.setItem('inv_fontSize', String(size));
-  document.body.style.fontSize = size+'px';
-  // 更新按钮
-  [12,13,14,15,16,18].forEach(f=>{
-    const btn = document.getElementById('fontBtn_'+f);
-    if(!btn) return;
-    const active = f===size;
-    btn.style.borderColor = active?'#185FA5':'var(--color-border-secondary)';
-    btn.style.background  = active?'#185FA5':'var(--color-background-primary)';
-    btn.style.color       = active?'#fff':'var(--color-text-primary)';
-    btn.style.fontWeight  = active?'600':'400';
-  });
-  const prev = document.getElementById('fontPrevText');
-  if(prev) prev.style.fontSize = size+'px';
-  showToast(`✓ 字体大小已设为 ${size}px`);
+function setSysFont(size, target){
+  target = target || 'content';
+  if(target === 'content'){
+    localStorage.setItem('inv_fontSize', String(size));
+    document.body.style.fontSize = size+'px';
+    [12,13,14,15,16,18].forEach(f=>{
+      const btn = document.getElementById('fontBtn_'+f);
+      if(!btn) return;
+      const active = f===size;
+      btn.style.borderColor = active?'#185FA5':'var(--color-border-secondary)';
+      btn.style.background  = active?'#185FA5':'var(--color-background-primary)';
+      btn.style.color       = active?'#fff':'var(--color-text-primary)';
+      btn.style.fontWeight  = active?'600':'400';
+    });
+    const prev = document.getElementById('fontPrevText');
+    if(prev) prev.style.fontSize = size+'px';
+    showToast(`✓ 主内容区字体已设为 ${size}px`);
+  } else {
+    localStorage.setItem('inv_sbFontSize', String(size));
+    document.documentElement.style.setProperty('--sidebar-font-size', size+'px');
+    [12,13,14,15,16,18].forEach(f=>{
+      const btn = document.getElementById('sbFontBtn_'+f);
+      if(!btn) return;
+      const active = f===size;
+      btn.style.borderColor = active?'#185FA5':'var(--color-border-secondary)';
+      btn.style.background  = active?'#185FA5':'var(--color-background-primary)';
+      btn.style.color       = active?'#fff':'var(--color-text-primary)';
+      btn.style.fontWeight  = active?'600':'400';
+    });
+    const prev = document.getElementById('sbFontPrevText');
+    if(prev) prev.style.fontSize = size+'px';
+    showToast(`✓ 侧边导航字体已设为 ${size}px`);
+  }
 }
 
 function setSysAutoBackup(val){
@@ -1455,6 +1487,8 @@ function applySavedSettings(){
   const fontSize = parseInt(localStorage.getItem('inv_fontSize')||'14',10);
   document.body.setAttribute('data-theme', theme);
   document.body.style.fontSize = fontSize+'px';
+  const sbFontSize = parseInt(localStorage.getItem('inv_sbFontSize')||'13',10);
+  document.documentElement.style.setProperty('--sidebar-font-size', sbFontSize+'px');
   const sidebarMode = localStorage.getItem('inv_sidebar')||'auto';
   applySidebarMode(sidebarMode);
   startAutoBackupScheduler();
