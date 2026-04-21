@@ -462,6 +462,34 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
         <div class="card">
           <div class="card-header"><div class="card-title">期初库存</div><div style="display:flex;gap:6px"><button class="btn btn-success" onclick="exportExcel('openstock')">📊 导出Excel</button><button class="btn btn-primary" onclick="openModal('openstock')">+ 录入</button></div></div>
           <div class="alert alert-warn">⚠ 期初库存录入后请及时锁定，锁定后不可修改。</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;padding:10px 0 8px">
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <label style="font-size:10px;color:var(--color-text-secondary);font-weight:500">商品类别</label>
+              <select id="osFilterCat" onchange="renderOpenstock()" style="font-size:12px;padding:6px 10px;border:0.5px solid var(--color-border-secondary);border-radius:4px;background:var(--color-background-secondary);min-width:130px">
+                <option value="">全部类别</option>
+              </select>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <label style="font-size:10px;color:var(--color-text-secondary);font-weight:500">所属仓库</label>
+              <select id="osFilterWH" onchange="renderOpenstock()" style="font-size:12px;padding:6px 10px;border:0.5px solid var(--color-border-secondary);border-radius:4px;background:var(--color-background-secondary);min-width:150px">
+                <option value="">全部仓库</option>
+              </select>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <label style="font-size:10px;color:var(--color-text-secondary);font-weight:500">商品名称/编号</label>
+              <input id="osFilterKw" type="text" placeholder="输入关键词..." oninput="renderOpenstock()" style="font-size:12px;padding:6px 10px;border:0.5px solid var(--color-border-secondary);border-radius:4px;background:var(--color-background-secondary);width:150px">
+            </div>
+            <div style="display:flex;flex-direction:column;gap:3px">
+              <label style="font-size:10px;color:var(--color-text-secondary);font-weight:500">状态</label>
+              <select id="osFilterStatus" onchange="renderOpenstock()" style="font-size:12px;padding:6px 10px;border:0.5px solid var(--color-border-secondary);border-radius:4px;background:var(--color-background-secondary)">
+                <option value="">全部</option>
+                <option value="locked">已锁定</option>
+                <option value="pending">待确认</option>
+              </select>
+            </div>
+            <button class="btn" onclick="osResetFilter()" style="font-size:11px;padding:6px 12px;align-self:flex-end">↺ 重置</button>
+            <div id="osFilterCount" style="align-self:flex-end;font-size:11px;color:var(--color-text-tertiary);padding-bottom:6px"></div>
+          </div>
           <table><thead><tr><th>商品编号</th><th>产品类别</th><th>商品名称</th><th>规格型号</th><th>仓库</th><th>数量</th><th>成本单价</th><th>成本总额</th><th>日期</th><th>备注</th><th>状态</th><th>操作</th></tr></thead><tbody id="osTbl"></tbody></table>
         </div>
       </div>
@@ -1289,7 +1317,75 @@ function renderOpenstock(){
   function pcode(id){const p=DB.products.find(x=>x.id===id);return p?p.code:'-';}
   function pcat(id){const p=DB.products.find(x=>x.id===id);return p?(p.category||'-'):'-';}
   function pspec(id){const p=DB.products.find(x=>x.id===id);return p?(p.spec||'-'):'-';}
-  document.getElementById('osTbl').innerHTML=DB.openstock.map(s=>`<tr><td>${pcode(s.productId)}</td><td>${pcat(s.productId)}</td><td>${pname(s.productId)}</td><td>${pspec(s.productId)}</td><td>${wname(s.warehouseId)}</td><td>${s.qty}</td><td>${fmtMoney(s.costPrice)}</td><td>${fmtMoney((s.qty||0)*(s.costPrice||0))}</td><td>${s.date||'-'}</td><td>${s.remark||'-'}</td><td><span class="badge badge-${s.locked?'gray':'blue'}">${s.locked?'已锁定':'待确认'}</span></td><td>${!s.locked?`<button class="btn btn-warning" onclick="lockOS('${s.id}')">锁定</button> `:''}${!s.locked?`<button class="btn btn-danger" onclick="delItem('openstock','${s.id}',renderOpenstock)">删除</button>`:'—'}</td></tr>`).join('')||'<tr><td colspan="12" style="text-align:center;color:var(--color-text-tertiary)">暂无期初库存</td></tr>';
+  // ── 更新筛选下拉选项（类别 / 仓库，保持已选值）──
+  const catSel = document.getElementById('osFilterCat');
+  const whSel  = document.getElementById('osFilterWH');
+  if(catSel){
+    const curCat = catSel.value;
+    const cats = [...new Set(DB.openstock.map(s=>pcat(s.productId)).filter(Boolean))].sort();
+    catSel.innerHTML = '<option value="">全部类别</option>' + cats.map(c=>`<option value="${c}"${c===curCat?' selected':''}>${c}</option>`).join('');
+  }
+  if(whSel){
+    const curWH = whSel.value;
+    const seen = new Set();
+    const whs = DB.openstock.map(s=>_whName(s.warehouseId)).filter(n=>{if(!n||seen.has(n))return false;seen.add(n);return true;}).sort();
+    whSel.innerHTML = '<option value="">全部仓库</option>' + whs.map(n=>`<option value="${n}"${n===curWH?' selected':''}>${n}</option>`).join('');
+  }
+
+  // ── 读取筛选条件 ──
+  const fCat    = (document.getElementById('osFilterCat')||{}).value || '';
+  const fWH     = (document.getElementById('osFilterWH')||{}).value  || '';
+  const fKw     = ((document.getElementById('osFilterKw')||{}).value  || '').trim().toLowerCase();
+  const fStatus = (document.getElementById('osFilterStatus')||{}).value || '';
+
+  // ── 过滤数据 ──
+  const filtered = DB.openstock.filter(s=>{
+    if(fCat && pcat(s.productId) !== fCat) return false;
+    if(fWH  && _whName(s.warehouseId) !== fWH) return false;
+    if(fKw  && !(
+      (pcode(s.productId)||'').toLowerCase().includes(fKw) ||
+      (pname(s.productId)||'').toLowerCase().includes(fKw) ||
+      (pspec(s.productId)||'').toLowerCase().includes(fKw)
+    )) return false;
+    if(fStatus === 'locked'  && !s.locked) return false;
+    if(fStatus === 'pending' &&  s.locked) return false;
+    return true;
+  });
+
+  // ── 显示条数统计 ──
+  const countEl = document.getElementById('osFilterCount');
+  if(countEl){
+    const total = DB.openstock.length;
+    countEl.textContent = filtered.length === total ? `共 ${total} 条` : `筛选结果 ${filtered.length} / ${total} 条`;
+    countEl.style.color = filtered.length < total ? '#185FA5' : 'var(--color-text-tertiary)';
+  }
+
+  // ── 渲染表格 ──
+  document.getElementById('osTbl').innerHTML = filtered.map(s=>`<tr>
+    <td>${pcode(s.productId)}</td>
+    <td>${pcat(s.productId)}</td>
+    <td>${pname(s.productId)}</td>
+    <td>${pspec(s.productId)||'-'}</td>
+    <td>${_whName(s.warehouseId)||wname(s.warehouseId)}</td>
+    <td>${s.qty}</td>
+    <td>${fmtMoney(s.costPrice)}</td>
+    <td>${fmtMoney((s.qty||0)*(s.costPrice||0))}</td>
+    <td>${s.date||'-'}</td>
+    <td>${s.remark||'-'}</td>
+    <td><span class="badge badge-${s.locked?'gray':'blue'}">${s.locked?'已锁定':'待确认'}</span></td>
+    <td>
+      ${!s.locked?`<button class="btn btn-warning" onclick="lockOS('${s.id}')">锁定</button> `:''}
+      ${!s.locked?`<button class="btn btn-danger" onclick="delItem('openstock','${s.id}',renderOpenstock)">删除</button>`:'—'}
+    </td>
+  </tr>`).join('') || `<tr><td colspan="12" style="text-align:center;color:var(--color-text-tertiary);padding:20px">
+    ${(fCat||fWH||fKw||fStatus)?'没有符合筛选条件的记录，<a href="#" onclick="osResetFilter();return false;">点此重置</a>':'暂无期初库存'}
+  </td></tr>`;
+}
+
+function osResetFilter(){
+  const els = ['osFilterCat','osFilterWH','osFilterKw','osFilterStatus'];
+  els.forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  renderOpenstock();
 }
 
 function lockOS(id){
