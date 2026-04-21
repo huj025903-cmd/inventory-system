@@ -366,6 +366,7 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
           <span id="loginUserName" style="font-weight:500;color:var(--color-text-primary)"></span>
           <span id="loginUserRole" style="font-size:10px;background:var(--color-background-secondary);padding:1px 6px;border-radius:8px"></span>
         </span>
+        <button class="btn" onclick="openSysSettings()" style="font-size:10px">⚙ 设置</button>
         <button class="btn" onclick="changePasswordModal()" style="font-size:10px">🔑 改密</button>
         <button class="btn btn-danger" onclick="logout()" style="font-size:10px">退出</button>
         <button class="btn btn-success" onclick="manualSave()" style="display:var(--desktop-only,flex)">💾 保存</button>
@@ -821,6 +822,61 @@ async function checkSession(){
   }catch(e){return false;}
 }
 
+function openSysSettings(){
+  const cur = getMoneyDecimals();
+  const mc = document.getElementById('modalContainer');
+  mc.innerHTML = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal" style="width:420px">
+      <div class="modal-header"><span>⚙ 系统设置</span><button class="btn" onclick="closeModal()">✕</button></div>
+      <div class="modal-body">
+        <div style="margin-bottom:20px">
+          <div style="font-size:13px;font-weight:600;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--color-border-tertiary)">💰 金额显示设置</div>
+          <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px">
+            <label style="font-size:12px;color:var(--color-text-secondary);width:90px">小数点位数</label>
+            <div style="display:flex;gap:8px">
+              ${[0,1,2,3,4].map(n=>`<button onclick="setSysDecimal(${n})" id="decBtn${n}"
+                style="padding:6px 14px;border-radius:5px;border:1.5px solid ${n===cur?'#185FA5':'var(--color-border-secondary)'};
+                background:${n===cur?'#185FA5':'var(--color-background-primary)'};
+                color:${n===cur?'#fff':'var(--color-text-primary)'};
+                cursor:pointer;font-size:13px;font-weight:${n===cur?'600':'400'}">${n}</button>`).join('')}
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--color-text-tertiary);margin-left:106px">
+            预览：${[0,1,2,3,4].map(n=>`<span id="decPrev${n}" style="display:${n===cur?'inline':'none'}">${(1234567.89).toLocaleString(undefined,{minimumFractionDigits:n,maximumFractionDigits:n})}</span>`).join('')}
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal()">关闭</button>
+      </div>
+    </div>
+  </div>`;
+  mc.style.pointerEvents='all';
+}
+
+function setSysDecimal(n){
+  localStorage.setItem('inv_moneyDecimals', String(n));
+  // 更新按钮样式和预览
+  [0,1,2,3,4].forEach(i=>{
+    const btn=document.getElementById('decBtn'+i);
+    const prev=document.getElementById('decPrev'+i);
+    if(btn){
+      btn.style.borderColor = i===n?'#185FA5':'var(--color-border-secondary)';
+      btn.style.background  = i===n?'#185FA5':'var(--color-background-primary)';
+      btn.style.color       = i===n?'#fff':'var(--color-text-primary)';
+      btn.style.fontWeight  = i===n?'600':'400';
+    }
+    if(prev) prev.style.display = i===n?'inline':'none';
+  });
+  // 全局刷新所有页面金额显示
+  const refreshFns = [
+    'renderDashboard','renderProducts','renderPR','renderSD','renderOI',
+    'renderOpenstock','renderSQ','renderPO','renderSO'
+  ];
+  refreshFns.forEach(fn=>{ try{ window[fn]&&window[fn](); }catch(e){} });
+  showToast(`✓ 金额小数位数已设为 ${n} 位`);
+}
+
 function changePasswordModal(){
   const mc=document.getElementById('modalContainer');
   mc.innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal" style="width:360px"><div class="modal-header"><span>🔑 修改密码</span><button class="btn" onclick="closeModal()">✕</button></div><div class="modal-body"><div class="form-group" style="margin-bottom:10px"><label>当前密码</label><input id="cpOld" type="password"></div><div class="form-group" style="margin-bottom:10px"><label>新密码（至少4位）</label><input id="cpNew" type="password"></div><div class="form-group"><label>确认新密码</label><input id="cpNew2" type="password"></div></div><div class="modal-footer"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="doChangePassword()">确认修改</button></div></div></div>`;
@@ -1081,7 +1137,9 @@ function updateDBInfo(){
 function gid(){return Math.random().toString(36).slice(2,10);}
 function gno(pfx){return pfx+(Date.now().toString().slice(-7));}
 function today(){return new Date().toISOString().slice(0,10);}
-function fmtMoney(v){return '¥'+(+v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
+// 金额小数位数从全局配置读取，默认2位
+function getMoneyDecimals(){ return parseInt(localStorage.getItem('inv_moneyDecimals')||'2',10); }
+function fmtMoney(v){const d=getMoneyDecimals();return '¥'+(+v||0).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d});}
 
 // 将仓库 id 或名称统一解析成仓库名称（唯一标识），解决重复 id 导致的库存翻倍
 function _whName(widOrName){
