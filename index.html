@@ -1070,12 +1070,19 @@ function getStock(pid,wid){
 function getTotalStock(pid){let q=0;DB.warehouses.forEach(w=>q+=getStock(pid,w.id));return q;}
 
 function pname(id){const p=DB.products.find(x=>x.id===id);return p?p.name:id;}
-function wname(id){const w=DB.warehouses.find(x=>x.id===id);return w?w.name:id;}
+function wname(id){const w=DB.warehouses.find(x=>x.id===id||x.name===id);return w?w.name:id;}
+function whId(nameOrId){const w=DB.warehouses.find(x=>x.name===nameOrId||x.id===nameOrId);return w?w.id:nameOrId;}
 function sname(id){const s=DB.suppliers.find(x=>x.id===id);return s?s.name:id;}
 function cname(id){const c=DB.customers.find(x=>x.id===id);return c?c.name:id;}
 
 function getProductOpts(){return DB.products.map(p=>`<option value="${p.id}">${p.code} - ${p.name}</option>`).join('');}
-function getWHOpts(sel=''){return DB.warehouses.map(w=>`<option value="${w.id}"${w.id===sel?' selected':''}>${w.name}</option>`).join('');}
+function getWHOpts(sel=''){
+  // sel 可以是 id 或 name；因 id 有重复，优先用 name 匹配，其次 id
+  return DB.warehouses.map(w=>{
+    const selected = (w.name===sel || w.id===sel) ? ' selected' : '';
+    return `<option value="${w.name}"${selected}>${w.name}</option>`;
+  }).join('');
+}
 function getSupOpts(sel=''){return DB.suppliers.map(s=>`<option value="${s.id}"${s.id===sel?' selected':''}>${s.name}</option>`).join('');}
 function getCustOpts(sel=''){return DB.customers.map(c=>`<option value="${c.id}"${c.id===sel?' selected':''}>${c.name}</option>`).join('');}
 
@@ -2107,7 +2114,7 @@ function savePO(){
 }
 
 function savePR(){
-  const supplierId=(document.getElementById('fprs')||{}).value;const warehouseId=(document.getElementById('fprw')||{}).value;
+  const supplierId=(document.getElementById('fprs')||{}).value;const warehouseId=whId((document.getElementById('fprw')||{}).value||'');
   if(!supplierId||!warehouseId){showToast('请选择供应商和仓库','error');return;}
   const items=getEditableItems('prLines');if(!items.length){showToast('请添加入库明细','error');return;}
   const poId=(document.getElementById('fpro')||{}).value;const poNo=poId?(DB.po.find(p=>p.id===poId)||{}).no:'';
@@ -2135,7 +2142,7 @@ function saveSO(){
 }
 
 function saveSD(){
-  const customerId=(document.getElementById('fsdc')||{}).value;const warehouseId=(document.getElementById('fsdw')||{}).value;
+  const customerId=(document.getElementById('fsdc')||{}).value;const warehouseId=whId((document.getElementById('fsdw')||{}).value||'');
   if(!customerId||!warehouseId){showToast('请选择客户和仓库','error');return;}
   const items=getEditableItems('sdLines');if(!items.length){showToast('请添加出库明细','error');return;}
   for(const item of items){const s=getStock(item.productId,warehouseId);if(s<item.qty){showToast(`${pname(item.productId)} 库存不足！当前库存：${s}`,'error');return;}}
@@ -2156,7 +2163,7 @@ function saveSReturn(){
 }
 
 function saveOtherIn(){
-  const warehouseId=(document.getElementById('foiwh')||{}).value;if(!warehouseId){showToast('请选择仓库','error');return;}
+  const warehouseId=whId((document.getElementById('foiwh')||{}).value||'');if(!warehouseId){showToast('请选择仓库','error');return;}
   const items=getEditableItems('oiLines');if(!items.length){showToast('请添加明细','error');return;}
   const totalAmt=items.reduce((s,i)=>s+i.total,0);
   DB.otherIn.push({id:gid(),no:gno('RKD'),type:(document.getElementById('foityp')||{}).value,warehouseId,handler:(document.getElementById('foih')||{}).value||'',date:(document.getElementById('foid')||{}).value,items,totalAmt,note:(document.getElementById('foin')||{}).value,status:'done'});
@@ -2389,7 +2396,7 @@ function openBatchPRModal(){
 }
 
 function execBatchPR(){
-  const warehouseId = (document.getElementById('batchPRWH')||{}).value;
+  const warehouseId = whId((document.getElementById('batchPRWH')||{}).value||'');
   if(!warehouseId){showToast('请选择入库仓库','error');return;}
   const handler = (document.getElementById('batchPRHandler')||{}).value||'';
   const checked = Array.from(document.querySelectorAll('.batch-po-cb:checked'));
@@ -2478,7 +2485,7 @@ function openBatchSDModal(){
 }
 
 function execBatchSD(){
-  const warehouseId = (document.getElementById('batchSDWH')||{}).value;
+  const warehouseId = whId((document.getElementById('batchSDWH')||{}).value||'');
   if(!warehouseId){showToast('请选择出库仓库','error');return;}
   const handler = (document.getElementById('batchSDHandler')||{}).value||'';
   const checked = Array.from(document.querySelectorAll('.batch-so-cb:checked'));
@@ -2576,7 +2583,7 @@ function addBOIRow(){
 }
 
 function execBatchOI(){
-  const warehouseId = (document.getElementById('boiWH')||{}).value;
+  const warehouseId = whId((document.getElementById('boiWH')||{}).value||'');
   if(!warehouseId){showToast('请选择仓库','error');return;}
   const type = (document.getElementById('boiType')||{}).value||'其他';
   const handler = (document.getElementById('boiHandler')||{}).value||'';
@@ -2860,15 +2867,9 @@ function editBill(type, id){
   const typeNames = {pr:'采购入库单', sd:'销售出库单', otherIn:'其他入库单'};
   const typeName = typeNames[type] || type;
 
-  // ── 兼容旧数据：warehouseId 可能存的是名称字符串而非 id ──
-  let resolvedWHId = r.warehouseId || '';
-  if(resolvedWHId && !DB.warehouses.find(w=>w.id===resolvedWHId)){
-    // 尝试按名称匹配
-    const matched = DB.warehouses.find(w=>w.name===resolvedWHId);
-    if(matched) resolvedWHId = matched.id;
-  }
+  // ── 预选值：getWHOpts 现用 name 作 value，直接传仓库名即可，彻底绕开重复 id 问题 ──
 
-  // 同理处理 supplierId / customerId
+  // 供应商 / 客户 仍用 id（id 无重复）
   let resolvedSupId = r.supplierId || '';
   if(resolvedSupId && !DB.suppliers.find(s=>s.id===resolvedSupId)){
     const matched = DB.suppliers.find(s=>s.name===resolvedSupId);
@@ -2893,7 +2894,7 @@ function editBill(type, id){
           <select id="eb_sup"><option value="">选择</option>${getSupOpts(resolvedSupId)}</select>
         </div>
         <div class="form-group"><label>仓库*</label>
-          <select id="eb_wh"><option value="">选择</option>${getWHOpts(resolvedWHId)}</select>
+          <select id="eb_wh"><option value="">选择</option>${getWHOpts(resolvedWHName)}</select>
         </div>
       </div>
       <div class="form-row c2">
@@ -2911,7 +2912,7 @@ function editBill(type, id){
           <select id="eb_cust"><option value="">选择</option>${getCustOpts(resolvedCustId)}</select>
         </div>
         <div class="form-group"><label>仓库*</label>
-          <select id="eb_wh"><option value="">选择</option>${getWHOpts(resolvedWHId)}</select>
+          <select id="eb_wh"><option value="">选择</option>${getWHOpts(resolvedWHName)}</select>
         </div>
       </div>
       <div class="form-row c2">
@@ -2924,7 +2925,7 @@ function editBill(type, id){
       <div class="form-row c3">
         <div class="form-group"><label>类型</label><select id="eb_otype">${typeOpts}</select></div>
         <div class="form-group"><label>仓库*</label>
-          <select id="eb_wh"><option value="">选择</option>${getWHOpts(resolvedWHId)}</select>
+          <select id="eb_wh"><option value="">选择</option>${getWHOpts(resolvedWHName)}</select>
         </div>
         <div class="form-group"><label>日期</label><input id="eb_date" type="date" value="${r.date||''}"></div>
       </div>
@@ -3061,7 +3062,7 @@ function saveBillEdit(type, id){
   if(!items.length){ showToast('请至少保留一行有效明细','error'); return; }
 
   // 字段读取
-  const warehouseId = (document.getElementById('eb_wh')||{}).value || r.warehouseId;
+  const warehouseId = whId((document.getElementById('eb_wh')||{}).value || '') || r.warehouseId;
   if(!warehouseId){ showToast('请选择仓库','error'); return; }
   const handler = (document.getElementById('eb_handler')||{}).value || r.handler || '';
   const date = (document.getElementById('eb_date')||{}).value || r.date || '';
