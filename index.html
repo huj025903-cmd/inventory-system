@@ -1140,6 +1140,8 @@ function today(){return new Date().toISOString().slice(0,10);}
 // 金额小数位数从全局配置读取，默认2位
 function getMoneyDecimals(){ return parseInt(localStorage.getItem('inv_moneyDecimals')||'2',10); }
 function fmtMoney(v){const d=getMoneyDecimals();return '¥'+(+v||0).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d});}
+// 导出Excel用：按设定小数位四舍五入，返回数字（Excel可直接计算）
+function fmtNum(v){const d=getMoneyDecimals();return Math.round((+v||0)*Math.pow(10,d))/Math.pow(10,d);}
 
 // 将仓库 id 或名称统一解析成仓库名称（唯一标识），解决重复 id 导致的库存翻倍
 function _whName(widOrName){
@@ -3537,7 +3539,7 @@ function exportExcel(type){
   const setColWidth=(ws,widths)=>{ws['!cols']=widths.map(w=>({wch:w}));};
 
   if(type==='products'){
-    const data=DB.products.map(p=>({'商品编码':p.code,'商品名称':p.name,'分类':p.category||'','规格':p.spec||'','计量单位':p.unit||'','成本价':p.costPrice||0,'销售价':p.salePrice||0,'安全库存':p.safeQty||0,'状态':p.active?'启用':'禁用'}));
+    const data=DB.products.map(p=>({'商品编码':p.code,'商品名称':p.name,'分类':p.category||'','规格':p.spec||'','计量单位':p.unit||'','成本价':fmtNum(p.costPrice),'销售价':fmtNum(p.salePrice),'安全库存':p.safeQty||0,'状态':p.active?'启用':'禁用'}));
     const ws=XLSX.utils.json_to_sheet(data);setColWidth(ws,[12,20,12,15,10,10,10,10,8]);XLSX.utils.book_append_sheet(wb,ws,'商品列表');XLSX.writeFile(wb,`商品列表_${dt}.xlsx`);showToast('商品列表已导出Excel');
   }else if(type==='warehouses'){
     const data=DB.warehouses.map(w=>({'仓库编码':w.code,'仓库名称':w.name,'负责人':w.manager||'','地址':w.address||'','状态':w.active?'启用':'禁用'}));
@@ -3546,42 +3548,42 @@ function exportExcel(type){
     const data=DB.suppliers.map(s=>({'编码':s.code,'名称':s.name,'联系人':s.contact||'','电话':s.phone||'','账期(天)':s.payTerm||0,'状态':s.active?'启用':'禁用'}));
     const ws=XLSX.utils.json_to_sheet(data);setColWidth(ws,[10,22,12,15,10,8]);XLSX.utils.book_append_sheet(wb,ws,'供应商列表');XLSX.writeFile(wb,`供应商列表_${dt}.xlsx`);showToast('供应商列表已导出Excel');
   }else if(type==='customers'){
-    const data=DB.customers.map(c=>({'编码':c.code,'名称':c.name,'联系人':c.contact||'','电话':c.phone||'','信用额度':c.creditLimit||0,'状态':c.active?'启用':'禁用'}));
+    const data=DB.customers.map(c=>({'编码':c.code,'名称':c.name,'联系人':c.contact||'','电话':c.phone||'','信用额度':fmtNum(c.creditLimit),'状态':c.active?'启用':'禁用'}));
     const ws=XLSX.utils.json_to_sheet(data);setColWidth(ws,[10,22,12,15,12,8]);XLSX.utils.book_append_sheet(wb,ws,'客户列表');XLSX.writeFile(wb,`客户列表_${dt}.xlsx`);showToast('客户列表已导出Excel');
   }else if(type==='openstock'){
-    const data=DB.openstock.map(s=>({'商品':pname(s.productId),'仓库':wname(s.warehouseId),'期初数量':s.qty,'成本单价':s.costPrice||0,'成本总额':(s.qty||0)*(s.costPrice||0),'日期':s.date||'','状态':s.locked?'已锁定':'待确认'}));
+    const data=DB.openstock.map(s=>({'商品':pname(s.productId),'仓库':wname(s.warehouseId),'期初数量':s.qty,'成本单价':fmtNum(s.costPrice),'成本总额':fmtNum(fmtNum((s.qty)*(s.costPrice))),'日期':s.date||'','状态':s.locked?'已锁定':'待确认'}));
     const ws=XLSX.utils.json_to_sheet(data);setColWidth(ws,[22,15,12,12,12,12,10]);XLSX.utils.book_append_sheet(wb,ws,'期初库存');XLSX.writeFile(wb,`期初库存_${dt}.xlsx`);showToast('期初库存已导出Excel');
   }else if(type==='po'){
     const rows=[];
-    DB.po.forEach(r=>{const sup=sname(r.supplierId);if(r.items&&r.items.length){r.items.forEach((item,i)=>{rows.push({'采购单号':i===0?r.no:'','供应商':i===0?sup:'','日期':i===0?r.date||'':'','商品':pname(item.productId),'数量':item.qty,'单价':item.price||0,'小计':item.total||0,'审核状态':i===0?r.approved?'已审核':'待审核':'','到货状态':i===0?r.arriveStatus==='done'?'全部到货':r.arriveStatus==='partial'?'部分到货':'未到货':''});});}else{rows.push({'采购单号':r.no,'供应商':sup,'日期':r.date||'','商品':'','数量':'','单价':'','小计':'','审核状态':r.approved?'已审核':'待审核','到货状态':''});}if(r.items&&r.items.length>0)rows.push({'采购单号':'','供应商':'','日期':'','商品':'合计','数量':'','单价':'','小计':r.totalAmt||0,'审核状态':'','到货状态':''});});
+    DB.po.forEach(r=>{const sup=sname(r.supplierId);if(r.items&&r.items.length){r.items.forEach((item,i)=>{rows.push({'采购单号':i===0?r.no:'','供应商':i===0?sup:'','日期':i===0?r.date||'':'','商品':pname(item.productId),'数量':item.qty,'单价':fmtNum(item.price),'小计':fmtNum(item.total),'审核状态':i===0?r.approved?'已审核':'待审核':'','到货状态':i===0?r.arriveStatus==='done'?'全部到货':r.arriveStatus==='partial'?'部分到货':'未到货':''});});}else{rows.push({'采购单号':r.no,'供应商':sup,'日期':r.date||'','商品':'','数量':'','单价':'','小计':'','审核状态':r.approved?'已审核':'待审核','到货状态':''});}if(r.items&&r.items.length>0)rows.push({'采购单号':'','供应商':'','日期':'','商品':'合计','数量':'','单价':'','小计':fmtNum(r.totalAmt),'审核状态':'','到货状态':''});});
     const ws=XLSX.utils.json_to_sheet(rows);setColWidth(ws,[15,20,12,22,10,10,12,10,12]);XLSX.utils.book_append_sheet(wb,ws,'采购订单');XLSX.writeFile(wb,`采购订单_${dt}.xlsx`);showToast('采购订单已导出Excel');
   }else if(type==='pr'){
     const rows=[];
-    DB.pr.forEach(r=>{const sup=sname(r.supplierId);const wh=wname(r.warehouseId);if(r.items&&r.items.length){r.items.forEach((item,i)=>{rows.push({'入库单号':i===0?r.no:'','关联采购单':i===0?r.poNo||'-':'','供应商':i===0?sup:'','仓库':i===0?wh:'','日期':i===0?r.date||'':'','商品':pname(item.productId),'入库数量':item.qty,'成本单价':item.price||0,'成本金额':item.total||0,'状态':i===0?r.status==='done'?'已入库':'待入库':''});});}});
+    DB.pr.forEach(r=>{const sup=sname(r.supplierId);const wh=wname(r.warehouseId);if(r.items&&r.items.length){r.items.forEach((item,i)=>{rows.push({'入库单号':i===0?r.no:'','关联采购单':i===0?r.poNo||'-':'','供应商':i===0?sup:'','仓库':i===0?wh:'','日期':i===0?r.date||'':'','商品':pname(item.productId),'入库数量':item.qty,'成本单价':fmtNum(item.price),'成本金额':fmtNum(item.total),'状态':i===0?r.status==='done'?'已入库':'待入库':''});});}});
     const ws=XLSX.utils.json_to_sheet(rows.length?rows:[{'说明':'暂无数据'}]);setColWidth(ws,[15,15,20,15,12,22,10,12,12,10]);XLSX.utils.book_append_sheet(wb,ws,'采购入库单');XLSX.writeFile(wb,`采购入库单_${dt}.xlsx`);showToast('采购入库单已导出Excel');
   }else if(type==='preturn'){
     const rows=[];
-    DB.preturn.forEach(r=>{const sup=sname(r.supplierId);const wh=wname(r.warehouseId);r.items&&r.items.forEach((item,i)=>{rows.push({'退货单号':i===0?r.no:'','供应商':i===0?sup:'','仓库':i===0?wh:'','日期':i===0?r.date||'':'','商品':pname(item.productId),'退货数量':item.qty,'退货单价':item.price||0,'退货金额':item.total||0});});});
+    DB.preturn.forEach(r=>{const sup=sname(r.supplierId);const wh=wname(r.warehouseId);r.items&&r.items.forEach((item,i)=>{rows.push({'退货单号':i===0?r.no:'','供应商':i===0?sup:'','仓库':i===0?wh:'','日期':i===0?r.date||'':'','商品':pname(item.productId),'退货数量':item.qty,'退货单价':fmtNum(item.price),'退货金额':fmtNum(item.total)});});});
     const ws=XLSX.utils.json_to_sheet(rows.length?rows:[{'说明':'暂无数据'}]);XLSX.utils.book_append_sheet(wb,ws,'采购退货单');XLSX.writeFile(wb,`采购退货单_${dt}.xlsx`);showToast('采购退货单已导出Excel');
   }else if(type==='so'){
     const rows=[];
-    DB.so.forEach(r=>{const cust=cname(r.customerId);r.items&&r.items.forEach((item,i)=>{rows.push({'销售单号':i===0?r.no:'','客户':i===0?cust:'','日期':i===0?r.date||'':'','商品':pname(item.productId),'数量':item.qty,'销售单价':item.price||0,'销售金额':item.total||0,'审核状态':i===0?r.approved?'已审核':'待审核':'','发货状态':i===0?r.shipStatus==='done'?'全部发货':'未发货':''});});});
+    DB.so.forEach(r=>{const cust=cname(r.customerId);r.items&&r.items.forEach((item,i)=>{rows.push({'销售单号':i===0?r.no:'','客户':i===0?cust:'','日期':i===0?r.date||'':'','商品':pname(item.productId),'数量':item.qty,'销售单价':fmtNum(item.price),'销售金额':fmtNum(item.total),'审核状态':i===0?r.approved?'已审核':'待审核':'','发货状态':i===0?r.shipStatus==='done'?'全部发货':'未发货':''});});});
     const ws=XLSX.utils.json_to_sheet(rows.length?rows:[{'说明':'暂无数据'}]);setColWidth(ws,[15,20,12,22,10,12,12,10,10]);XLSX.utils.book_append_sheet(wb,ws,'销售订单');XLSX.writeFile(wb,`销售订单_${dt}.xlsx`);showToast('销售订单已导出Excel');
   }else if(type==='sd'){
     const rows=[];
-    DB.sd.forEach(r=>{const cust=cname(r.customerId);const wh=wname(r.warehouseId);r.items&&r.items.forEach((item,i)=>{rows.push({'出库单号':i===0?r.no:'','关联销售单':i===0?r.soNo||'-':'','客户':i===0?cust:'','仓库':i===0?wh:'','日期':i===0?r.date||'':'','商品':pname(item.productId),'出库数量':item.qty,'销售单价':item.price||0,'销售金额':item.total||0});});});
+    DB.sd.forEach(r=>{const cust=cname(r.customerId);const wh=wname(r.warehouseId);r.items&&r.items.forEach((item,i)=>{rows.push({'出库单号':i===0?r.no:'','关联销售单':i===0?r.soNo||'-':'','客户':i===0?cust:'','仓库':i===0?wh:'','日期':i===0?r.date||'':'','商品':pname(item.productId),'出库数量':item.qty,'销售单价':fmtNum(item.price),'销售金额':fmtNum(item.total)});});});
     const ws=XLSX.utils.json_to_sheet(rows.length?rows:[{'说明':'暂无数据'}]);XLSX.utils.book_append_sheet(wb,ws,'销售出库单');XLSX.writeFile(wb,`销售出库单_${dt}.xlsx`);showToast('销售出库单已导出Excel');
   }else if(type==='sreturn'){
     const rows=[];
-    DB.sreturn.forEach(r=>{const cust=cname(r.customerId);const wh=wname(r.warehouseId);r.items&&r.items.forEach((item,i)=>{rows.push({'退货单号':i===0?r.no:'','客户':i===0?cust:'','仓库':i===0?wh:'','日期':i===0?r.date||'':'','商品':pname(item.productId),'退货数量':item.qty,'退货单价':item.price||0,'退货金额':item.total||0});});});
+    DB.sreturn.forEach(r=>{const cust=cname(r.customerId);const wh=wname(r.warehouseId);r.items&&r.items.forEach((item,i)=>{rows.push({'退货单号':i===0?r.no:'','客户':i===0?cust:'','仓库':i===0?wh:'','日期':i===0?r.date||'':'','商品':pname(item.productId),'退货数量':item.qty,'退货单价':fmtNum(item.price),'退货金额':fmtNum(item.total)});});});
     const ws=XLSX.utils.json_to_sheet(rows.length?rows:[{'说明':'暂无数据'}]);XLSX.utils.book_append_sheet(wb,ws,'销售退货单');XLSX.writeFile(wb,`销售退货单_${dt}.xlsx`);showToast('销售退货单已导出Excel');
   }else if(type==='otherIn'){
     const rows=[];
-    DB.otherIn.forEach(r=>{const wh=wname(r.warehouseId);r.items&&r.items.forEach((item,i)=>{rows.push({'单号':i===0?r.no:'','类型':i===0?r.type||'':'','仓库':i===0?wh:'','日期':i===0?r.date||'':'','备注':i===0?r.note||'':'','商品':pname(item.productId),'数量':item.qty,'单价':item.price||0,'金额':item.total||0});});});
+    DB.otherIn.forEach(r=>{const wh=wname(r.warehouseId);r.items&&r.items.forEach((item,i)=>{rows.push({'单号':i===0?r.no:'','类型':i===0?r.type||'':'','仓库':i===0?wh:'','日期':i===0?r.date||'':'','备注':i===0?r.note||'':'','商品':pname(item.productId),'数量':item.qty,'单价':fmtNum(item.price),'金额':fmtNum(item.total)});});});
     const ws=XLSX.utils.json_to_sheet(rows.length?rows:[{'说明':'暂无数据'}]);XLSX.utils.book_append_sheet(wb,ws,'其他入库单');XLSX.writeFile(wb,`其他入库单_${dt}.xlsx`);showToast('其他入库单已导出Excel');
   }else if(type==='otherOut'){
     const rows=[];
-    DB.otherOut.forEach(r=>{const wh=wname(r.warehouseId);r.items&&r.items.forEach((item,i)=>{rows.push({'单号':i===0?r.no:'','类型':i===0?r.type||'':'','仓库':i===0?wh:'','日期':i===0?r.date||'':'','备注':i===0?r.note||'':'','商品':pname(item.productId),'数量':item.qty,'单价':item.price||0,'金额':item.total||0});});});
+    DB.otherOut.forEach(r=>{const wh=wname(r.warehouseId);r.items&&r.items.forEach((item,i)=>{rows.push({'单号':i===0?r.no:'','类型':i===0?r.type||'':'','仓库':i===0?wh:'','日期':i===0?r.date||'':'','备注':i===0?r.note||'':'','商品':pname(item.productId),'数量':item.qty,'单价':fmtNum(item.price),'金额':fmtNum(item.total)});});});
     const ws=XLSX.utils.json_to_sheet(rows.length?rows:[{'说明':'暂无数据'}]);XLSX.utils.book_append_sheet(wb,ws,'其他出库单');XLSX.writeFile(wb,`其他出库单_${dt}.xlsx`);showToast('其他出库单已导出Excel');
   }else if(type==='bom'){
     const rows=[];
@@ -3602,7 +3604,7 @@ function exportExcel(type){
         DB.sd.filter(r=>r.status==='done'&&r.warehouseId===w.id).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
         DB.otherOut.filter(r=>r.status==='done'&&r.warehouseId===w.id).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
         const qty=getStock(p.id,w.id);
-        if(openQty||inQty||outQty||qty){rows.push({'商品编码':p.code,'商品名称':p.name,'仓库':w.name,'期初数量':openQty,'累计入库':inQty,'累计出库':outQty,'当前库存':qty,'安全库存':p.safeQty||0,'库存状态':qty<(p.safeQty||0)?'低库存':'正常','成本单价':p.costPrice||0,'库存金额':qty*(p.costPrice||0)});}
+        if(openQty||inQty||outQty||qty){rows.push({'商品编码':p.code,'商品名称':p.name,'仓库':w.name,'期初数量':openQty,'累计入库':inQty,'累计出库':outQty,'当前库存':qty,'安全库存':p.safeQty||0,'库存状态':qty<(p.safeQty||0)?'低库存':'正常','成本单价':fmtNum(p.costPrice),'库存金额':fmtNum(fmtNum(qty*(p.costPrice)))});}
       });
     });
     const ws=XLSX.utils.json_to_sheet(rows.length?rows:[{'说明':'暂无库存数据，请先录入期初库存或确认入库单'}]);setColWidth(ws,[12,22,15,10,10,10,10,10,10,12,12]);XLSX.utils.book_append_sheet(wb,ws,'实时库存');XLSX.writeFile(wb,`实时库存_${dt}.xlsx`);showToast('实时库存已导出Excel');
@@ -3612,33 +3614,33 @@ function exportExcel(type){
     const retPurAmt=DB.preturn.filter(r=>r.status==='done').reduce((s,r)=>s+(r.totalAmt||0),0);
     const retSalAmt=DB.sreturn.filter(r=>r.status==='done').reduce((s,r)=>s+(r.totalAmt||0),0);
     const summaryData=[
-      {'项目':'采购入库金额','金额':purAmt,'单据数':DB.pr.filter(r=>r.status==='done').length},
-      {'项目':'采购退货金额','金额':retPurAmt,'单据数':DB.preturn.filter(r=>r.status==='done').length},
-      {'项目':'净采购金额','金额':purAmt-retPurAmt,'单据数':''},
+      {'项目':'采购入库金额','金额':fmtNum(purAmt),'单据数':DB.pr.filter(r=>r.status==='done').length},
+      {'项目':'采购退货金额','金额':fmtNum(retPurAmt),'单据数':DB.preturn.filter(r=>r.status==='done').length},
+      {'项目':'净采购金额','金额':fmtNum(purAmt-retPurAmt),'单据数':''},
       {'项目':'','金额':'','单据数':''},
-      {'项目':'销售出库金额','金额':salAmt,'单据数':DB.sd.filter(r=>r.status==='done').length},
-      {'项目':'销售退货金额','金额':retSalAmt,'单据数':DB.sreturn.filter(r=>r.status==='done').length},
-      {'项目':'净销售金额','金额':salAmt-retSalAmt,'单据数':''},
+      {'项目':'销售出库金额','金额':fmtNum(salAmt),'单据数':DB.sd.filter(r=>r.status==='done').length},
+      {'项目':'销售退货金额','金额':fmtNum(retSalAmt),'单据数':DB.sreturn.filter(r=>r.status==='done').length},
+      {'项目':'净销售金额','金额':fmtNum(salAmt-retSalAmt),'单据数':''},
       {'项目':'','金额':'','单据数':''},
-      {'项目':'毛利润(销售-采购)','金额':(salAmt-retSalAmt)-(purAmt-retPurAmt),'单据数':''},
+      {'项目':'毛利润(销售-采购)','金额':fmtNum((salAmt-retSalAmt)-(purAmt-retPurAmt)),'单据数':''},
     ];
     const ws1=XLSX.utils.json_to_sheet(summaryData);setColWidth(ws1,[25,15,10]);XLSX.utils.book_append_sheet(wb,ws1,'经营汇总');
-    const stockRows=[];DB.products.forEach(p=>{const qty=getTotalStock(p.id);stockRows.push({'商品编码':p.code,'商品名称':p.name,'当前总库存':qty,'成本单价':p.costPrice||0,'库存金额':qty*(p.costPrice||0),'安全库存':p.safeQty||0,'预警':qty<(p.safeQty||0)?'⚠ 低库存':'正常'});});
+    const stockRows=[];DB.products.forEach(p=>{const qty=getTotalStock(p.id);stockRows.push({'商品编码':p.code,'商品名称':p.name,'当前总库存':qty,'成本单价':fmtNum(p.costPrice),'库存金额':fmtNum(fmtNum(qty*(p.costPrice))),'安全库存':p.safeQty||0,'预警':qty<(p.safeQty||0)?'⚠ 低库存':'正常'});});
     const ws2=XLSX.utils.json_to_sheet(stockRows.length?stockRows:[{'说明':'暂无数据'}]);setColWidth(ws2,[12,22,12,12,12,12,12]);XLSX.utils.book_append_sheet(wb,ws2,'库存汇总');
     XLSX.writeFile(wb,`经营汇总报表_${dt}.xlsx`);showToast('经营汇总报表已导出Excel');
   }else if(type==='alldata'){
     const purAmt=DB.pr.filter(r=>r.status==='done').reduce((s,r)=>s+(r.totalAmt||0),0);
     const salAmt=DB.sd.filter(r=>r.status==='done').reduce((s,r)=>s+(r.totalAmt||0),0);
     const ws0=XLSX.utils.json_to_sheet([{'系统名称':'进销存管理系统','导出时间':new Date().toLocaleString('zh-CN'),'商品数':DB.products.length,'仓库数':DB.warehouses.length,'供应商数':DB.suppliers.length,'客户数':DB.customers.length,'采购入库金额':purAmt,'销售出库金额':salAmt}]);XLSX.utils.book_append_sheet(wb,ws0,'系统概览');
-    addSheet('商品',DB.products.map(p=>({'编码':p.code,'名称':p.name,'分类':p.category||'','规格':p.spec||'','单位':p.unit||'','成本价':p.costPrice||0,'售价':p.salePrice||0,'安全库存':p.safeQty||0,'状态':p.active?'启用':'禁用'})));
+    addSheet('商品',DB.products.map(p=>({'编码':p.code,'名称':p.name,'分类':p.category||'','规格':p.spec||'','单位':p.unit||'','成本价':fmtNum(p.costPrice),'售价':p.salePrice||0,'安全库存':p.safeQty||0,'状态':p.active?'启用':'禁用'})));
     addSheet('仓库',DB.warehouses.map(w=>({'编码':w.code,'名称':w.name,'负责人':w.manager||'','地址':w.address||'','状态':w.active?'启用':'禁用'})));
     addSheet('供应商',DB.suppliers.map(s=>({'编码':s.code,'名称':s.name,'联系人':s.contact||'','电话':s.phone||'','账期':s.payTerm||0})));
-    addSheet('客户',DB.customers.map(c=>({'编码':c.code,'名称':c.name,'联系人':c.contact||'','电话':c.phone||'','信用额度':c.creditLimit||0})));
-    const osRows=DB.openstock.map(s=>({'商品':pname(s.productId),'仓库':wname(s.warehouseId),'数量':s.qty,'成本单价':s.costPrice||0,'日期':s.date||'','状态':s.locked?'已锁定':'待确认'}));addSheet('期初库存',osRows);
-    const poRows=[];DB.po.forEach(r=>r.items&&r.items.forEach((i,idx)=>poRows.push({'采购单号':idx===0?r.no:'','供应商':idx===0?sname(r.supplierId):'','日期':idx===0?r.date||'':'','商品':pname(i.productId),'数量':i.qty,'单价':i.price||0,'小计':i.total||0,'审核':idx===0?r.approved?'已审核':'待审核':''})));addSheet('采购订单',poRows);
-    const prRows=[];DB.pr.forEach(r=>r.items&&r.items.forEach((i,idx)=>prRows.push({'单号':idx===0?r.no:'','供应商':idx===0?sname(r.supplierId):'','仓库':idx===0?wname(r.warehouseId):'','日期':idx===0?r.date||'':'','商品':pname(i.productId),'数量':i.qty,'成本单价':i.price||0,'成本金额':i.total||0})));addSheet('采购入库',prRows);
-    const soRows=[];DB.so.forEach(r=>r.items&&r.items.forEach((i,idx)=>soRows.push({'销售单号':idx===0?r.no:'','客户':idx===0?cname(r.customerId):'','日期':idx===0?r.date||'':'','商品':pname(i.productId),'数量':i.qty,'单价':i.price||0,'金额':i.total||0,'审核':idx===0?r.approved?'已审核':'待审核':''})));addSheet('销售订单',soRows);
-    const sdRows=[];DB.sd.forEach(r=>r.items&&r.items.forEach((i,idx)=>sdRows.push({'出库单号':idx===0?r.no:'','客户':idx===0?cname(r.customerId):'','仓库':idx===0?wname(r.warehouseId):'','日期':idx===0?r.date||'':'','商品':pname(i.productId),'数量':i.qty,'单价':i.price||0,'金额':i.total||0})));addSheet('销售出库',sdRows);
+    addSheet('客户',DB.customers.map(c=>({'编码':c.code,'名称':c.name,'联系人':c.contact||'','电话':c.phone||'','信用额度':fmtNum(c.creditLimit)})));
+    const osRows=DB.openstock.map(s=>({'商品':pname(s.productId),'仓库':wname(s.warehouseId),'数量':s.qty,'成本单价':fmtNum(s.costPrice),'日期':s.date||'','状态':s.locked?'已锁定':'待确认'}));addSheet('期初库存',osRows);
+    const poRows=[];DB.po.forEach(r=>r.items&&r.items.forEach((i,idx)=>poRows.push({'采购单号':idx===0?r.no:'','供应商':idx===0?sname(r.supplierId):'','日期':idx===0?r.date||'':'','商品':pname(i.productId),'数量':i.qty,'单价':fmtNum(i.price),'小计':fmtNum(i.total),'审核':idx===0?r.approved?'已审核':'待审核':''})));addSheet('采购订单',poRows);
+    const prRows=[];DB.pr.forEach(r=>r.items&&r.items.forEach((i,idx)=>prRows.push({'单号':idx===0?r.no:'','供应商':idx===0?sname(r.supplierId):'','仓库':idx===0?wname(r.warehouseId):'','日期':idx===0?r.date||'':'','商品':pname(i.productId),'数量':i.qty,'成本单价':fmtNum(i.price),'成本金额':fmtNum(i.total)})));addSheet('采购入库',prRows);
+    const soRows=[];DB.so.forEach(r=>r.items&&r.items.forEach((i,idx)=>soRows.push({'销售单号':idx===0?r.no:'','客户':idx===0?cname(r.customerId):'','日期':idx===0?r.date||'':'','商品':pname(i.productId),'数量':i.qty,'单价':fmtNum(i.price),'金额':fmtNum(i.total),'审核':idx===0?r.approved?'已审核':'待审核':''})));addSheet('销售订单',soRows);
+    const sdRows=[];DB.sd.forEach(r=>r.items&&r.items.forEach((i,idx)=>sdRows.push({'出库单号':idx===0?r.no:'','客户':idx===0?cname(r.customerId):'','仓库':idx===0?wname(r.warehouseId):'','日期':idx===0?r.date||'':'','商品':pname(i.productId),'数量':i.qty,'单价':fmtNum(i.price),'金额':fmtNum(i.total)})));addSheet('销售出库',sdRows);
     const stockRows2=[];DB.products.forEach(p=>{DB.warehouses.forEach(w=>{let oq=0,iq=0,oq2=0;DB.openstock.filter(s=>s.productId===p.id&&s.warehouseId===w.id).forEach(s=>oq+=+s.qty||0);DB.pr.filter(r=>r.status==='done'&&r.warehouseId===w.id).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)iq+=+i.qty||0;}));DB.sd.filter(r=>r.status==='done'&&r.warehouseId===w.id).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)oq2+=+i.qty||0;}));const qty=getStock(p.id,w.id);if(oq||iq||oq2||qty)stockRows2.push({'商品编码':p.code,'商品名称':p.name,'仓库':w.name,'期初':oq,'入库':iq,'出库':oq2,'当前库存':qty,'安全库存':p.safeQty||0,'状态':qty<(p.safeQty||0)?'低库存':'正常'});});});addSheet('实时库存',stockRows2);
     XLSX.writeFile(wb,`进销存全量数据_${dt}.xlsx`);showToast('全量数据已导出Excel（多Sheet工作簿）');
   }
