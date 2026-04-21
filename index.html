@@ -1055,19 +1055,34 @@ function gno(pfx){return pfx+(Date.now().toString().slice(-7));}
 function today(){return new Date().toISOString().slice(0,10);}
 function fmtMoney(v){return '¥'+(+v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
 
-function getStock(pid,wid){
+// 将仓库 id 或名称统一解析成仓库名称（唯一标识），解决重复 id 导致的库存翻倍
+function _whName(widOrName){
+  const w = DB.warehouses.find(x=>x.name===widOrName) || DB.warehouses.find(x=>x.id===widOrName);
+  return w ? w.name : widOrName;
+}
+function getStock(pid, wid){
+  const wn = _whName(wid); // 统一转名称
   let q=0;
-  DB.openstock.forEach(s=>{if(s.productId===pid&&s.warehouseId===wid)q+=+s.qty||0;});
-  DB.pr.forEach(r=>{if(r.status==='done'&&r.warehouseId===wid)r.items&&r.items.forEach(i=>{if(i.productId===pid)q+=+i.qty||0;});});
-  DB.preturn.forEach(r=>{if(r.status==='done'&&r.warehouseId===wid)r.items&&r.items.forEach(i=>{if(i.productId===pid)q-=+i.qty||0;});});
-  DB.sd.forEach(r=>{if(r.status==='done'&&r.warehouseId===wid)r.items&&r.items.forEach(i=>{if(i.productId===pid)q-=+i.qty||0;});});
-  DB.sreturn.forEach(r=>{if(r.status==='done'&&r.warehouseId===wid)r.items&&r.items.forEach(i=>{if(i.productId===pid)q+=+i.qty||0;});});
-  DB.otherIn.forEach(r=>{if(r.status==='done'&&r.warehouseId===wid)r.items&&r.items.forEach(i=>{if(i.productId===pid)q+=+i.qty||0;});});
-  DB.otherOut.forEach(r=>{if(r.status==='done'&&r.warehouseId===wid)r.items&&r.items.forEach(i=>{if(i.productId===pid)q-=+i.qty||0;});});
-  DB.assembly.forEach(r=>{if(r.status==='done'){if(r.productId===pid&&r.warehouseId===wid)q+=+r.qty||0;r.materials&&r.materials.forEach(m=>{if(m.productId===pid&&r.warehouseId===wid)q-=+m.qty||0;});}});
+  DB.openstock.forEach(s=>{if(s.productId===pid && _whName(s.warehouseId)===wn) q+=+s.qty||0;});
+  DB.pr.forEach(r=>{if(r.status==='done' && _whName(r.warehouseId)===wn) r.items&&r.items.forEach(i=>{if(i.productId===pid)q+=+i.qty||0;});});
+  DB.preturn.forEach(r=>{if(r.status==='done' && _whName(r.warehouseId)===wn) r.items&&r.items.forEach(i=>{if(i.productId===pid)q-=+i.qty||0;});});
+  DB.sd.forEach(r=>{if(r.status==='done' && _whName(r.warehouseId)===wn) r.items&&r.items.forEach(i=>{if(i.productId===pid)q-=+i.qty||0;});});
+  DB.sreturn.forEach(r=>{if(r.status==='done' && _whName(r.warehouseId)===wn) r.items&&r.items.forEach(i=>{if(i.productId===pid)q+=+i.qty||0;});});
+  DB.otherIn.forEach(r=>{if(r.status==='done' && _whName(r.warehouseId)===wn) r.items&&r.items.forEach(i=>{if(i.productId===pid)q+=+i.qty||0;});});
+  DB.otherOut.forEach(r=>{if(r.status==='done' && _whName(r.warehouseId)===wn) r.items&&r.items.forEach(i=>{if(i.productId===pid)q-=+i.qty||0;});});
+  DB.assembly.forEach(r=>{if(r.status==='done'){const rw=_whName(r.warehouseId);if(r.productId===pid&&rw===wn)q+=+r.qty||0;r.materials&&r.materials.forEach(m=>{if(m.productId===pid&&rw===wn)q-=+m.qty||0;});}});
   return q;
 }
-function getTotalStock(pid){let q=0;DB.warehouses.forEach(w=>q+=getStock(pid,w.id));return q;}
+// getTotalStock：按名称去重后再汇总，避免重复 id 的仓库被重复计算
+function getTotalStock(pid){
+  const seen=new Set();
+  let q=0;
+  DB.warehouses.forEach(w=>{
+    const wn=w.name;
+    if(!seen.has(wn)){seen.add(wn);q+=getStock(pid,wn);}
+  });
+  return q;
+}
 
 function pname(id){const p=DB.products.find(x=>x.id===id);return p?p.name:id;}
 function wname(id){const w=DB.warehouses.find(x=>x.id===id||x.name===id);return w?w.name:id;}
@@ -1164,10 +1179,13 @@ function renderDashboard(){
   // 各仓库库存数量及金额
   const whEl = document.getElementById('topChart');
   if(whEl && DB.warehouses.length){
-    const whRows = DB.warehouses.map(w=>{
+    // 按名称去重，避免重复 id 的仓库出现两行
+    const _seenDash=new Set();
+    const dedupDashWHs=DB.warehouses.filter(w=>{if(_seenDash.has(w.name))return false;_seenDash.add(w.name);return true;});
+    const whRows = dedupDashWHs.map(w=>{
       let totalQty=0, totalAmt=0;
       DB.products.forEach(p=>{
-        const q = getStock(p.id, w.id);
+        const q = getStock(p.id, w.name);
         if(q>0){ totalQty+=q; totalAmt+=q*(p.costPrice||0); }
       });
       return {w, totalQty, totalAmt};
@@ -1330,9 +1348,14 @@ function renderSQ(){
   const dateFrom=(document.getElementById('sqDateFrom')||{}).value||'';
   const dateTo=(document.getElementById('sqDateTo')||{}).value||'';
 
-  // 更新仓库下拉
+  // 更新仓库下拉：用名称去重，避免重复 id 仓库出现两次
   const wsel=document.getElementById('sqWh');
-  if(wsel){const cur=wsel.value;wsel.innerHTML='<option value="">全部仓库</option>'+DB.warehouses.map(w=>`<option value="${w.id}"${w.id===cur?' selected':''}>${w.name}</option>`).join('');}
+  if(wsel){
+    const seenWH=new Set();
+    const whOpts=DB.warehouses.filter(w=>{if(seenWH.has(w.name))return false;seenWH.add(w.name);return true;})
+      .map(w=>`<option value="${w.name}"${w.name===wf?' selected':''}>${w.name}</option>`).join('');
+    wsel.innerHTML='<option value="">全部仓库</option>'+whOpts;
+  }
 
   // 日期区间过滤函数
   const inRange=(d)=>{
@@ -1353,30 +1376,35 @@ function renderSQ(){
     filteredProds = DB.products.filter(p=>(p.code+p.name+(p.spec||'')).toLowerCase().includes(q.toLowerCase()));
   }
 
+  // 按仓库名称去重后的仓库列表
+  const seenWH2=new Set();
+  const dedupWHs=DB.warehouses.filter(w=>{if(seenWH2.has(w.name))return false;seenWH2.add(w.name);return true;});
+
   const rows=[];
   filteredProds.forEach(p=>{
-    const whs=wf?DB.warehouses.filter(w=>w.id===wf):DB.warehouses;
+    const whs = wf ? dedupWHs.filter(w=>w.name===wf) : dedupWHs;
     whs.forEach(w=>{
+      const wn = w.name; // 用名称作为唯一键
       // 期初：不受日期区间限制（固定基准）
       let openQty=0;
-      DB.openstock.filter(s=>s.productId===p.id&&s.warehouseId===w.id).forEach(s=>openQty+=+s.qty||0);
+      DB.openstock.filter(s=>s.productId===p.id && _whName(s.warehouseId)===wn).forEach(s=>openQty+=+s.qty||0);
 
-      // 区间内入库（采购入库 + 其他入库）
+      // 区间内入库（采购入库 + 其他入库 + 销售退货）
       let inQty=0;
-      DB.pr.filter(r=>r.status==='done'&&r.warehouseId===w.id&&inRange(r.date))
+      DB.pr.filter(r=>r.status==='done' && _whName(r.warehouseId)===wn && inRange(r.date))
         .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
-      DB.otherIn.filter(r=>r.status==='done'&&r.warehouseId===w.id&&inRange(r.date))
+      DB.otherIn.filter(r=>r.status==='done' && _whName(r.warehouseId)===wn && inRange(r.date))
         .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
-      DB.sreturn.filter(r=>r.status==='done'&&r.warehouseId===w.id&&inRange(r.date))
+      DB.sreturn.filter(r=>r.status==='done' && _whName(r.warehouseId)===wn && inRange(r.date))
         .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
 
       // 区间内出库（销售出库 + 其他出库 + 采购退货）
       let outQty=0;
-      DB.sd.filter(r=>r.status==='done'&&r.warehouseId===w.id&&inRange(r.date))
+      DB.sd.filter(r=>r.status==='done' && _whName(r.warehouseId)===wn && inRange(r.date))
         .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
-      DB.otherOut.filter(r=>r.status==='done'&&r.warehouseId===w.id&&inRange(r.date))
+      DB.otherOut.filter(r=>r.status==='done' && _whName(r.warehouseId)===wn && inRange(r.date))
         .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
-      DB.preturn.filter(r=>r.status==='done'&&r.warehouseId===w.id&&inRange(r.date))
+      DB.preturn.filter(r=>r.status==='done' && _whName(r.warehouseId)===wn && inRange(r.date))
         .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
 
       // 区间末库存 = 期初 + 区间入库 - 区间出库
@@ -2851,23 +2879,15 @@ function editBill(type, id){
   const r = DB[type].find(x=>x.id===id);
   if(!r){ showToast('未找到记录','error'); return; }
 
-  // ══ 诊断日志（可在浏览器 F12 控制台查看）══
-  console.group('editBill 诊断');
-  console.log('单据 warehouseId:', r.warehouseId);
-  console.log('单据 supplierId:', r.supplierId);
-  console.log('DB.warehouses:', DB.warehouses.map(w=>({id:w.id, name:w.name})));
-  console.log('DB.suppliers:', DB.suppliers.map(s=>({id:s.id, name:s.name})));
-  const whMatch = DB.warehouses.find(w=>w.id===r.warehouseId);
-  const whNameMatch = DB.warehouses.find(w=>w.name===r.warehouseId);
-  console.log('按id匹配仓库:', whMatch ? whMatch.name : '❌ 未匹配');
-  console.log('按name匹配仓库:', whNameMatch ? whNameMatch.name : '❌ 未匹配');
-  console.groupEnd();
-
   const mc = document.getElementById('modalContainer');
   const typeNames = {pr:'采购入库单', sd:'销售出库单', otherIn:'其他入库单'};
   const typeName = typeNames[type] || type;
 
-  // ── 预选值：getWHOpts 现用 name 作 value，直接传仓库名即可，彻底绕开重复 id 问题 ──
+  // ── 仓库：用名称作 value，彻底绕开重复 id 问题 ──
+  // 单据存的可能是 id（旧）或名称（新），统一转成名称
+  const _whById   = DB.warehouses.find(w => w.id   === r.warehouseId);
+  const _whByName = DB.warehouses.find(w => w.name === r.warehouseId);
+  const resolvedWHName = _whById ? _whById.name : (_whByName ? _whByName.name : r.warehouseId || '');
 
   // 供应商 / 客户 仍用 id（id 无重复）
   let resolvedSupId = r.supplierId || '';
