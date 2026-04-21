@@ -490,7 +490,7 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
             <button class="btn" onclick="osResetFilter()" style="font-size:11px;padding:6px 12px;align-self:flex-end">↺ 重置</button>
             <div id="osFilterCount" style="align-self:flex-end;font-size:11px;color:var(--color-text-tertiary);padding-bottom:6px"></div>
           </div>
-          <table><thead><tr><th>商品编号</th><th>产品类别</th><th>商品名称</th><th>规格型号</th><th>仓库</th><th>数量</th><th>成本单价</th><th>成本总额</th><th>日期</th><th>备注</th><th>状态</th><th>操作</th></tr></thead><tbody id="osTbl"></tbody></table>
+          <table><thead><tr><th>商品编号</th><th>产品类别</th><th>商品名称</th><th>规格型号</th><th>仓库</th><th>数量</th><th>成本单价</th><th>成本总额</th><th>日期</th><th>备注</th><th>状态</th><th>操作</th></tr></thead><tbody id="osTbl"></tbody><tfoot id="osFoot"></tfoot></table>
         </div>
       </div>
 
@@ -1380,6 +1380,25 @@ function renderOpenstock(){
   </tr>`).join('') || `<tr><td colspan="12" style="text-align:center;color:var(--color-text-tertiary);padding:20px">
     ${(fCat||fWH||fKw||fStatus)?'没有符合筛选条件的记录，<a href="#" onclick="osResetFilter();return false;">点此重置</a>':'暂无期初库存'}
   </td></tr>`;
+
+  // ── 合计行 ──
+  const footEl = document.getElementById('osFoot');
+  if(footEl && filtered.length){
+    const totalQty  = filtered.reduce((s,r)=>s+(+r.qty||0), 0);
+    const totalAmt  = filtered.reduce((s,r)=>s+(+r.qty||0)*(+r.costPrice||0), 0);
+    const isFiltered = filtered.length < DB.openstock.length;
+    footEl.innerHTML = `<tr style="font-weight:600;background:var(--color-background-secondary);border-top:1.5px solid var(--color-border-secondary)">
+      <td colspan="5" style="padding:8px 10px;font-size:12px;color:var(--color-text-secondary)">
+        ${isFiltered?`筛选合计（${filtered.length} 条）`:`全部合计（${filtered.length} 条）`}
+      </td>
+      <td style="padding:8px 10px;font-size:12px">${totalQty.toLocaleString()}</td>
+      <td style="padding:8px 10px;font-size:12px;color:var(--color-text-tertiary)">—</td>
+      <td style="padding:8px 10px;font-size:12px;color:#185FA5">${fmtMoney(totalAmt)}</td>
+      <td colspan="4" style="padding:8px 10px"></td>
+    </tr>`;
+  } else if(footEl){
+    footEl.innerHTML = '';
+  }
 }
 
 function osResetFilter(){
