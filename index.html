@@ -2,6 +2,28 @@
 <!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#378ADD"><title>进销存管理系统</title></head><body>
 <h2 class="sr-only">产品进销存管理系统 V2 — 含 IndexedDB 持久化存储与 Excel 导出功能</h2>
 <style>
+/* ── 系统设置：主题颜色变量覆盖 ── */
+body[data-theme="light"]{
+  --color-background-primary:#FFFFFF;--color-background-secondary:#F5F5F3;--color-background-tertiary:#EBEBEA;
+  --color-text-primary:#1A1A1A;--color-text-secondary:#525252;--color-text-tertiary:#A0A0A0;
+  --color-border-primary:#D0D0D0;--color-border-secondary:#E0E0DE;--color-border-tertiary:#EDEDED;
+}
+body[data-theme="dark"]{
+  --color-background-primary:#1E1E2E;--color-background-secondary:#2A2A3E;--color-background-tertiary:#16162A;
+  --color-text-primary:#E0E0F0;--color-text-secondary:#A0A0C0;--color-text-tertiary:#606080;
+  --color-border-primary:#404060;--color-border-secondary:#353550;--color-border-tertiary:#2A2A45;
+  --color-background-info:#1A2A4A;--color-text-info:#7EB8F7;
+}
+body[data-theme="warm"]{
+  --color-background-primary:#FFFDF8;--color-background-secondary:#FFF8EC;--color-background-tertiary:#FFF0D6;
+  --color-text-primary:#2C1A00;--color-text-secondary:#6B4200;--color-text-tertiary:#B08040;
+  --color-border-primary:#D4A96A;--color-border-secondary:#E8D4A8;--color-border-tertiary:#F0E4C4;
+}
+body[data-theme="green"]{
+  --color-background-primary:#F6FBF6;--color-background-secondary:#EDF6ED;--color-background-tertiary:#E0EEE0;
+  --color-text-primary:#0D2B0D;--color-text-secondary:#2E6B2E;--color-text-tertiary:#6BA86B;
+  --color-border-primary:#7EC87E;--color-border-secondary:#B8DEB8;--color-border-tertiary:#D4EDD4;
+}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--font-sans);font-size:15px;color:var(--color-text-primary)}
 .app{display:flex;height:100vh;min-height:600px;background:var(--color-background-tertiary)}
@@ -823,28 +845,98 @@ async function checkSession(){
 }
 
 function openSysSettings(){
-  const cur = getMoneyDecimals();
+  const curDec   = getMoneyDecimals();
+  const curTheme = localStorage.getItem('inv_theme')||'light';
+  const curFont  = parseInt(localStorage.getItem('inv_fontSize')||'14',10);
+  const curAuto  = localStorage.getItem('inv_autoBackup')||'off';
+  const themes   = [{k:'light',label:'☀ 默认白'},{k:'dark',label:'🌙 暗黑'},{k:'warm',label:'🌿 暖黄'},{k:'green',label:'🍃 清绿'}];
+  const fonts    = [12,13,14,15,16,18];
+
+  // 自动备份上次时间
+  const lastBackup = localStorage.getItem('inv_lastAutoBackup');
+  const lastBackupStr = lastBackup ? new Date(+lastBackup).toLocaleString('zh-CN') : '从未';
+
   const mc = document.getElementById('modalContainer');
   mc.innerHTML = `<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
-    <div class="modal" style="width:420px">
+    <div class="modal" style="width:500px;max-width:96%">
       <div class="modal-header"><span>⚙ 系统设置</span><button class="btn" onclick="closeModal()">✕</button></div>
-      <div class="modal-body">
-        <div style="margin-bottom:20px">
-          <div style="font-size:13px;font-weight:600;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--color-border-tertiary)">💰 金额显示设置</div>
-          <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px">
-            <label style="font-size:12px;color:var(--color-text-secondary);width:90px">小数点位数</label>
-            <div style="display:flex;gap:8px">
-              ${[0,1,2,3,4].map(n=>`<button onclick="setSysDecimal(${n})" id="decBtn${n}"
-                style="padding:6px 14px;border-radius:5px;border:1.5px solid ${n===cur?'#185FA5':'var(--color-border-secondary)'};
-                background:${n===cur?'#185FA5':'var(--color-background-primary)'};
-                color:${n===cur?'#fff':'var(--color-text-primary)'};
-                cursor:pointer;font-size:13px;font-weight:${n===cur?'600':'400'}">${n}</button>`).join('')}
-            </div>
-          </div>
-          <div style="font-size:11px;color:var(--color-text-tertiary);margin-left:106px">
-            预览：${[0,1,2,3,4].map(n=>`<span id="decPrev${n}" style="display:${n===cur?'inline':'none'}">${(1234567.89).toLocaleString(undefined,{minimumFractionDigits:n,maximumFractionDigits:n})}</span>`).join('')}
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:20px">
+
+        <!-- 背景主题 -->
+        <div>
+          <div style="font-size:12px;font-weight:600;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--color-border-tertiary);color:var(--color-text-secondary)">🎨 背景主题</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            ${themes.map(t=>`
+              <button onclick="setSysTheme('${t.k}')" id="themeBtn_${t.k}"
+                style="padding:7px 16px;border-radius:6px;border:2px solid ${t.k===curTheme?'#185FA5':'var(--color-border-secondary)'};
+                background:${t.k===curTheme?'#185FA5':'var(--color-background-secondary)'};
+                color:${t.k===curTheme?'#fff':'var(--color-text-primary)'};
+                cursor:pointer;font-size:12px;font-weight:${t.k===curTheme?'600':'400'}">${t.label}</button>`).join('')}
           </div>
         </div>
+
+        <!-- 字体大小 -->
+        <div>
+          <div style="font-size:12px;font-weight:600;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--color-border-tertiary);color:var(--color-text-secondary)">🔠 字体大小</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="display:flex;gap:6px">
+              ${fonts.map(f=>`<button onclick="setSysFont(${f})" id="fontBtn_${f}"
+                style="padding:6px 12px;border-radius:5px;border:1.5px solid ${f===curFont?'#185FA5':'var(--color-border-secondary)'};
+                background:${f===curFont?'#185FA5':'var(--color-background-primary)'};
+                color:${f===curFont?'#fff':'var(--color-text-primary)'};
+                cursor:pointer;font-size:${f}px;font-weight:${f===curFont?'600':'400'}">${f}</button>`).join('')}
+            </div>
+            <span id="fontPrevText" style="font-size:${curFont}px;color:var(--color-text-tertiary)">预览文字 Aa 123</span>
+          </div>
+        </div>
+
+        <!-- 金额小数位 -->
+        <div>
+          <div style="font-size:12px;font-weight:600;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--color-border-tertiary);color:var(--color-text-secondary)">💰 金额小数位数</div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="display:flex;gap:6px">
+              ${[0,1,2,3,4].map(n=>`<button onclick="setSysDecimal(${n})" id="decBtn${n}"
+                style="padding:6px 14px;border-radius:5px;border:1.5px solid ${n===curDec?'#185FA5':'var(--color-border-secondary)'};
+                background:${n===curDec?'#185FA5':'var(--color-background-primary)'};
+                color:${n===curDec?'#fff':'var(--color-text-primary)'};
+                cursor:pointer;font-size:13px;font-weight:${n===curDec?'600':'400'}">${n}</button>`).join('')}
+            </div>
+            <span style="font-size:11px;color:var(--color-text-tertiary)">
+              ${[0,1,2,3,4].map(n=>`<span id="decPrev${n}" style="display:${n===curDec?'inline':'none'}">${(1234567.89).toLocaleString(undefined,{minimumFractionDigits:n,maximumFractionDigits:n})}</span>`).join('')}
+            </span>
+          </div>
+        </div>
+
+        <!-- 自动备份 -->
+        <div>
+          <div style="font-size:12px;font-weight:600;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--color-border-tertiary);color:var(--color-text-secondary)">💾 自动备份</div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <span style="font-size:12px;color:var(--color-text-secondary)">备份频率</span>
+            <select id="autoBackupSel" onchange="setSysAutoBackup(this.value)"
+              style="font-size:12px;padding:5px 10px;border:1px solid var(--color-border-secondary);border-radius:4px;background:var(--color-background-secondary);width:130px">
+              <option value="off"  ${curAuto==='off'  ?'selected':''}>关闭</option>
+              <option value="1h"   ${curAuto==='1h'   ?'selected':''}>每1小时</option>
+              <option value="6h"   ${curAuto==='6h'   ?'selected':''}>每6小时</option>
+              <option value="24h"  ${curAuto==='24h'  ?'selected':''}>每天</option>
+              <option value="boot" ${curAuto==='boot'  ?'selected':''}>启动时</option>
+            </select>
+            <button class="btn btn-primary" onclick="doManualBackup()" style="font-size:11px;padding:5px 12px">⬇ 立即备份</button>
+          </div>
+          <div style="font-size:11px;color:var(--color-text-tertiary)">上次自动备份：${lastBackupStr}</div>
+        </div>
+
+        <!-- 恢复备份 -->
+        <div>
+          <div style="font-size:12px;font-weight:600;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--color-border-tertiary);color:var(--color-text-secondary)">📂 备份恢复</div>
+          <div class="alert alert-danger" style="font-size:11px;margin-bottom:8px">⚠ 恢复将覆盖当前所有数据，请谨慎操作</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="file" id="settingRestoreFile" accept=".json" onchange="settingPreviewRestore(this)"
+              style="font-size:11px;width:auto;flex:1">
+            <button class="btn btn-danger" id="settingRestoreBtn" onclick="settingDoRestore()" disabled style="font-size:11px;padding:5px 12px;white-space:nowrap">⬆ 确认恢复</button>
+          </div>
+          <div id="settingRestoreInfo" style="font-size:11px;color:var(--color-text-tertiary);margin-top:6px"></div>
+        </div>
+
       </div>
       <div class="modal-footer">
         <button class="btn" onclick="closeModal()">关闭</button>
@@ -852,6 +944,105 @@ function openSysSettings(){
     </div>
   </div>`;
   mc.style.pointerEvents='all';
+}
+
+function setSysTheme(theme){
+  localStorage.setItem('inv_theme', theme);
+  document.body.setAttribute('data-theme', theme);
+  // 更新按钮样式
+  ['light','dark','warm','green'].forEach(t=>{
+    const btn = document.getElementById('themeBtn_'+t);
+    if(!btn) return;
+    const active = t===theme;
+    btn.style.borderColor = active?'#185FA5':'var(--color-border-secondary)';
+    btn.style.background  = active?'#185FA5':'var(--color-background-secondary)';
+    btn.style.color       = active?'#fff':'var(--color-text-primary)';
+    btn.style.fontWeight  = active?'600':'400';
+  });
+  showToast('✓ 主题已切换');
+}
+
+function setSysFont(size){
+  localStorage.setItem('inv_fontSize', String(size));
+  document.body.style.fontSize = size+'px';
+  // 更新按钮
+  [12,13,14,15,16,18].forEach(f=>{
+    const btn = document.getElementById('fontBtn_'+f);
+    if(!btn) return;
+    const active = f===size;
+    btn.style.borderColor = active?'#185FA5':'var(--color-border-secondary)';
+    btn.style.background  = active?'#185FA5':'var(--color-background-primary)';
+    btn.style.color       = active?'#fff':'var(--color-text-primary)';
+    btn.style.fontWeight  = active?'600':'400';
+  });
+  const prev = document.getElementById('fontPrevText');
+  if(prev) prev.style.fontSize = size+'px';
+  showToast(`✓ 字体大小已设为 ${size}px`);
+}
+
+function setSysAutoBackup(val){
+  localStorage.setItem('inv_autoBackup', val);
+  if(val!=='off') showToast(`✓ 自动备份已设为：${val==='1h'?'每1小时':val==='6h'?'每6小时':val==='24h'?'每天':'启动时'}`);
+  else showToast('自动备份已关闭');
+}
+
+function doManualBackup(){
+  backupJSON();
+  localStorage.setItem('inv_lastAutoBackup', String(Date.now()));
+  showToast('✓ 备份文件已下载');
+  const el = document.querySelector('#settingRestoreInfo, .modal-body');
+  // 刷新上次备份时间显示
+  const timeEls = document.querySelectorAll('.last-backup-time');
+  timeEls.forEach(e=>e.textContent=new Date().toLocaleString('zh-CN'));
+}
+
+let _settingRestoreObj = null;
+function settingPreviewRestore(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      _settingRestoreObj = JSON.parse(e.target.result);
+      const info = document.getElementById('settingRestoreInfo');
+      const btn  = document.getElementById('settingRestoreBtn');
+      if(info) info.innerHTML = `<span style="color:#1D9E75">✓ 文件解析成功：版本 ${_settingRestoreObj.version||'1.0'}，备份时间 ${_settingRestoreObj.timestamp?new Date(_settingRestoreObj.timestamp).toLocaleString('zh-CN'):'未知'}</span>`;
+      if(btn) btn.disabled = false;
+    }catch(err){
+      const info = document.getElementById('settingRestoreInfo');
+      if(info) info.innerHTML = '<span style="color:#E24B4A">✗ 文件格式错误，请选择正确的备份文件</span>';
+      _settingRestoreObj = null;
+    }
+  };
+  reader.readAsText(file);
+}
+
+async function settingDoRestore(){
+  if(!_settingRestoreObj){showToast('请先选择备份文件','error');return;}
+  if(!confirm('确认恢复？当前所有数据将被覆盖！')) return;
+  // 复用现有 doRestore 逻辑
+  restoreObj = _settingRestoreObj;
+  await doRestore();
+  _settingRestoreObj = null;
+  closeModal();
+}
+
+// ── 自动备份调度器（页面加载后启动）──
+function startAutoBackupScheduler(){
+  const val = localStorage.getItem('inv_autoBackup')||'off';
+  if(val==='boot'){
+    // 启动时立即备份
+    setTimeout(()=>{ backupJSON(); localStorage.setItem('inv_lastAutoBackup',String(Date.now())); }, 3000);
+    return;
+  }
+  const intervals = {'1h':3600000,'6h':21600000,'24h':86400000};
+  const ms = intervals[val];
+  if(!ms) return;
+  setInterval(()=>{
+    backupJSON();
+    localStorage.setItem('inv_lastAutoBackup',String(Date.now()));
+    showToast('✓ 已自动备份数据');
+  }, ms);
 }
 
 function setSysDecimal(n){
@@ -1106,6 +1297,15 @@ async function savePermsToCloud(){
 async function manualSave(){await saveAll();showToast('数据已同步至云端','success');}
 
 // 实时监听：每30秒轮询更新（兼容免费套餐，无需 Realtime websocket 额度）
+// ── 初始化：读取本地设置并应用 ──
+function applySavedSettings(){
+  const theme = localStorage.getItem('inv_theme')||'light';
+  const fontSize = parseInt(localStorage.getItem('inv_fontSize')||'14',10);
+  document.body.setAttribute('data-theme', theme);
+  document.body.style.fontSize = fontSize+'px';
+  startAutoBackupScheduler();
+}
+
 function startPolling(){
   setInterval(async()=>{
     try{
@@ -3709,7 +3909,8 @@ async function init(){
       document.getElementById('app').style.display='none';
     }
     // 数据已在云端，无需重新注入
-    startPolling();
+    applySavedSettings();
+startPolling();
   }catch(e){
     console.error('[云端连接失败]',e);
     const errMsg=e&&e.message?e.message.slice(0,80):String(e).slice(0,80);
