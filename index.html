@@ -3074,41 +3074,36 @@ function ebGetItems(){
 }
 
 // 保存编辑
-function saveBillEdit(type, id){
+async function saveBillEdit(type, id){
   const r = DB[type].find(x=>x.id===id);
   if(!r){ showToast('记录不存在','error'); return; }
 
   const items = ebGetItems();
   if(!items.length){ showToast('请至少保留一行有效明细','error'); return; }
 
-  // 字段读取
-  const warehouseId = whId((document.getElementById('eb_wh')||{}).value || '') || r.warehouseId;
-  if(!warehouseId){ showToast('请选择仓库','error'); return; }
+  // eb_wh.value 现在直接是仓库名称（唯一），直接存名称，_whName() 能正确解析
+  const warehouseName = (document.getElementById('eb_wh')||{}).value || '';
+  if(!warehouseName){ showToast('请选择仓库','error'); return; }
   const handler = (document.getElementById('eb_handler')||{}).value || r.handler || '';
   const date = (document.getElementById('eb_date')||{}).value || r.date || '';
   const totalAmt = items.reduce((s,i)=>s+i.total, 0);
 
-  // 库存回滚：撤销原来的库存影响，再应用新的
   if(type==='pr'){
     const supplierId = (document.getElementById('eb_sup')||{}).value;
     if(!supplierId){ showToast('请选择供应商','error'); return; }
     const poId = (document.getElementById('eb_po')||{}).value || '';
     const poNo = poId ? (DB.po.find(p=>p.id===poId)||{}).no||'' : '';
-    // 回滚原入库库存（减回去）
-    r.items.forEach(i=>{ /* 库存通过 getStock 动态计算，删原 items 重写即可 */ });
-    // 更新记录
-    Object.assign(r, {supplierId, warehouseId, handler, date, poId, poNo, items, totalAmt});
+    Object.assign(r, {supplierId, warehouseId:warehouseName, handler, date, poId, poNo, items, totalAmt});
 
   } else if(type==='sd'){
     const customerId = (document.getElementById('eb_cust')||{}).value;
     if(!customerId){ showToast('请选择客户','error'); return; }
-    // 库存检查：新明细是否足量（原出库已扣，需净差）
     for(const item of items){
       const origItem = r.items.find(x=>x.productId===item.productId);
       const origQty = origItem ? origItem.qty : 0;
-      const extraQty = item.qty - origQty; // 新增出库量
+      const extraQty = item.qty - origQty;
       if(extraQty > 0){
-        const stock = getStock(item.productId, warehouseId);
+        const stock = getStock(item.productId, warehouseName);
         if(stock < extraQty){
           showToast(`${pname(item.productId)} 库存不足，新增出库量 ${extraQty}，当前可用库存 ${stock}`,'error');
           return;
@@ -3117,23 +3112,24 @@ function saveBillEdit(type, id){
     }
     const soId = (document.getElementById('eb_so')||{}).value || '';
     const soNo = soId ? (DB.so.find(s=>s.id===soId)||{}).no||'' : '';
-    Object.assign(r, {customerId, warehouseId, handler, date, soId, soNo, items, totalAmt});
+    Object.assign(r, {customerId, warehouseId:warehouseName, handler, date, soId, soNo, items, totalAmt});
 
   } else if(type==='otherIn'){
     const note = (document.getElementById('eb_note')||{}).value || r.note || '';
     const otype = (document.getElementById('eb_otype')||{}).value || r.type || '';
-    Object.assign(r, {type:otype, warehouseId, handler, date, items, totalAmt, note});
+    Object.assign(r, {type:otype, warehouseId:warehouseName, handler, date, items, totalAmt, note});
   }
 
-  const storeMap = {pr:'pr', sd:'sd', otherIn:'otherIn'};
-  saveStore(storeMap[type]);
+  // ── 关键：await saveStore，确保云端写入成功后再刷新页面 ──
   closeModal();
+  showToast('保存中...');
+  await saveStore(type);
   if(type==='pr') renderPR();
   else if(type==='sd') renderSD();
   else if(type==='otherIn') renderOI();
   renderDashboard();
   writeLog('编辑', type==='pr'?'采购':type==='sd'?'销售':'其他', `编辑${type==='pr'?'采购入库单':type==='sd'?'销售出库单':'其他入库单'} ${r.no}`);
-  showToast('✓ 修改已保存，库存数据已更新');
+  showToast('✓ 修改已保存');
 }
 
 // ── 批量打印 ──
