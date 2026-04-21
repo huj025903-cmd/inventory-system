@@ -2844,6 +2844,18 @@ function editBill(type, id){
   const r = DB[type].find(x=>x.id===id);
   if(!r){ showToast('未找到记录','error'); return; }
 
+  // ══ 诊断日志（可在浏览器 F12 控制台查看）══
+  console.group('editBill 诊断');
+  console.log('单据 warehouseId:', r.warehouseId);
+  console.log('单据 supplierId:', r.supplierId);
+  console.log('DB.warehouses:', DB.warehouses.map(w=>({id:w.id, name:w.name})));
+  console.log('DB.suppliers:', DB.suppliers.map(s=>({id:s.id, name:s.name})));
+  const whMatch = DB.warehouses.find(w=>w.id===r.warehouseId);
+  const whNameMatch = DB.warehouses.find(w=>w.name===r.warehouseId);
+  console.log('按id匹配仓库:', whMatch ? whMatch.name : '❌ 未匹配');
+  console.log('按name匹配仓库:', whNameMatch ? whNameMatch.name : '❌ 未匹配');
+  console.groupEnd();
+
   const mc = document.getElementById('modalContainer');
   const typeNames = {pr:'采购入库单', sd:'销售出库单', otherIn:'其他入库单'};
   const typeName = typeNames[type] || type;
