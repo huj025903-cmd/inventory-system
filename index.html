@@ -3431,7 +3431,7 @@ function viewBill(type,id){
 
   // ── 构建单据内容 HTML ──
   function buildBillHTML(forPrint=false){
-    const baseStyle=forPrint?'font-family:\'Microsoft YaHei\',Arial,sans-serif;font-size:12px;color:#000;':'font-size:12px;';
+    const baseStyle=forPrint?'font-family:Arial,sans-serif;font-size:12px;color:#000;':'font-size:12px;';
     const tableStyle='width:100%;border-collapse:collapse;margin-top:10px;';
     const thStyle='background:#f0f0f0;padding:7px 10px;text-align:left;font-weight:600;border:1px solid #ccc;font-size:11px;';
     const tdStyle='padding:6px 10px;border:1px solid #ddd;font-size:11px;vertical-align:top;';
@@ -3593,49 +3593,43 @@ function viewBill(type,id){
 
 // ── 独立打印窗口函数（全局，避免闭包序列化）──
 function openPrintWindow(printKey, typeName, docNo){
-  const html = window[printKey] || '';
-  const printHTML = \`<!DOCTYPE html>
-<html><head>
-<meta charset="utf-8">
-<title>\${typeName} \${docNo}</title>
-<style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'Microsoft YaHei',Arial,sans-serif;font-size:12px;color:#000;background:#f5f5f5}
-  .page-wrap{max-width:800px;margin:0 auto;background:#fff;padding:32px 40px}
-  .no-print{display:flex;gap:10px;padding:12px 16px;background:#fff;border-bottom:1px solid #ddd;
-    position:sticky;top:0;z-index:99;box-shadow:0 2px 6px rgba(0,0,0,.08)}
-  .btn-print{padding:8px 24px;background:#185FA5;color:#fff;border:none;border-radius:5px;
-    cursor:pointer;font-size:13px;font-weight:600}
-  .btn-close{padding:8px 16px;border:1px solid #ccc;background:#fff;border-radius:5px;
-    cursor:pointer;font-size:13px}
-  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:11px}
-  th{background:#f0f0f0;padding:8px 10px;text-align:left;font-weight:600;border:1px solid #ccc}
-  td{padding:7px 10px;border:1px solid #ddd;vertical-align:top}
-  td.r{text-align:right}
-  @media print{
-    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-    body{background:#fff;font-size:11px}
-    .no-print{display:none!important}
-    .page-wrap{max-width:100%;padding:8mm 10mm;margin:0;box-shadow:none}
-    @page{margin:12mm 10mm;size:A4 portrait}
-  }
-</style>
-</head><body>
-<div class="no-print">
-  <button class="btn-print" onclick="window.print()">🖨️ 打印</button>
-  <button class="btn-close" onclick="window.close()">✕ 关闭</button>
-  <span style="margin-left:8px;font-size:11px;color:#888;align-self:center">调整页面：浏览器打印设置 → 纸张方向 / 缩放</span>
-</div>
-<div class="page-wrap">
-  \${html}
-</div>
-</body></html>\`;
+  var html = window[printKey] || '';
+  var css = [
+    '*{box-sizing:border-box;margin:0;padding:0}',
+    "body{font-family:'Microsoft YaHei',Arial,sans-serif;font-size:12px;color:#000;background:#f5f5f5}",
+    '.page-wrap{max-width:800px;margin:0 auto;background:#fff;padding:32px 40px}',
+    '.no-print{display:flex;gap:10px;padding:12px 16px;background:#fff;border-bottom:1px solid #ddd;position:sticky;top:0;z-index:99;box-shadow:0 2px 6px rgba(0,0,0,.08)}',
+    '.btn-print{padding:8px 24px;background:#185FA5;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:13px;font-weight:600}',
+    '.btn-close{padding:8px 16px;border:1px solid #ccc;background:#fff;border-radius:5px;cursor:pointer;font-size:13px}',
+    'table{width:100%;border-collapse:collapse;margin-top:14px;font-size:11px}',
+    'th{background:#f0f0f0;padding:8px 10px;text-align:left;font-weight:600;border:1px solid #ccc}',
+    'td{padding:7px 10px;border:1px solid #ddd;vertical-align:top}',
+    'td.r{text-align:right}',
+    '@media print{',
+    '  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}',
+    '  body{background:#fff;font-size:11px}',
+    '  .no-print{display:none!important}',
+    '  .page-wrap{max-width:100%;padding:8mm 10mm;margin:0;box-shadow:none}',
+    '  @page{margin:12mm 10mm;size:A4 portrait}',
+    '}'
+  ].join('\n');
+  var printHTML = '<!DOCTYPE html><html><head>'
+    + '<meta charset="utf-8">'
+    + '<title>' + typeName + ' ' + docNo + '</title>'
+    + '<style>' + css + '</style>'
+    + '</head><body>'
+    + '<div class="no-print">'
+    + '<button class="btn-print" onclick="window.print()">&#128424; 打印</button>'
+    + '<button class="btn-close" onclick="window.close()">&#10005; 关闭</button>'
+    + '<span style="margin-left:8px;font-size:11px;color:#888;align-self:center">调整页面：浏览器打印设置 → 纸张方向 / 缩放</span>'
+    + '</div>'
+    + '<div class="page-wrap">' + html + '</div>'
+    + '</body></html>';
 
-  const w = window.open('', '_blank', 'width=860,height=720,menubar=no,toolbar=no');
+  var w = window.open('', '_blank', 'width=860,height=720,menubar=no,toolbar=no');
   if(!w){ showToast('弹窗被拦截，请允许弹出窗口后重试','error'); return; }
   w.document.write(printHTML);
   w.document.close();
-  // 不自动调用 w.print()，完全由用户手动点击打印按钮
 }
 
 
