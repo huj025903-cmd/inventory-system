@@ -618,7 +618,7 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
       <div class="page" id="page-so">
         <div class="card">
           <div class="card-header"><div class="card-title">销售订单</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-warning" onclick="batchGenSD()" title="批量勾选后生成出库单">📤 批量生成出库单</button><button class="btn" onclick="batchPrint('so')">🖨️ 批量打印</button><button class="btn btn-success" onclick="exportExcel('so')">📊 导出Excel</button><button class="btn btn-primary" onclick="openModal('so')">+ 新建</button></div></div>
-          <table><thead><tr><th style="width:32px"><input type="checkbox" onclick="toggleAllCheck('so',this)" title="全选"></th><th>单号</th><th>客户</th><th>经办人</th><th>日期</th><th>金额</th><th>发货</th><th>审核</th><th>备注</th><th>操作</th></tr></thead><tbody id="soTbl"></tbody></table>
+          <table id="soTable"><thead><tr><th style="width:32px"><input type="checkbox" onclick="toggleAllCheck('so',this)" title="全选"></th><th>单号</th><th>客户</th><th>经办人</th><th>日期</th><th>销售金额</th><th class="so-cost-col" style="display:none">成本金额</th><th class="so-profit-col" style="display:none">利润</th><th class="so-profit-col" style="display:none">利润率</th><th>发货</th><th>审核</th><th>备注</th><th>操作</th></tr></thead><tbody id="soTbl"></tbody></table>
         </div>
       </div>
 
@@ -1390,7 +1390,8 @@ const DEF_PERMS={
   stockQuery:{admin:1,purchase:1,sales:1,warehouse:1,finance:1,viewer:1},
   export:{admin:1,purchase:0,sales:0,warehouse:0,finance:1,viewer:0},
   permissions:{admin:1,purchase:0,sales:0,warehouse:0,finance:0,viewer:0},
-  backup:{admin:1,purchase:0,sales:0,warehouse:0,finance:1,viewer:0}
+  backup:{admin:1,purchase:0,sales:0,warehouse:0,finance:1,viewer:0},
+  so_cost_profit:{admin:1,purchase:0,sales:0,warehouse:0,finance:1,viewer:0}
 };
 
 const PAGE_TITLES={dashboard:'仪表盘',products:'商品管理',warehouses:'仓库管理',suppliers:'供应商',customers:'客户管理',units:'计量单位',openstock:'期初库存',po:'采购订单',pr:'采购入库单',preturn:'采购退货单',so:'销售订单',sd:'销售出库单',sreturn:'销售退货单',otherIn:'其他入库单',otherOut:'其他出库单',bom:'产品BOM表',assembly:'组装单',stockQuery:'库存查询',export:'Excel导出中心',permissions:'权限管理',backup:'备份恢复',users:'用户管理',logs:'操作日志'};
@@ -1869,7 +1870,33 @@ function renderPT(){
 }
 
 function renderSO(){
-  document.getElementById('soTbl').innerHTML=DB.so.map(r=>`<tr><td style="text-align:center"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="so"></td><td>${r.no}</td><td>${cname(r.customerId)}</td><td>${r.handler||'-'}</td><td>${r.date||'-'}</td><td>${fmtMoney(r.totalAmt)}</td><td><span class="badge badge-${r.shipStatus==='done'?'green':r.shipStatus==='partial'?'amber':'blue'}">${r.shipStatus==='done'?'全部发货':r.shipStatus==='partial'?'部分发货':'未发货'}</span></td><td><span class="badge badge-${r.approved?'green':'amber'}">${r.approved?'已审核':'待审核'}</span></td><td style="color:var(--color-text-secondary);font-size:10px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.remark||''}">${r.remark||'-'}</td><td style="white-space:nowrap">${r.approved&&r.shipStatus!=='done'?`<button class="btn btn-warning" onclick="openGenSD('${r.id}')" style="font-size:10px">📤 生成出库单</button> `:''  }${!r.approved&&(currentUser==='admin'||currentUser==='finance')?`<button class="btn btn-primary" onclick="approveSO('${r.id}')">审核</button> `:''}<button class="btn" onclick="viewBill('so','${r.id}')">查看</button> <button class="btn" onclick="editRemark('so','${r.id}',renderSO)" title="编辑备注">备注</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('so','${r.id}',renderSO)">删除</button>`:''}</td></tr>`).join('')||'<tr><td colspan="10" style="text-align:center;color:var(--color-text-tertiary)">暂无销售订单</td></tr>';
+  // 权限控制：成本/利润列
+  const showCP = perms['so_cost_profit'] && perms['so_cost_profit'][currentUser];
+  document.querySelectorAll('.so-cost-col,.so-profit-col').forEach(el=>el.style.display=showCP?'':'none');
+
+  document.getElementById('soTbl').innerHTML=DB.so.map(r=>{
+    // 计算成本：items 中每个商品的 costPrice × qty
+    let costAmt = 0;
+    if(r.items) r.items.forEach(item=>{
+      const p = DB.products.find(x=>x.id===item.productId);
+      costAmt += fmtNum((p?p.costPrice||0:0) * (item.qty||0));
+    });
+    const profit = fmtNum(r.totalAmt - costAmt);
+    const margin = r.totalAmt>0 ? (profit/r.totalAmt*100).toFixed(1)+'%' : '-';
+    const profitColor = profit>=0?'#1D9E75':'#E24B4A';
+    return `<tr>
+      <td style="text-align:center"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="so"></td>
+      <td>${r.no}</td><td>${cname(r.customerId)}</td><td>${r.handler||'-'}</td><td>${r.date||'-'}</td>
+      <td>${fmtMoney(r.totalAmt)}</td>
+      <td class="so-cost-col" style="display:${showCP?'':'none'}">${fmtMoney(costAmt)}</td>
+      <td class="so-profit-col" style="display:${showCP?'':'none'};color:${profitColor};font-weight:600">${fmtMoney(profit)}</td>
+      <td class="so-profit-col" style="display:${showCP?'':'none'};color:${profitColor}">${margin}</td>
+      <td><span class="badge badge-${r.shipStatus==='done'?'green':r.shipStatus==='partial'?'amber':'blue'}">${r.shipStatus==='done'?'全部发货':r.shipStatus==='partial'?'部分发货':'未发货'}</span></td>
+      <td><span class="badge badge-${r.approved?'green':'amber'}">${r.approved?'已审核':'待审核'}</span></td>
+      <td style="color:var(--color-text-secondary);font-size:10px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.remark||''}">${r.remark||'-'}</td>
+      <td style="white-space:nowrap">${r.approved&&r.shipStatus!=='done'?`<button class="btn btn-warning" onclick="openGenSD('${r.id}')" style="font-size:10px">📤 生成出库单</button> `:''}${!r.approved&&(currentUser==='admin'||currentUser==='finance')?`<button class="btn btn-primary" onclick="approveSO('${r.id}')">审核</button> `:''}<button class="btn" onclick="viewBill('so','${r.id}')">查看</button> <button class="btn" onclick="editRemark('so','${r.id}',renderSO)" title="编辑备注">备注</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('so','${r.id}',renderSO)">删除</button>`:''}</td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="13" style="text-align:center;color:var(--color-text-tertiary)">暂无销售订单</td></tr>';
 }
 
 function renderSD(){
@@ -2072,7 +2099,8 @@ function renderPerms(){
     {key:'dashboard',name:'仪表盘'},{key:'products',name:'商品管理'},{key:'warehouses',name:'仓库管理'},{key:'suppliers',name:'供应商'},{key:'customers',name:'客户'},
     {key:'units',name:'计量单位'},{key:'openstock',name:'期初库存'},{key:'po',name:'采购订单'},{key:'pr',name:'采购入库'},{key:'preturn',name:'采购退货'},
     {key:'so',name:'销售订单'},{key:'sd',name:'销售出库'},{key:'sreturn',name:'销售退货'},{key:'otherIn',name:'其他入库'},{key:'otherOut',name:'其他出库'},
-    {key:'bom',name:'BOM表'},{key:'assembly',name:'组装单'},{key:'stockQuery',name:'库存查询'},{key:'export',name:'Excel导出'},{key:'permissions',name:'权限管理'},{key:'backup',name:'备份恢复'}
+    {key:'bom',name:'BOM表'},{key:'assembly',name:'组装单'},{key:'stockQuery',name:'库存查询'},{key:'export',name:'Excel导出'},{key:'permissions',name:'权限管理'},{key:'backup',name:'备份恢复'},
+    {key:'so_cost_profit',name:'销售单成本/利润列'}
   ];
   const roles=['admin','purchase','sales','warehouse','finance','viewer'];
   const can=currentUser==='admin';
@@ -2181,7 +2209,11 @@ function openModal(type,data){
       `<div class="form-row c3"><div class="form-group"><label>供应商*</label><select id="fpos"><option value="">选择</option>${getSupOpts()}</select></div><div class="form-group"><label>经办人</label><input id="fpoh" type="text" placeholder="请输入经办人姓名"></div><div class="form-group"><label>日期</label><input id="fpod" type="date" value="${today()}"></div></div>
       <div style="font-size:11px;font-weight:500;margin:10px 0 4px">采购明细 <span style="font-size:10px;font-weight:400;color:var(--color-text-tertiary)">（输入产品名称搜索，支持新增产品）</span></div>
       <div id="poLines"></div>
-      <div style="display:flex;align-items:center;gap:10px;margin-top:6px"><button class="btn" onclick="makePOLine('poLines');updatePOTotal()">+ 添加明细行</button><span id="poTotal" style="font-size:12px;font-weight:600;color:#185FA5">合计：¥0.00</span></div><div class="form-row c1" style="margin-top:8px"><div class="form-group"><label>备注</label><input id="fporm" type="text" placeholder="选填备注..."></div></div>`,
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+        <button class="btn" onclick="makePOLine('poLines');updatePOTotal()">+ 添加明细行</button>
+        <div style="font-size:13px;font-weight:700;color:#185FA5;background:var(--color-background-secondary);padding:6px 16px;border-radius:6px;border:1px solid var(--color-border-secondary)">合计金额：<span id="poTotal">¥0.00</span></div>
+      </div>
+      <div class="form-row c1" style="margin-top:8px"><div class="form-group"><label>备注</label><input id="fporm" type="text" placeholder="选填备注..."></div></div>`,
       `<button class="btn btn-primary" onclick="savePO()">保存</button>`);
     setTimeout(()=>{makePOLine('poLines');},50);
   }else if(type==='pr'){
@@ -2218,11 +2250,15 @@ function openModal(type,data){
   }else if(type==='so'){
     html=wrap('新建销售订单',
       `<div class="form-row c3"><div class="form-group"><label>客户*</label><select id="fsoc"><option value="">选择</option>${getCustOpts()}</select></div><div class="form-group"><label>经办人</label><input id="fsoh" type="text" placeholder="请输入经办人姓名"></div><div class="form-group"><label>日期</label><input id="fsod" type="date" value="${today()}"></div></div>
-      <div style="font-size:10px;color:var(--color-text-secondary);margin:4px 0 6px">📦 输入商品编号自动带入信息，单价可手动修改</div>
+      <div style="font-size:11px;font-weight:500;margin:8px 0 4px">销售明细 <span style="font-size:10px;font-weight:400;color:var(--color-text-tertiary)">（下拉选择商品，数量和单价均可修改，✕ 可删行）</span></div>
       <div id="soLines"></div>
-      <button class="btn" style="margin-top:4px" onclick="makeCodeLine('soLines',true,true)">+ 添加商品行</button><div class="form-row c1" style="margin-top:6px"><div class="form-group"><label>备注</label><input id="fsorm" type="text" placeholder="选填备注..."></div></div>`,
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+        <button class="btn" onclick="addEditableLine('soLines','销售')">+ 添加商品行</button>
+        <div style="font-size:13px;font-weight:700;color:#185FA5;background:var(--color-background-secondary);padding:6px 16px;border-radius:6px;border:1px solid var(--color-border-secondary)">合计金额：<span id="soTotal">¥0.00</span></div>
+      </div>
+      <div class="form-row c1" style="margin-top:6px"><div class="form-group"><label>备注</label><input id="fsorm" type="text" placeholder="选填备注..."></div></div>`,
       `<button class="btn btn-primary" onclick="saveSO()">保存</button>`);
-    setTimeout(()=>makeCodeLine('soLines',true,true),50);
+    setTimeout(()=>addEditableLine('soLines','销售'),50);
   }else if(type==='sd'){
     const soOpts=DB.so.filter(s=>s.approved&&s.shipStatus!=='done').map(s=>`<option value="${s.id}">${s.no} | ${cname(s.customerId)}</option>`).join('');
     html=wrap('新建销售出库单',
@@ -2719,8 +2755,8 @@ function savePreturn(){
 
 function saveSO(){
   const customerId=(document.getElementById('fsoc')||{}).value;if(!customerId){showToast('请选择客户','error');return;}
-  const items=getCodeLineItems('soLines');if(!items.length){showToast('请添加销售明细，并确保商品编号有效','error');return;}
-  const totalAmt=items.reduce((s,i)=>s+i.total,0);
+  const items=getEditableItems('soLines');if(!items.length){showToast('请添加销售明细','error');return;}
+  const totalAmt=items.reduce((s,i)=>s+fmtNum(i.total),0);
   DB.so.push({id:gid(),no:gno('SO'),customerId,handler:(document.getElementById('fsoh')||{}).value||'',date:(document.getElementById('fsod')||{}).value,remark:(document.getElementById('fsorm')||{}).value||'',items,totalAmt,approved:false,shipStatus:'none'});
   saveStore('so');closeModal();renderSO();writeLog('新建','销售','新建销售订单');showToast('销售订单已保存，待审核');
 }
@@ -2761,17 +2797,17 @@ function saveOtherIn(){
 
 // 计算并刷新合计
 function updateBillTotal(containerId){
-  const totalId = containerId.replace('Lines','Total')
-    .replace('prLines','prTotal').replace('sdLines','sdTotal').replace('oiLines','oiTotal');
+  const idMap={'prLines':'prTotal','sdLines':'sdTotal','oiLines':'oiTotal','soLines':'soTotal'};
+  const totalId = idMap[containerId] || (containerId.replace('Lines','Total'));
   const el = document.getElementById(totalId);
   if(!el) return;
   let total = 0;
   document.querySelectorAll('#'+containerId+' .el-row').forEach(row=>{
     const q = parseFloat((row.querySelector('.el-qty')||{}).value||0);
     const r = parseFloat((row.querySelector('.el-price')||{}).value||0);
-    total += q * r;
+    total += fmtNum(q*r);
   });
-  el.textContent = '合计：¥' + total.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  el.textContent = fmtMoney(total);
 }
 
 // 添加一行可编辑明细
