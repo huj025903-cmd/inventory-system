@@ -3515,7 +3515,7 @@ function viewBill(type,id){
 
     const amountCN=r.totalAmt?numberToChinese(r.totalAmt):'';
     const amountRow=r.totalAmt?`<div style="margin-top:8px;font-size:11px"><span style="color:#666">大写金额：</span><strong>${amountCN}</strong></div>`:'';
-    const signRow=`<div style="margin-top:32px;border-top:1px solid #ddd;padding-top:16px">
+    const signRow=`<div class="print-sign" style="margin-top:32px;border-top:1px solid #ddd;padding-top:16px">
       <div style="display:flex;justify-content:space-between;font-size:11px;color:#333">
         <div style="text-align:center;min-width:100px">
           <div style="margin-bottom:24px">制单人</div>
@@ -3540,9 +3540,10 @@ function viewBill(type,id){
       <!-- 标题区 -->
       <div style="text-align:center;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #333">
         <div style="font-size:${forPrint?'18px':'16px'};font-weight:700;letter-spacing:2px;margin-bottom:4px">${typeName}</div>
-        <div style="font-size:10px;color:#888">单号：<strong style="color:#333">${docNo}</strong>
+        <div class="print-time" style="font-size:10px;color:#888">单号：<strong style="color:#333">${docNo}</strong>
           &nbsp;&nbsp;|&nbsp;&nbsp;打印时间：${new Date().toLocaleString('zh-CN')}
         </div>
+        <div class="no-print-time" style="font-size:10px;color:#888;display:none">单号：<strong style="color:#333">${docNo}</strong></div>
       </div>
       <!-- 头部信息：两列表格 -->
       <div style="margin-bottom:12px">${headerRows}</div>
@@ -3900,161 +3901,153 @@ function toggleAllCheck(type, masterCb){
 }
 
 function batchPrint(type){
-  const checked = Array.from(document.querySelectorAll(`.bill-check[data-type="${type}"]:checked`));
+  var checked = Array.from(document.querySelectorAll('.bill-check[data-type="'+type+'"]:checked'));
   if(!checked.length){ showToast('请先勾选要打印的单据','error'); return; }
-  const ids = checked.map(cb=>cb.dataset.id);
-  const records = ids.map(id=>DB[type].find(r=>r.id===id)).filter(Boolean);
+  var ids = checked.map(function(cb){return cb.dataset.id;});
+  var records = ids.map(function(id){return DB[type].find(function(r){return r.id===id;});}).filter(Boolean);
   if(!records.length){ showToast('未找到选中单据数据','error'); return; }
 
-  // 在 viewBill 上下文中复用 buildBillHTML 逻辑
-  function buildOne(r){
-    const tableStyle='width:100%;border-collapse:collapse;margin-top:10px;';
-    const thStyle='background:#f0f0f0;padding:6px 8px;text-align:left;font-weight:600;border:1px solid #ccc;font-size:10px;';
-    const tdStyle='padding:5px 8px;border:1px solid #ccc;font-size:10px;';
-    const tdRStyle='padding:5px 8px;border:1px solid #ccc;font-size:10px;text-align:right;';
-    const typeNames={po:'采购订单',pr:'采购入库单',preturn:'采购退货单',so:'销售订单',sd:'销售出库单',sreturn:'销售退货单',bom:'BOM表'};
-    const typeName=typeNames[type]||type;
+  var typeNames={po:'采购订单',pr:'采购入库单',preturn:'采购退货单',so:'销售订单',sd:'销售出库单',sreturn:'销售退货单',bom:'BOM表'};
+  var typeName=typeNames[type]||type;
+  var d=getMoneyDecimals();
+  function fm(v){return '¥'+(+v||0).toFixed(d);}
 
-    const fields={
-      supplierId:{label:'供应商',val:DB.suppliers.find(x=>x.id===r.supplierId)?.name||'-'},
-      customerId:{label:'客户',val:DB.customers.find(x=>x.id===r.customerId)?.name||'-'},
-      warehouseId:{label:'仓库',val:DB.warehouses.find(x=>x.id===r.warehouseId)?.name||'-'},
+  function buildOne(r){
+    var tableStyle='width:100%;border-collapse:collapse;margin-top:10px;';
+    var thStyle='background:#f0f0f0;padding:7px 10px;text-align:left;font-weight:600;border:1px solid #ccc;font-size:11px;';
+    var tdStyle='padding:6px 10px;border:1px solid #ddd;font-size:11px;vertical-align:top;';
+    var tdRStyle='padding:6px 10px;border:1px solid #ddd;font-size:11px;text-align:right;vertical-align:top;';
+
+    // 头部字段
+    var fields={
+      supplierId:{label:'供应商',val:(DB.suppliers.find(function(x){return x.id===r.supplierId;})||{}).name||'-'},
+      customerId:{label:'客户',val:(DB.customers.find(function(x){return x.id===r.customerId;})||{}).name||'-'},
+      warehouseId:{label:'仓库',val:wname(r.warehouseId)},
       handler:{label:'经办人',val:r.handler},
       date:{label:'日期',val:r.date},
       poNo:{label:'关联采购单',val:r.poNo},
       soNo:{label:'关联销售单',val:r.soNo},
-      version:{label:'版本',val:r.version},
-      stdQty:{label:'标准产量',val:r.stdQty},
-      approved:{label:'审核',val:r.approved?'已审核':'待审核'},
-      arriveStatus:{label:'到货',val:r.arriveStatus==='done'?'全部到货':r.arriveStatus==='partial'?'部分到货':'未到货'},
-      shipStatus:{label:'发货',val:r.shipStatus==='done'?'全部发货':r.shipStatus==='partial'?'部分发货':'未发货'},
+      approved:{label:'审核状态',val:r.approved?'✓ 已审核':'⏳ 待审核'},
+      arriveStatus:{label:'到货状态',val:r.arriveStatus==='done'?'全部到货':r.arriveStatus==='partial'?'部分到货':'未到货'},
+      shipStatus:{label:'发货状态',val:r.shipStatus==='done'?'全部发货':r.shipStatus==='partial'?'部分发货':'未发货'},
+      note:{label:'备注',val:r.note},
     };
-    const headerRows=Object.entries(fields)
-      .filter(([k])=>r[k]!==undefined&&r[k]!==null&&r[k]!=='')
-      .map(([k,v])=>`<span style="margin-right:14px;font-size:10px"><span style="color:#666">${v.label}：</span><b>${v.val}</b></span>`)
-      .join('');
+    var validFields=Object.entries(fields).filter(function(kv){var k=kv[0];return r[k]!==undefined&&r[k]!==null&&r[k]!=='';});
+    var half=Math.ceil(validFields.length/2);
+    var left=validFields.slice(0,half);
+    var right=validFields.slice(half);
+    var headerTable='<table style="width:100%;border-collapse:collapse;margin-bottom:8px">';
+    for(var hi=0;hi<Math.max(left.length,right.length);hi++){
+      var lf=left[hi];var rf=right[hi];
+      headerTable+='<tr>'
+        +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;color:#666;width:80px;background:#fafafa;font-weight:500">'+(lf?lf[1].label:'')+'</td>'
+        +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;font-weight:600">'+(lf?lf[1].val||'-':'')+'</td>'
+        +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;color:#666;width:80px;background:#fafafa;font-weight:500">'+(rf?rf[1].label:'')+'</td>'
+        +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;font-weight:600">'+(rf?rf[1].val||'-':'')+'</td>'
+        +'</tr>';
+    }
+    headerTable+='</table>';
 
-    let detailTable='';
+    // 明细
+    var detailTable='';
     if(r.items&&r.items.length){
-      const isPur=['po','pr','preturn'].includes(type);
-      const hdr=`<tr>
-        <th style="${thStyle}">序号</th><th style="${thStyle}">编码</th><th style="${thStyle}">名称</th>
-        <th style="${thStyle}">规格</th><th style="${thStyle}">单位</th>
-        <th style="${thStyle}">数量</th><th style="${thStyle}">${isPur?'含税单价':'单价'}</th><th style="${thStyle}">金额</th>
-      </tr>`;
-      const trs=r.items.map((i,idx)=>{
-        const p=DB.products.find(x=>x.id===i.productId)||{};
-        return`<tr>
-          <td style="${tdStyle}">${idx+1}</td>
-          <td style="${tdStyle}">${p.code||'-'}</td>
-          <td style="${tdStyle}">${p.name||i.productId}</td>
-          <td style="${tdStyle}">${p.spec||'-'}</td>
-          <td style="${tdStyle}">${p.unit||'-'}</td>
-          <td style="${tdRStyle}">${i.qty}</td>
-          <td style="${tdRStyle}">¥${(+i.price||0).toFixed(2)}</td>
-          <td style="${tdRStyle}">¥${(+i.total||0).toFixed(2)}</td>
-        </tr>`;
+      var isPur=['po','pr','preturn'].indexOf(type)>-1;
+      var hdr='<tr>'
+        +'<th style="'+thStyle+'">序号</th><th style="'+thStyle+'">商品编码</th><th style="'+thStyle+'">商品名称</th>'
+        +'<th style="'+thStyle+'">规格</th><th style="'+thStyle+'">单位</th>'
+        +'<th style="'+thStyle+'">数量</th><th style="'+thStyle+'">'+(isPur?'含税单价':'单价')+'</th><th style="'+thStyle+'">'+(isPur?'含税金额':'金额')+'</th>'
+        +'</tr>';
+      var trs=r.items.map(function(i,idx){
+        var p=DB.products.find(function(x){return x.id===i.productId;})||{};
+        return '<tr>'
+          +'<td style="'+tdStyle+'">'+(idx+1)+'</td>'
+          +'<td style="'+tdStyle+'">'+(p.code||'-')+'</td>'
+          +'<td style="'+tdStyle+'">'+(p.name||i.productId)+'</td>'
+          +'<td style="'+tdStyle+'">'+(p.spec||'-')+'</td>'
+          +'<td style="'+tdStyle+'">'+(p.unit||'-')+'</td>'
+          +'<td style="'+tdRStyle+'">'+i.qty+'</td>'
+          +'<td style="'+tdRStyle+'">'+fm(i.price)+'</td>'
+          +'<td style="'+tdRStyle+'">'+fm(i.total)+'</td>'
+          +'</tr>';
       }).join('');
-      const tot=`<tr><td colspan="7" style="${tdStyle}text-align:right;font-weight:700">合计</td><td style="${tdRStyle}font-weight:700">¥${(+r.totalAmt||0).toFixed(2)}</td></tr>`;
-      detailTable=`<table style="${tableStyle}"><thead>${hdr}</thead><tbody>${trs}${tot}</tbody></table>`;
+      var tot='<tr><td colspan="7" style="'+tdStyle+'text-align:right;font-weight:700">合计金额</td>'
+        +'<td style="'+tdRStyle+'font-weight:700;font-size:13px">'+fm(r.totalAmt)+'</td></tr>';
+      detailTable='<table style="'+tableStyle+'"><thead>'+hdr+'</thead><tbody>'+trs+tot+'</tbody></table>';
     }
     if(r.materials&&r.materials.length){
-      const hdr=`<tr><th style="${thStyle}">序号</th><th style="${thStyle}">物料编码</th><th style="${thStyle}">物料名称</th><th style="${thStyle}">规格</th><th style="${thStyle}">单位</th><th style="${thStyle}">用量</th></tr>`;
-      const trs=r.materials.map((m,idx)=>{
-        const p=DB.products.find(x=>x.id===m.productId)||{};
-        return`<tr><td style="${tdStyle}">${idx+1}</td><td style="${tdStyle}">${p.code||'-'}</td><td style="${tdStyle}">${p.name||'-'}</td><td style="${tdStyle}">${p.spec||'-'}</td><td style="${tdStyle}">${p.unit||'-'}</td><td style="${tdRStyle}">${typeof m.qty==='number'?m.qty.toFixed(2):m.qty}</td></tr>`;
+      var mhdr='<tr><th style="'+thStyle+'">序号</th><th style="'+thStyle+'">物料编码</th><th style="'+thStyle+'">物料名称</th><th style="'+thStyle+'">规格</th><th style="'+thStyle+'">单位</th><th style="'+thStyle+'">用量</th></tr>';
+      var mtrs=r.materials.map(function(m,idx){
+        var p=DB.products.find(function(x){return x.id===m.productId;})||{};
+        return '<tr><td style="'+tdStyle+'">'+(idx+1)+'</td><td style="'+tdStyle+'">'+(p.code||'-')+'</td><td style="'+tdStyle+'">'+(p.name||'-')+'</td><td style="'+tdStyle+'">'+(p.spec||'-')+'</td><td style="'+tdStyle+'">'+(p.unit||'-')+'</td><td style="'+tdRStyle+'">'+(typeof m.qty==='number'?m.qty.toFixed(2):m.qty)+'</td></tr>';
       }).join('');
-      detailTable=`<table style="${tableStyle}"><thead>${hdr}</thead><tbody>${trs}</tbody></table>`;
+      detailTable='<table style="'+tableStyle+'"><thead>'+mhdr+'</thead><tbody>'+mtrs+'</tbody></table>';
     }
 
-    // 大写金额
-    let amtRow='';
+    // 大写
+    var amtRow='';
     if(r.totalAmt){
-      function toCN(n){const d=['零','壹','贰','叁','肆','伍','陆','柒','捌','玖'],u=[['元','万','亿'],['','拾','佰','仟']];let s='',f=[['角','分']];for(let i=0;i<2;i++)s+=(d[Math.floor(Math.abs(n)*10*(i+1))%10]+f[0][i]).replace(/零./,'');s=s||'整';let x=Math.floor(Math.abs(n));for(let i=0;i<3&&x>0;i++){let p='';for(let j=0;j<4&&x>0;j++){p=d[x%10]+u[1][j]+p;x=Math.floor(x/10);}s=p.replace(/(零.)*零$/,'').replace(/^$/,'零')+u[0][i]+s;}return(n<0?'负':'')+s.replace(/(零.)*零元/,'元').replace(/(零.)+/g,'零').replace(/^整$/,'零元整');}
-      amtRow=`<div style="font-size:10px;margin-top:6px"><span style="color:#666">大写金额：</span><b>${toCN(r.totalAmt)}</b></div>`;
+      function toCN(n){var d2=['零','壹','贰','叁','肆','伍','陆','柒','捌','玖'],u=[['元','万','亿'],['','拾','佰','仟']];var s='',f=[['角','分']];for(var i=0;i<2;i++)s+=(d2[Math.floor(Math.abs(n)*10*(i+1))%10]+f[0][i]).replace(/零./,'');s=s||'整';var x=Math.floor(Math.abs(n));for(var i=0;i<3&&x>0;i++){var p2='';for(var j=0;j<4&&x>0;j++){p2=d2[x%10]+u[1][j]+p2;x=Math.floor(x/10);}s=p2.replace(/(零.)*零$/,'').replace(/^$/,'零')+u[0][i]+s;}return(n<0?'负':'')+s.replace(/(零.)*零元/,'元').replace(/(零.)+/g,'零').replace(/^整$/,'零元整');}
+      amtRow='<div style="font-size:11px;margin-top:8px;padding:6px 10px;background:#fafafa;border-left:3px solid #ddd"><span style="color:#666">大写金额：</span><strong>'+toCN(r.totalAmt)+'</strong></div>';
     }
 
-    return `
-      <div style="border:1px solid #999;padding:14px;font-family:'Microsoft YaHei',Arial,sans-serif;height:100%;box-sizing:border-box;">
-        <div style="text-align:center;margin-bottom:10px">
-          <div style="font-size:15px;font-weight:700;margin-bottom:3px">${typeName}</div>
-          <div style="font-size:9px;color:#666">单号：${r.no||r.id} &nbsp;|&nbsp; 打印：${new Date().toLocaleDateString('zh-CN')}</div>
-        </div>
-        <div style="background:#f9f9f9;padding:7px 10px;border-radius:4px;margin-bottom:8px">${headerRows}</div>
-        ${detailTable}
-        ${amtRow}
-        <div style="margin-top:20px;display:flex;justify-content:space-between;font-size:9px;color:#666;border-top:1px dashed #ccc;padding-top:8px">
-          <span>制单人：___________</span>
-          <span>审核人：___________</span>
-          <span>收货人：___________</span>
-          <span>财务：___________</span>
-        </div>
-      </div>`;
+    return '<div style="page-break-after:always;padding:28px 32px;font-family:Arial,sans-serif;">'
+      +'<div style="text-align:center;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #333">'
+      +'<div style="font-size:18px;font-weight:700;letter-spacing:2px;margin-bottom:4px">'+typeName+'</div>'
+      +'<div class="print-time" style="font-size:10px;color:#888">单号：<strong style="color:#333">'+(r.no||r.id)+'</strong>'
+      +' &nbsp;|&nbsp; 打印时间：'+new Date().toLocaleString('zh-CN')+'</div>'
+      +'<div class="no-print-time" style="font-size:10px;color:#888;display:none">单号：<strong style="color:#333">'+(r.no||r.id)+'</strong></div>'
+      +'</div>'
+      +headerTable
+      +detailTable
+      +amtRow
+      +'<div class="print-sign" style="margin-top:32px;border-top:1px solid #ddd;padding-top:16px">'
+      +'<div style="display:flex;justify-content:space-between;font-size:11px;color:#333">'
+      +['制单人','审核人','收货人','财务'].map(function(s){return '<div style="text-align:center;min-width:100px"><div style="margin-bottom:28px">'+s+'</div><div style="border-top:1px solid #999;padding-top:4px;color:#888">签名/日期</div></div>';}).join('')
+      +'</div></div>'
+      +'</div>';
   }
 
-  // 生成打印 HTML：每张 A4 左右各一份，records 两两分组
-  let pages='';
-  for(let i=0;i<records.length;i+=2){
-    const left=buildOne(records[i]);
-    const right=i+1<records.length?buildOne(records[i+1]):'<div style="height:100%;display:flex;align-items:center;justify-content:center;color:#ddd;font-size:11px;border:1px dashed #eee;border-radius:4px">（此处空白）</div>';
-    pages+=`
-      <div class="a4-page">
-        <div class="half-page top-half">${left}</div>
-        <div class="divider"></div>
-        <div class="half-page bottom-half">${right}</div>
-      </div>`;
-  }
+  var pages=records.map(function(r){return buildOne(r);}).join('');
 
-  const w=window.open('','_blank','width=1000,height=750');
-  w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8">
-  <title>批量打印 - ${records.length}张单据</title>
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'Microsoft YaHei',Arial,sans-serif;background:#f0f0f0}
-    .no-print{padding:10px 20px;background:#fff;border-bottom:1px solid #ddd;display:flex;align-items:center;gap:10px}
-    .no-print button{padding:7px 18px;border-radius:4px;border:1px solid #ccc;cursor:pointer;font-size:13px}
-    .no-print .btn-print{background:#378ADD;color:#fff;border-color:#378ADD;font-weight:500}
-    .no-print .info{font-size:12px;color:#666}
-    .a4-page{
-      width:210mm;min-height:297mm;margin:12px auto;background:#fff;
-      display:flex;flex-direction:column;
-      box-shadow:0 2px 8px rgba(0,0,0,.15);
-    }
-    .half-page{padding:8mm 10mm;flex:1;overflow:hidden;}
-    .divider{
-      border:none;border-top:1px dashed #aaa;margin:0 10mm;
-      position:relative;
-    }
-    .divider::after{
-      content:'✂ 裁切线';position:absolute;left:50%;transform:translateX(-50%);
-      top:-8px;background:#fff;padding:0 8px;font-size:9px;color:#aaa;
-    }
-    @media print{
-      body{background:#fff}
-      .no-print{display:none!important}
-      .a4-page{
-        width:100%;min-height:297mm;margin:0;box-shadow:none;
-        page-break-after:always;
-        display:flex;flex-direction:column;
-      }
-      .a4-page:last-child{page-break-after:auto}
-      .half-page{flex:1;padding:6mm 8mm;}
-      .divider{margin:0 8mm;}
-      .divider::after{background:#fff;}
-      @page{size:A4 portrait;margin:0}
-    }
-  </style>
-  </head><body>
-  <div class="no-print">
-    <button class="btn-print" onclick="window.print()">🖨️ 打印全部（共 ${records.length} 张，${Math.ceil(records.length/2)} 页）</button>
-    <button onclick="window.close()">关闭</button>
-    <span class="info">每张 A4 纸打印两份单据，上下排列，中间有裁切线</span>
-  </div>
-  ${pages}
-  </body></html>`);
+  var w=window.open('','_blank','width=900,height=750,menubar=no,toolbar=no');
+  if(!w){showToast('弹窗被拦截，请允许弹出窗口','error');return;}
+  w.document.write('<!DOCTYPE html><html><head><meta charset="utf-8"><title>批量打印 - '+records.length+'张单据</title>'
+    +'<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font-family:Arial,sans-serif;background:#f0f0f0}'
+    +'.no-print{display:flex;align-items:center;gap:10px;padding:10px 20px;background:#fff;border-bottom:1px solid #ddd;position:sticky;top:0;z-index:99;box-shadow:0 2px 6px rgba(0,0,0,.1)}'
+    +'.btn-print{padding:8px 24px;background:#185FA5;color:#fff;border:none;border-radius:5px;cursor:pointer;font-size:13px;font-weight:600}'
+    +'.btn-close{padding:8px 14px;border:1px solid #ccc;background:#fff;border-radius:5px;cursor:pointer;font-size:13px}'
+    +'.sep{width:1px;height:24px;background:#ddd}'
+    +'.chk-label{display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;user-select:none}'
+    +'@media print{'
+    +'body{background:#fff}'
+    +'.no-print{display:none!important}'
+    +'@page{size:A4 portrait;margin:0}'
+    +'}'
+    +'</style></head><body>'
+    +'<div class="no-print">'
+    +'<button class="btn-print" onclick="doPrint()">&#128424; 打印全部（共'+records.length+'张）</button>'
+    +'<button class="btn-close" onclick="window.close()">&#10005; 关闭</button>'
+    +'<span class="sep"></span>'
+    +'<label class="chk-label"><input type="checkbox" id="chkTime" checked onchange="toggleSections()" style="width:14px;height:14px"> 打印时间</label>'
+    +'<label class="chk-label"><input type="checkbox" id="chkSign" checked onchange="toggleSections()" style="width:14px;height:14px"> 签名栏</label>'
+    +'<span style="font-size:11px;color:#aaa;margin-left:4px">纸张设置请在打印对话框中调整</span>'
+    +'</div>'
+    +pages
+    +'<script>'
+    +'function toggleSections(){'
+    +'  var showTime=document.getElementById("chkTime").checked;'
+    +'  var showSign=document.getElementById("chkSign").checked;'
+    +'  document.querySelectorAll(".print-time").forEach(function(el){el.style.display=showTime?"":"none";});'
+    +'  document.querySelectorAll(".no-print-time").forEach(function(el){el.style.display=showTime?"none":"";});'
+    +'  document.querySelectorAll(".print-sign").forEach(function(el){el.style.display=showSign?"":"none";});'
+    +'}'
+    +'function doPrint(){toggleSections();window.print();}'
+    +'<\/script>'
+    +'</body></html>');
   w.document.close();
 }
-
 
 // ── 备注编辑 ──
 function editRemark(store, id, renderFn){
