@@ -1,4 +1,4 @@
-
+      +'<div class="print-sign" style="margin-top:28px;border-top:1px solid #ddd;padding-top:14px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#333">'      +'<span>制单人：<span style="display:inline-block;width:120px;border-bottom:1px solid #999;margin-left:4px">&nbsp;</span></span>'      +'<span>审核人：<span style="display:inline-block;width:120px;border-bottom:1px solid #999;margin-left:4px">&nbsp;</span></span>'      +'<span>收货人：<span style="display:inline-block;width:120px;border-bottom:1px solid #999;margin-left:4px">&nbsp;</span></span>'      +'</div>'
 <!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#378ADD"><title>进销存管理系统</title></head><body>
 <h2 class="sr-only">产品进销存管理系统 V2 — 含 IndexedDB 持久化存储与 Excel 导出功能</h2>
 <style>
@@ -3515,25 +3515,10 @@ function viewBill(type,id){
 
     const amountCN=r.totalAmt?numberToChinese(r.totalAmt):'';
     const amountRow=r.totalAmt?`<div style="margin-top:8px;font-size:11px"><span style="color:#666">大写金额：</span><strong>${amountCN}</strong></div>`:'';
-    const signRow=`<div class="print-sign" style="margin-top:32px;border-top:1px solid #ddd;padding-top:16px">
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:#333">
-        <div style="text-align:center;min-width:100px">
-          <div style="margin-bottom:24px">制单人</div>
-          <div style="border-top:1px solid #999;padding-top:4px;color:#888">签名/日期</div>
-        </div>
-        <div style="text-align:center;min-width:100px">
-          <div style="margin-bottom:24px">审核人</div>
-          <div style="border-top:1px solid #999;padding-top:4px;color:#888">签名/日期</div>
-        </div>
-        <div style="text-align:center;min-width:100px">
-          <div style="margin-bottom:24px">收货人</div>
-          <div style="border-top:1px solid #999;padding-top:4px;color:#888">签名/日期</div>
-        </div>
-        <div style="text-align:center;min-width:100px">
-          <div style="margin-bottom:24px">财务</div>
-          <div style="border-top:1px solid #999;padding-top:4px;color:#888">签名/日期</div>
-        </div>
-      </div>
+    const signRow=`<div class="print-sign" style="margin-top:28px;border-top:1px solid #ddd;padding-top:14px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#333">
+      <span>制单人：<span style="display:inline-block;width:120px;border-bottom:1px solid #999;margin-left:4px">&nbsp;</span></span>
+      <span>审核人：<span style="display:inline-block;width:120px;border-bottom:1px solid #999;margin-left:4px">&nbsp;</span></span>
+      <span>收货人：<span style="display:inline-block;width:120px;border-bottom:1px solid #999;margin-left:4px">&nbsp;</span></span>
     </div>`;
 
     return`<div style="${baseStyle}">
