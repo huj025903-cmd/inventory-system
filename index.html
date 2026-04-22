@@ -1886,7 +1886,7 @@ function renderPO(){
   document.getElementById('poTbl').innerHTML=DB.po.map(r=>{
     const totalQty=(r.items||[]).reduce((s,i)=>s+(+i.qty||0),0);
     const avgPrice=totalQty>0?fmtNum(r.totalAmt/totalQty):0;
-    return `<tr><td style="text-align:center"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="po"></td><td>${r.no}</td><td>${sname(r.supplierId)}</td><td>${r.handler||'-'}</td><td>${r.date||'-'}</td>${(()=>{const names=[...new Set((r.items||[]).map(i=>{const p=DB.products.find(x=>x.id===i.productId);return p?p.name:''}).filter(Boolean))];const title=names.join('、');const show=names.length<=2?names.join('、'):names.slice(0,2).join('、')+'等'+names.length+'种';return `<td style="font-size:11px;color:var(--color-text-secondary);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${title}">${show}</td>`;})()}<td style="text-align:right">${totalQty.toLocaleString()}</td><td style="text-align:right">${fmtMoney(avgPrice)}</td><td style="text-align:right">${fmtMoney(r.totalAmt)}</td><td><span class="badge badge-${r.arriveStatus==='done'?'green':r.arriveStatus==='partial'?'amber':'blue'}">${r.arriveStatus==='done'?'全部到货':r.arriveStatus==='partial'?'部分到货':'未到货'}</span></td><td><span class="badge badge-${r.approved?'green':'amber'}">${r.approved?'已审核':'待审核'}</span></td><td style="color:var(--color-text-secondary);font-size:10px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.remark||''}">${r.remark||'-'}</td><td style="white-space:nowrap">${r.approved&&r.arriveStatus!=='done'?`<button class="btn btn-warning" onclick="openGenPR('${r.id}')" style="font-size:10px">📥 生成入库单</button> `:''  }${!r.approved&&(currentUser==='admin'||currentUser==='finance')?`<button class="btn btn-primary" onclick="approvePO('${r.id}')">审核</button> `:''}<button class="btn" onclick="viewBill('po','${r.id}')">查看</button> <button class="btn" onclick="editRemark('po','${r.id}',renderPO)" title="编辑备注">备注</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('po','${r.id}',renderPO)">删除</button>`:''}</td></tr>`;
+    return `<tr><td style="text-align:center"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="po"></td><td>${r.no}</td><td>${sname(r.supplierId)}</td><td>${r.handler||'-'}</td><td>${r.date||'-'}</td>${(()=>{const items=(r.items||[]);const rows=items.map(i=>{const p=DB.products.find(x=>x.id===i.productId);const name=p?p.name:(i.productId||'-');const spec=p&&p.spec?(' '+p.spec):'';return `<div style="padding:2px 0;border-bottom:0.5px solid var(--color-border-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px" title="${name+spec}">${name}<span style="color:var(--color-text-tertiary);font-size:10px">${spec}</span></div>`;});return `<td style="font-size:11px;color:var(--color-text-secondary);padding:4px 8px;vertical-align:top;min-width:120px;max-width:160px">${rows.join('')||'-'}</td>`;})()}<td style="text-align:right">${totalQty.toLocaleString()}</td><td style="text-align:right">${fmtMoney(avgPrice)}</td><td style="text-align:right">${fmtMoney(r.totalAmt)}</td><td><span class="badge badge-${r.arriveStatus==='done'?'green':r.arriveStatus==='partial'?'amber':'blue'}">${r.arriveStatus==='done'?'全部到货':r.arriveStatus==='partial'?'部分到货':'未到货'}</span></td><td><span class="badge badge-${r.approved?'green':'amber'}">${r.approved?'已审核':'待审核'}</span></td><td style="color:var(--color-text-secondary);font-size:10px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.remark||''}">${r.remark||'-'}</td><td style="white-space:nowrap">${r.approved&&r.arriveStatus!=='done'?`<button class="btn btn-warning" onclick="openGenPR('${r.id}')" style="font-size:10px">📥 生成入库单</button> `:''  }${!r.approved&&(currentUser==='admin'||currentUser==='finance')?`<button class="btn btn-primary" onclick="approvePO('${r.id}')">审核</button> `:''}<button class="btn" onclick="viewBill('po','${r.id}')">查看</button> <button class="btn" onclick="editRemark('po','${r.id}',renderPO)" title="编辑备注">备注</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('po','${r.id}',renderPO)">删除</button>`:''}</td></tr>`;
   }).join('')||'<tr><td colspan="12" style="text-align:center;color:var(--color-text-tertiary)">暂无采购订单</td></tr>';
 }
 
@@ -1897,7 +1897,7 @@ function renderPR(){
   document.getElementById('prTbl').innerHTML=DB.pr.map(r=>{
     const totalQty=(r.items||[]).reduce((s,i)=>s+(+i.qty||0),0);
     const avgPrice=totalQty>0?fmtNum(r.totalAmt/totalQty):0;
-    return `<tr><td style="text-align:center"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="pr"></td><td>${r.no}</td><td>${r.poNo||'-'}</td><td>${sname(r.supplierId)}</td><td>${r.handler||'-'}</td><td>${wname(r.warehouseId)}</td><td>${r.date||'-'}</td><td style="text-align:right">${totalQty.toLocaleString()}</td><td style="text-align:right">${fmtMoney(avgPrice)}</td><td style="text-align:right">${fmtMoney(r.totalAmt)}</td><td><span class="badge badge-${r.status==='done'?'green':'amber'}">${r.status==='done'?'已入库':'待处理'}</span></td><td style="color:var(--color-text-secondary);font-size:10px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.remark||''}">${r.remark||'-'}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('pr','${r.id}')">查看</button> <button class="btn btn-warning" onclick="editBill('pr','${r.id}')">编辑</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('pr','${r.id}',renderPR)">删除</button>`:''}</td></tr>`;
+    return `<tr><td style="text-align:center"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="pr"></td><td>${r.no}</td><td>${r.poNo||'-'}</td><td>${sname(r.supplierId)}</td><td>${r.handler||'-'}</td><td>${wname(r.warehouseId)}</td><td>${r.date||'-'}</td>${(()=>{const items=(r.items||[]);const rows=items.map(i=>{const p=DB.products.find(x=>x.id===i.productId);const name=p?p.name:(i.productId||'-');const spec=p&&p.spec?(' '+p.spec):'';return `<div style="padding:2px 0;border-bottom:0.5px solid var(--color-border-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px" title="${name+spec}">${name}<span style="color:var(--color-text-tertiary);font-size:10px">${spec}</span></div>`;});return `<td style="font-size:11px;color:var(--color-text-secondary);padding:4px 8px;vertical-align:top;min-width:120px;max-width:160px">${rows.join('')||'-'}</td>`;})()}<td style="text-align:right">${totalQty.toLocaleString()}</td><td style="text-align:right">${fmtMoney(avgPrice)}</td><td style="text-align:right">${fmtMoney(r.totalAmt)}</td><td><span class="badge badge-${r.status==='done'?'green':'amber'}">${r.status==='done'?'已入库':'待处理'}</span></td><td style="color:var(--color-text-secondary);font-size:10px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.remark||''}">${r.remark||'-'}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('pr','${r.id}')">查看</button> <button class="btn btn-warning" onclick="editBill('pr','${r.id}')">编辑</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('pr','${r.id}',renderPR)">删除</button>`:''}</td></tr>`;
   }).join('')||'<tr><td colspan="13" style="text-align:center;color:var(--color-text-tertiary)">暂无入库单</td></tr>';
 }
 
@@ -1923,7 +1923,7 @@ function renderSO(){
     return `<tr>
       <td style="text-align:center"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="so"></td>
       <td>${r.no}</td><td>${cname(r.customerId)}</td><td>${r.handler||'-'}</td><td>${r.date||'-'}</td>
-      <td style="font-size:11px;color:var(--color-text-secondary);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(()=>{const names=[...new Set((r.items||[]).map(i=>{const p=DB.products.find(x=>x.id===i.productId);return p?p.name:''}).filter(Boolean))];return names.length<=2?names.join('、'):names.slice(0,2).join('、')+'等'+names.length+'种';})()}</td>
+      ${(()=>{const items=(r.items||[]);const rows=items.map(i=>{const p=DB.products.find(x=>x.id===i.productId);const name=p?p.name:(i.productId||'-');const spec=p&&p.spec?(' '+p.spec):'';return `<div style="padding:2px 0;border-bottom:0.5px solid var(--color-border-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px" title="${name+spec}">${name}<span style="color:var(--color-text-tertiary);font-size:10px">${spec}</span></div>`;});return `<td style="font-size:11px;color:var(--color-text-secondary);padding:4px 8px;vertical-align:top;min-width:120px;max-width:160px">${rows.join('')||'-'}</td>`;})()}
       <td style="text-align:right">${(()=>{const q=(r.items||[]).reduce((s,i)=>s+(+i.qty||0),0);return q.toLocaleString();})()}</td>
       <td style="text-align:right">${(()=>{const q=(r.items||[]).reduce((s,i)=>s+(+i.qty||0),0);return fmtMoney(q>0?fmtNum(r.totalAmt/q):0);})()}</td>
       <td style="text-align:right">${fmtMoney(r.totalAmt)}</td>
@@ -1942,7 +1942,7 @@ function renderSD(){
   document.getElementById('sdTbl').innerHTML=DB.sd.map(r=>{
     const totalQty=(r.items||[]).reduce((s,i)=>s+(+i.qty||0),0);
     const avgPrice=totalQty>0?fmtNum(r.totalAmt/totalQty):0;
-    return `<tr><td style="text-align:center"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="sd"></td><td>${r.no}</td><td>${r.soNo||'-'}</td><td>${cname(r.customerId)}</td><td>${wname(r.warehouseId)}</td><td>${r.handler||'-'}</td><td>${r.date||'-'}</td><td style="text-align:right">${totalQty.toLocaleString()}</td><td style="text-align:right">${fmtMoney(avgPrice)}</td><td style="text-align:right">${fmtMoney(r.totalAmt)}</td><td><span class="badge badge-${r.status==='done'?'green':'amber'}">${r.status==='done'?'已出库':'待处理'}</span></td><td style="color:var(--color-text-secondary);font-size:10px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.remark||''}">${r.remark||'-'}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('sd','${r.id}')">查看</button> <button class="btn btn-warning" onclick="editBill('sd','${r.id}')">编辑</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('sd','${r.id}',renderSD)">删除</button>`:''}</td></tr>`;
+    return `<tr><td style="text-align:center"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="sd"></td><td>${r.no}</td><td>${r.soNo||'-'}</td><td>${cname(r.customerId)}</td><td>${wname(r.warehouseId)}</td><td>${r.handler||'-'}</td><td>${r.date||'-'}</td>${(()=>{const items=(r.items||[]);const rows=items.map(i=>{const p=DB.products.find(x=>x.id===i.productId);const name=p?p.name:(i.productId||'-');const spec=p&&p.spec?(' '+p.spec):'';return `<div style="padding:2px 0;border-bottom:0.5px solid var(--color-border-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px" title="${name+spec}">${name}<span style="color:var(--color-text-tertiary);font-size:10px">${spec}</span></div>`;});return `<td style="font-size:11px;color:var(--color-text-secondary);padding:4px 8px;vertical-align:top;min-width:120px;max-width:160px">${rows.join('')||'-'}</td>`;})()}<td style="text-align:right">${totalQty.toLocaleString()}</td><td style="text-align:right">${fmtMoney(avgPrice)}</td><td style="text-align:right">${fmtMoney(r.totalAmt)}</td><td><span class="badge badge-${r.status==='done'?'green':'amber'}">${r.status==='done'?'已出库':'待处理'}</span></td><td style="color:var(--color-text-secondary);font-size:10px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.remark||''}">${r.remark||'-'}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('sd','${r.id}')">查看</button> <button class="btn btn-warning" onclick="editBill('sd','${r.id}')">编辑</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('sd','${r.id}',renderSD)">删除</button>`:''}</td></tr>`;
   }).join('')||'<tr><td colspan="13" style="text-align:center;color:var(--color-text-tertiary)">暂无出库单</td></tr>';
 }
 
@@ -1954,7 +1954,7 @@ function renderOI(){
   document.getElementById('oiTbl').innerHTML=DB.otherIn.map(r=>{
     const totalQty=(r.items||[]).reduce((s,i)=>s+(+i.qty||0),0);
     const avgPrice=totalQty>0?fmtNum(r.totalAmt/totalQty):0;
-    return `<tr><td style="text-align:center"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="otherIn"></td><td>${r.no}</td><td>${r.type||'-'}</td><td>${r.handler||'-'}</td><td>${wname(r.warehouseId)}</td><td>${r.date||'-'}</td>${(()=>{const names=[...new Set((r.items||[]).map(i=>{const p=DB.products.find(x=>x.id===i.productId);return p?p.name:''}).filter(Boolean))];const title=names.join('、');const show=names.length<=2?names.join('、'):names.slice(0,2).join('、')+'等'+names.length+'种';return `<td style="font-size:11px;color:var(--color-text-secondary);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${title}">${show}</td>`;})()}${(()=>{const names=[...new Set((r.items||[]).map(i=>{const p=DB.products.find(x=>x.id===i.productId);return p?p.name:''}).filter(Boolean))];const title=names.join('、');const show=names.length<=2?names.join('、'):names.slice(0,2).join('、')+'等'+names.length+'种';return `<td style="font-size:11px;color:var(--color-text-secondary);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${title}">${show}</td>`;})()}<td style="text-align:right">${totalQty.toLocaleString()}</td><td style="text-align:right">${fmtMoney(avgPrice)}</td><td style="text-align:right">${fmtMoney(r.totalAmt)}</td><td>${r.note||'-'}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('otherIn','${r.id}')">查看</button> <button class="btn btn-warning" onclick="editBill('otherIn','${r.id}')">编辑</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('otherIn','${r.id}',renderOI)">删除</button>`:''}</td></tr>`;
+    return `<tr><td style="text-align:center"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="otherIn"></td><td>${r.no}</td><td>${r.type||'-'}</td><td>${r.handler||'-'}</td><td>${wname(r.warehouseId)}</td><td>${r.date||'-'}</td>${(()=>{const items=(r.items||[]);const rows=items.map(i=>{const p=DB.products.find(x=>x.id===i.productId);const name=p?p.name:(i.productId||'-');const spec=p&&p.spec?(' '+p.spec):'';return `<div style="padding:2px 0;border-bottom:0.5px solid var(--color-border-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px" title="${name+spec}">${name}<span style="color:var(--color-text-tertiary);font-size:10px">${spec}</span></div>`;});return `<td style="font-size:11px;color:var(--color-text-secondary);padding:4px 8px;vertical-align:top;min-width:120px;max-width:160px">${rows.join('')||'-'}</td>`;})()}<td style="text-align:right">${totalQty.toLocaleString()}</td><td style="text-align:right">${fmtMoney(avgPrice)}</td><td style="text-align:right">${fmtMoney(r.totalAmt)}</td><td>${r.note||'-'}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('otherIn','${r.id}')">查看</button> <button class="btn btn-warning" onclick="editBill('otherIn','${r.id}')">编辑</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('otherIn','${r.id}',renderOI)">删除</button>`:''}</td></tr>`;
   }).join('')||'<tr><td colspan="11" style="text-align:center;color:var(--color-text-tertiary)">暂无记录</td></tr>';
 }
 
@@ -1962,7 +1962,7 @@ function renderOO(){
   document.getElementById('ooTbl').innerHTML=DB.otherOut.map(r=>{
     const totalQty=(r.items||[]).reduce((s,i)=>s+(+i.qty||0),0);
     const avgPrice=totalQty>0?fmtNum(r.totalAmt/totalQty):0;
-    return `<tr><td>${r.no}</td><td>${r.type||'-'}</td><td>${wname(r.warehouseId)}</td><td>${r.date||'-'}</td><td style="text-align:right">${totalQty.toLocaleString()}</td><td style="text-align:right">${fmtMoney(avgPrice)}</td><td style="text-align:right">${fmtMoney(r.totalAmt)}</td><td>${r.note||'-'}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('otherOut','${r.id}')">查看</button> <button class="btn" onclick="editRemark('otherOut','${r.id}',renderOO)" title="编辑备注">备注</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('otherOut','${r.id}',renderOO)">删除</button>`:''}</td></tr>`;
+    return `<tr><td>${r.no}</td><td>${r.type||'-'}</td><td>${wname(r.warehouseId)}</td><td>${r.date||'-'}</td>${(()=>{const items=(r.items||[]);const rows=items.map(i=>{const p=DB.products.find(x=>x.id===i.productId);const name=p?p.name:(i.productId||'-');const spec=p&&p.spec?(' '+p.spec):'';return `<div style="padding:2px 0;border-bottom:0.5px solid var(--color-border-tertiary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px" title="${name+spec}">${name}<span style="color:var(--color-text-tertiary);font-size:10px">${spec}</span></div>`;});return `<td style="font-size:11px;color:var(--color-text-secondary);padding:4px 8px;vertical-align:top;min-width:120px;max-width:160px">${rows.join('')||'-'}</td>`;})()}<td style="text-align:right">${totalQty.toLocaleString()}</td><td style="text-align:right">${fmtMoney(avgPrice)}</td><td style="text-align:right">${fmtMoney(r.totalAmt)}</td><td>${r.note||'-'}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('otherOut','${r.id}')">查看</button> <button class="btn" onclick="editRemark('otherOut','${r.id}',renderOO)" title="编辑备注">备注</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('otherOut','${r.id}',renderOO)">删除</button>`:''}</td></tr>`;
   }).join('')||'<tr><td colspan="10" style="text-align:center;color:var(--color-text-tertiary)">暂无记录</td></tr>';
 }
 
@@ -2311,7 +2311,9 @@ function openModal(type,data){
       `<button class="btn btn-primary" onclick="saveSO()">保存</button>`);
     setTimeout(()=>addEditableLine('soLines','销售'),50);
   }else if(type==='sd'){
-    const soOpts=DB.so.filter(s=>s.approved&&s.shipStatus!=='done').map(s=>`<option value="${s.id}">${s.no} | ${cname(s.customerId)}</option>`).join('');
+    const preSoId = data&&data.soId ? data.soId : '';
+    const preSo = preSoId ? DB.so.find(s=>s.id===preSoId) : null;
+    const soOpts=DB.so.filter(s=>s.approved&&s.shipStatus!=='done').map(s=>`<option value="${s.id}"${s.id===preSoId?' selected':''}>${s.no} | ${cname(s.customerId)}</option>`).join('');
     html=wrap('新建销售出库单',
       `<div class="form-row c3"><div class="form-group"><label>关联销售单</label><select id="fsdso" onchange="sdLoadFromSO(this)"><option value="">无/直接出库</option>${soOpts}</select></div><div class="form-group"><label>客户*</label><select id="fsdc"><option value="">选择</option>${getCustOpts()}</select></div><div class="form-group"><label>仓库*</label><select id="fsdw"><option value="">选择</option>${getWHOpts()}</select></div></div>
       <div class="form-row c2"><div class="form-group"><label>经办人</label><input id="fsdh" type="text" placeholder="请输入经办人姓名"></div><div class="form-group"><label>日期</label><input id="fsdd" type="date" value="${today()}"></div></div>
@@ -2321,7 +2323,15 @@ function openModal(type,data){
       <div class="form-row c1" style="margin-top:6px"><div class="form-group"><label>备注</label><input id="fsdrm" type="text" placeholder="选填备注..."></div></div>
       <div id="sdTotal" style="text-align:right;font-size:12px;font-weight:600;color:#185FA5;margin-top:4px">合计：¥0.00</div>`,
       `<button class="btn btn-primary" onclick="saveSD()">确认出库</button>`);
-    setTimeout(()=>addEditableLine('sdLines','销售'),50);
+    setTimeout(()=>{
+      if(preSo&&preSo.items&&preSo.items.length){
+        prefillEditableLines('sdLines', preSo.items, '销售');
+        const custEl=document.getElementById('fsdc');
+        if(custEl&&preSo.customerId) custEl.value=preSo.customerId;
+      } else {
+        addEditableLine('sdLines','销售');
+      }
+    },50);
   }else if(type==='sreturn'){
     html=wrap('新建销售退货单',
       `<div class="form-row c2"><div class="form-group"><label>客户*</label><select id="fsrc"><option value="">选择</option>${getCustOpts()}</select></div><div class="form-group"><label>经办人</label><input id="fsrh" type="text" placeholder="经办人姓名"></div></div><div class="form-row c2"><div class="form-group"><label>仓库*</label><select id="fsrw"><option value="">选择</option>${getWHOpts()}</select></div><div class="form-group"><label>日期</label><input id="fsrd" type="date" value="${today()}"></div></div>
@@ -2999,7 +3009,48 @@ function sdLoadFromSO(sel){
 // ══════════════════════════════════════════════════
 
 // 批量生成采购入库单
-function openBatchPRModal(){
+
+// ── 采购订单页「批量生成入库单」（勾选后跳转到批量关联生成弹窗）──
+function batchGenPR(){
+  const checked = Array.from(document.querySelectorAll('.bill-check[data-type="po"]:checked'));
+  if(!checked.length){ showToast('请先勾选要生成入库单的采购订单','error'); return; }
+  const ids = checked.map(cb=>cb.dataset.id);
+  const pendingPOs = ids.map(id=>DB.po.find(p=>p.id===id)).filter(p=>p&&p.approved&&p.arriveStatus!=='done');
+  if(!pendingPOs.length){ showToast('所选订单均未审核或已全部到货','error'); return; }
+  openBatchPRModal(pendingPOs.map(p=>p.id));
+}
+
+// ── 销售订单页「批量生成出库单」──
+function batchGenSD(){
+  const checked = Array.from(document.querySelectorAll('.bill-check[data-type="so"]:checked'));
+  if(!checked.length){ showToast('请先勾选要生成出库单的销售订单','error'); return; }
+  const ids = checked.map(cb=>cb.dataset.id);
+  const pendingSOs = ids.map(id=>DB.so.find(s=>s.id===id)).filter(s=>s&&s.approved&&s.shipStatus!=='done');
+  if(!pendingSOs.length){ showToast('所选订单均未审核或已全部发货','error'); return; }
+  openBatchSDModal(pendingSOs.map(s=>s.id));
+}
+
+// ── 采购订单行「生成入库单」按钮（单条）──
+function openGenPR(poId){
+  const po = DB.po.find(p=>p.id===poId);
+  if(!po){ showToast('找不到采购订单','error'); return; }
+  if(!po.approved){ showToast('订单尚未审核，无法生成入库单','error'); return; }
+  if(po.arriveStatus==='done'){ showToast('该订单已全部到货','error'); return; }
+  // 打开采购入库单新建弹窗，预填该 PO 数据
+  openModal('pr', {poId: po.id});
+}
+
+// ── 销售订单行「生成出库单」按钮（单条）──
+function openGenSD(soId){
+  const so = DB.so.find(s=>s.id===soId);
+  if(!so){ showToast('找不到销售订单','error'); return; }
+  if(!so.approved){ showToast('订单尚未审核，无法生成出库单','error'); return; }
+  if(so.shipStatus==='done'){ showToast('该订单已全部发货','error'); return; }
+  // 打开销售出库单新建弹窗，预填该 SO 数据
+  openModal('sd', {soId: so.id});
+}
+
+function openBatchPRModal(preIds){
   const mc = document.getElementById('modalContainer');
   const pendingPOs = DB.po.filter(p=>p.approved && p.arriveStatus!=='done');
   if(!pendingPOs.length){
@@ -3064,6 +3115,15 @@ function openBatchPRModal(){
     </div>
   </div>`;
   mc.style.pointerEvents='all';
+  // 预勾选
+  if(preIds&&preIds.length){
+    setTimeout(()=>{
+      preIds.forEach(id=>{
+        const cb=document.querySelector(`.batch-po-cb[value="${id}"]`);
+        if(cb) cb.checked=true;
+      });
+    },50);
+  }
 }
 
 function execBatchPR(){
@@ -3089,7 +3149,7 @@ function execBatchPR(){
 }
 
 // 批量生成销售出库单
-function openBatchSDModal(){
+function openBatchSDModal(preIds){
   const mc = document.getElementById('modalContainer');
   const pendingSOs = DB.so.filter(s=>s.approved && s.shipStatus!=='done');
   if(!pendingSOs.length){
@@ -3153,6 +3213,14 @@ function openBatchSDModal(){
     </div>
   </div>`;
   mc.style.pointerEvents='all';
+  if(preIds&&preIds.length){
+    setTimeout(()=>{
+      preIds.forEach(id=>{
+        const cb=document.querySelector(`.batch-so-cb[value="${id}"]`);
+        if(cb) cb.checked=true;
+      });
+    },50);
+  }
 }
 
 function execBatchSD(){
@@ -3491,7 +3559,7 @@ function viewBill(type,id){
     ${html}
     </body></html>`);
     w.document.close();
-    setTimeout(()=>w.print(),600);
+    // 不自动触发打印，由用户点击窗口内「打印」按钮手动触发，避免重复打印
   }
 
   // ── 模态框展示 ──
