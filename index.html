@@ -1804,23 +1804,45 @@ function renderOpenstock(){
   }
 
   // ── 渲染表格 ──
-  document.getElementById('osTbl').innerHTML = filtered.map(s=>`<tr>
+  document.getElementById('osTbl').innerHTML = filtered.map(s=>{
+    const locked = s.locked;
+    // 已锁定：只读显示；待确认：数量/单价/备注可直接编辑
+    const qtyCell   = locked ? s.qty
+      : `<input type="number" value="${s.qty}" min="0" step="1"
+           style="width:80px;border:1px solid var(--color-border-secondary);border-radius:4px;padding:3px 6px;font-size:12px;text-align:right"
+           onchange="osUpdateField('${s.id}','qty',this.value)">`;
+    const priceCell = locked ? fmtMoney(s.costPrice)
+      : `<input type="number" value="${s.costPrice}" min="0" step="0.0001"
+           style="width:100px;border:1px solid var(--color-border-secondary);border-radius:4px;padding:3px 6px;font-size:12px;text-align:right"
+           onchange="osUpdateField('${s.id}','costPrice',this.value)">`;
+    const amtCell   = locked ? fmtMoney(fmtNum((s.qty||0)*(s.costPrice||0)))
+      : `<input type="number" value="${fmtNum((s.qty||0)*(s.costPrice||0))}" min="0" step="0.01"
+           style="width:110px;border:1px solid var(--color-border-secondary);border-radius:4px;padding:3px 6px;font-size:12px;text-align:right"
+           title="修改金额将自动倒挤单价"
+           onchange="osUpdateAmt('${s.id}',this.value)">`;
+    const remarkCell= locked ? (s.remark||'-')
+      : `<input type="text" value="${s.remark||''}" placeholder="备注"
+           style="width:80px;border:1px solid var(--color-border-secondary);border-radius:4px;padding:3px 6px;font-size:12px"
+           onchange="osUpdateField('${s.id}','remark',this.value)">`;
+    return `<tr style="${!locked?'background:var(--color-background-info, #f0f6ff)':''}">
     <td>${pcode(s.productId)}</td>
     <td>${pcat(s.productId)}</td>
     <td>${pname(s.productId)}</td>
     <td>${pspec(s.productId)||'-'}</td>
     <td>${_whName(s.warehouseId)||wname(s.warehouseId)}</td>
-    <td>${s.qty}</td>
-    <td>${fmtMoney(s.costPrice)}</td>
-    <td>${fmtMoney(fmtNum((s.qty||0)*(s.costPrice||0)))}</td>
+    <td>${qtyCell}</td>
+    <td>${priceCell}</td>
+    <td>${amtCell}</td>
     <td>${s.date||'-'}</td>
-    <td>${s.remark||'-'}</td>
-    <td><span class="badge badge-${s.locked?'gray':'blue'}">${s.locked?'已锁定':'待确认'}</span></td>
-    <td>
-      ${!s.locked?`<button class="btn btn-warning" onclick="lockOS('${s.id}')">锁定</button> `:''}
-      ${!s.locked?`<button class="btn btn-danger" onclick="delItem('openstock','${s.id}',renderOpenstock)">删除</button>`:'—'}
+    <td>${remarkCell}</td>
+    <td><span class="badge badge-${locked?'gray':'blue'}">${locked?'已锁定':'待确认'}</span></td>
+    <td style="white-space:nowrap">
+      ${!locked?`<button class="btn btn-primary" onclick="osSaveRow('${s.id}')" style="font-size:11px">💾 保存</button> `:''}
+      ${!locked?`<button class="btn btn-warning" onclick="lockOS('${s.id}')">锁定</button> `:''}
+      ${!locked?`<button class="btn btn-danger" onclick="delItem('openstock','${s.id}',renderOpenstock)">删除</button>`:'—'}
     </td>
-  </tr>`).join('') || `<tr><td colspan="12" style="text-align:center;color:var(--color-text-tertiary);padding:20px">
+  </tr>`;
+  }).join('') || `<tr><td colspan="12" style="text-align:center;color:var(--color-text-tertiary);padding:20px">
     ${(fCat||fWH||fKw||fStatus)?'没有符合筛选条件的记录，<a href="#" onclick="osResetFilter();return false;">点此重置</a>':'暂无期初库存'}
   </td></tr>`;
 
@@ -1843,6 +1865,35 @@ function renderOpenstock(){
   } else if(footEl){
     footEl.innerHTML = '';
   }
+}
+
+// 期初行字段更新（内联编辑）
+function osUpdateField(id, field, val){
+  const r = DB.openstock.find(x=>x.id===id);
+  if(!r) return;
+  if(field==='qty' || field==='costPrice') r[field] = parseFloat(val)||0;
+  else r[field] = val;
+}
+
+// 期初行修改金额→倒挤单价
+function osUpdateAmt(id, amtVal){
+  const r = DB.openstock.find(x=>x.id===id);
+  if(!r) return;
+  const amt = parseFloat(amtVal)||0;
+  r.totalAmt = amt;
+  if(r.qty) r.costPrice = Math.round(amt/r.qty*10000)/10000;
+}
+
+// 保存单行期初
+function osSaveRow(id){
+  const r = DB.openstock.find(x=>x.id===id);
+  if(!r) return;
+  // 确保 totalAmt 同步
+  r.totalAmt = fmtNum((r.qty||0)*(r.costPrice||0));
+  saveStore('openstock').then(()=>{
+    renderOpenstock&&renderOpenstock();
+    showToast('✓ 已保存');
+  });
 }
 
 function osUnlockAll(){
