@@ -1847,7 +1847,10 @@ function renderOpenstock(){
   if(footEl && filtered.length){
     const totalQty  = filtered.reduce((s,r)=>s+(+r.qty||0), 0);
     // 每行金额先按设定位数四舍五入再累加，与导出Excel保持一致
-    const totalAmt  = filtered.reduce((s,r)=>s+fmtNum((+r.qty||0)*(+r.costPrice||0)), 0);
+    const totalAmt  = filtered.reduce((s,r)=>{
+      const amt = r.totalAmt!==undefined ? r.totalAmt : fmtNum((+r.qty||0)*(+r.costPrice||0));
+      return s + fmtNum(amt);
+    }, 0);
     const isFiltered = filtered.length < DB.openstock.length;
     footEl.innerHTML = `<tr style="font-weight:600;background:var(--color-background-secondary);border-top:1.5px solid var(--color-border-secondary)">
       <td colspan="5" style="padding:8px 10px;font-size:12px;color:var(--color-text-secondary)">
@@ -1885,36 +1888,22 @@ function osSaveRow(id){
   const r = DB.openstock.find(x=>x.id===id);
   if(!r){ showToast('找不到记录','error'); return; }
 
-  // 直接用固定 id 读取输入框当前值，最可靠
   const qtyEl   = document.getElementById('os_qty_'  + id);
   const priceEl = document.getElementById('os_price_'+ id);
   const amtEl   = document.getElementById('os_amt_'  + id);
   const remEl   = document.getElementById('os_rem_'  + id);
 
+  // ★ 直接读取并保存，不做任何重算
   if(qtyEl)   r.qty       = parseFloat(qtyEl.value)   || 0;
   if(priceEl) r.costPrice = parseFloat(priceEl.value) || 0;
+  if(amtEl)   r.totalAmt  = parseFloat(amtEl.value)   || 0;  // 原样保存，不用 qty×price 覆盖
+  if(remEl)   r.remark    = remEl.value;
 
-  // 如果修改了金额，倒挤单价
-  if(amtEl){
-    const amt = parseFloat(amtEl.value) || 0;
-    if(amt !== fmtNum((r.qty||0)*(r.costPrice||0))){
-      r.totalAmt  = amt;
-      r.costPrice = r.qty ? Math.round(amt/r.qty*10000)/10000 : 0;
-    } else {
-      r.totalAmt = fmtNum((r.qty||0)*(r.costPrice||0));
-    }
-  } else {
-    r.totalAmt = fmtNum((r.qty||0)*(r.costPrice||0));
-  }
-  if(remEl) r.remark = remEl.value;
-
-  console.log('保存期初:', id, 'qty='+r.qty, 'price='+r.costPrice, 'amt='+r.totalAmt);
-
+  showToast('保存中...');
   saveStore('openstock').then(()=>{
     renderOpenstock && renderOpenstock();
-    showToast('✓ 已保存');
+    showToast('✓ 已保存，金额=' + fmtMoney(r.totalAmt));
   }).catch(err=>{
-    console.error('保存失败:', err);
     showToast('⚠ 网络异常，请稍后重试','error');
   });
 }
