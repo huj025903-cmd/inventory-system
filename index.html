@@ -2760,12 +2760,64 @@ function openModal(type,data){
       `<button class="btn btn-primary" onclick="saveBOM()">保存</button>`);
     setTimeout(()=>makeCodeLine('bomLines',false,true),50);
   }else if(type==='assembly'){
-    const bomProds=DB.bom.filter(b=>b.active).map(b=>{const p=DB.products.find(x=>x.id===b.productId);return`<option value="${b.productId}" data-bom="${b.id}">${p?p.name:'-'}(${b.version})</option>`;}).join('');
+    const bomProds=DB.bom.filter(b=>b.active!==false).map(b=>{
+      const p=DB.products.find(x=>x.id===b.productId);
+      return `<option value="${b.id}">${p?p.code+' | ':''} ${p?p.name:'-'} (${b.version||'V1'} 标准产量:${b.stdQty||1})</option>`;
+    }).join('');
     html=wrap('新建组装单',
-      `<div class="form-row c2"><div class="form-group"><label>成品(BOM)*</label><select id="fasp">${bomProds||'<option value="">暂无启用的BOM</option>'}</select></div><div class="form-group"><label>仓库*</label><select id="fasw"><option value="">选择</option>${getWHOpts()}</select></div></div>
-      <div class="form-row c2"><div class="form-group"><label>组装数量</label><input id="fasq" type="number" value="1" min="1"></div><div class="form-group"><label>日期</label><input id="fasd" type="date" value="${today()}"></div></div>
-      <div class="alert alert-warn">⚠ 确认后自动从仓库扣减BOM物料库存</div>`,
-      `<button class="btn btn-primary" onclick="saveAssembly()">确认组装</button>`);
+      `<!-- 基本信息 -->
+      <div class="form-row c3">
+        <div class="form-group"><label>成品编号*</label>
+          <div style="display:flex;gap:4px">
+            <input id="fasProCode" type="text" placeholder="输入编码搜索" style="flex:1"
+              oninput="asmSearchProduct(this.value)">
+            <input id="fasProId" type="hidden">
+          </div>
+          <div id="fasProInfo" style="font-size:10px;margin-top:3px;color:var(--color-text-tertiary)">输入编码或名称搜索成品</div>
+        </div>
+        <div class="form-group"><label>组装数量*</label>
+          <input id="fasq" type="number" value="1" min="1" step="1" style="width:100%">
+        </div>
+        <div class="form-group"><label>仓库*</label>
+          <select id="fasw" style="width:100%">
+            <option value="">选择仓库</option>${getWHOpts()}
+          </select>
+        </div>
+      </div>
+      <div class="form-row c3">
+        <div class="form-group"><label>经办人</label><input id="fashandler" type="text" placeholder="经办人姓名"></div>
+        <div class="form-group"><label>日期</label><input id="fasd" type="date" value="${today()}"></div>
+        <div class="form-group"><label>来源</label>
+          <select id="fasbom" onchange="asmLoadMaterials()" style="width:100%">
+            <option value="">✏️ 手动填写物料</option>
+            ${bomProds?'<optgroup label="── 从BOM导入 ──">'+bomProds+'</optgroup>':''}
+          </select>
+        </div>
+      </div>
+      <!-- 物料清单 -->
+      <div style="margin-top:10px">
+        <div style="font-size:12px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;justify-content:space-between">
+          <span>📋 物料清单</span>
+          <span id="asmStockWarn" style="font-size:11px;color:#E24B4A;display:none">⚠ 有物料库存不足</span>
+        </div>
+        <div style="border:1px solid var(--color-border-secondary);border-radius:6px;overflow:hidden">
+          <table style="width:100%;border-collapse:collapse;font-size:11px">
+            <thead><tr style="background:var(--color-background-tertiary)">
+              <th style="padding:7px 8px;width:36px"></th>
+              <th style="padding:7px 8px">商品编码/名称</th>
+              <th style="padding:7px 8px;text-align:right;width:90px">用量</th>
+              <th style="padding:7px 8px;text-align:right;width:90px">当前库存</th>
+              <th style="padding:7px 8px;text-align:center;width:70px">状态</th>
+              <th style="padding:7px 8px;width:32px"></th>
+            </tr></thead>
+            <tbody id="asmMatTbl"></tbody>
+          </table>
+        </div>
+        <button class="btn" style="margin-top:8px;font-size:11px" onclick="asmAddRow()">+ 添加物料行</button>
+      </div>
+      <div class="alert alert-warn" style="margin-top:8px;font-size:11px">⚠ 确认后自动从所选仓库扣减物料库存</div>`,
+      `<button class="btn btn-primary" onclick="saveAssembly()">✓ 确认组装</button>`);
+    setTimeout(()=>{ asmAddRow(); }, 50);
   }
   mc.innerHTML=html;
 if(isMobile&&isMobile()){document.body.style.overflow='hidden';setTimeout(()=>{ const f=mc.querySelector('input,select,textarea'); if(f)f.focus(); },200);}
@@ -3789,18 +3841,205 @@ function saveBOM(){
   saveStore('bom');closeModal();renderBOM();showToast('BOM表已保存');
 }
 
-function saveAssembly(){
-  const sel=document.querySelector('#fasp option:checked');
-  const productId=(document.getElementById('fasp')||{}).value;const warehouseId=(document.getElementById('fasw')||{}).value;
-  if(!productId||!warehouseId){showToast('请选择成品和仓库','error');return;}
-  const qty=parseFloat((document.getElementById('fasq')||{}).value)||0;
-  const bomId=sel?sel.dataset.bom:'';const bom=DB.bom.find(b=>b.id===bomId);
-  if(bom&&bom.materials){
-    for(const m of bom.materials){const need=m.qty*qty/bom.stdQty;const s=getStock(m.productId,warehouseId);if(s<need){showToast(`${pname(m.productId)} 库存不足！需要 ${need.toFixed(2)}，当前 ${s}`,'error');return;}}
+// ── 组装单：搜索成品 ──
+function asmSearchProduct(q){
+  const infoEl = document.getElementById('fasProInfo');
+  if(!q||q.length<1){ if(infoEl) infoEl.innerHTML='输入编码或名称搜索成品'; return; }
+  const matched = DB.products.filter(p=>(p.code+p.name+(p.spec||'')).toLowerCase().includes(q.toLowerCase())).slice(0,8);
+  if(!matched.length){ if(infoEl) infoEl.innerHTML='<span style="color:#E24B4A">未找到匹配商品</span>'; return; }
+  if(infoEl) infoEl.innerHTML = '<div style="background:var(--color-background-secondary);border:1px solid var(--color-border-secondary);border-radius:4px;max-height:140px;overflow-y:auto;position:absolute;z-index:999;width:200px">'
+    +matched.map(p=>`<div onclick="asmSelectProduct('${p.id}')" style="padding:6px 10px;cursor:pointer;font-size:11px;border-bottom:0.5px solid var(--color-border-tertiary)"
+      onmouseover="this.style.background='var(--color-background-tertiary)'" onmouseout="this.style.background=''">${p.code} | ${p.name}${p.spec?' '+p.spec:''}</div>`).join('')
+    +'</div>';
+}
+
+function asmSelectProduct(pid){
+  const p = DB.products.find(x=>x.id===pid);
+  if(!p) return;
+  const codeEl = document.getElementById('fasProCode');
+  const idEl   = document.getElementById('fasProId');
+  const infoEl = document.getElementById('fasProInfo');
+  if(codeEl) codeEl.value = p.code;
+  if(idEl)   idEl.value   = p.id;
+  if(infoEl) infoEl.innerHTML = `<span style="color:#1D9E75;font-size:11px">✓ ${p.code} ${p.name}${p.spec?' '+p.spec:''}</span>`;
+}
+
+// ── 组装单：添加手动物料行 ──
+let _asmRowIdx = 0;
+function asmAddRow(productId, qty){
+  const tbl = document.getElementById('asmMatTbl');
+  if(!tbl) return;
+  const idx = _asmRowIdx++;
+  const p   = productId ? (DB.products.find(x=>x.id===productId)||{}) : {};
+  const whId= (document.getElementById('fasw')||{}).value;
+  const stock= productId && whId ? getStock(productId, whId) : null;
+  const need = qty||0;
+  const enough = stock===null?true:stock>=need;
+  const tr = document.createElement('tr');
+  tr.className = 'asm-mat-row';
+  tr.dataset.idx = idx;
+  tr.style.borderBottom = '0.5px solid var(--color-border-tertiary)';
+  tr.innerHTML = `
+    <td style="padding:4px 6px;text-align:center">
+      <span style="font-size:16px;color:var(--color-text-tertiary)">⠿</span>
+    </td>
+    <td style="padding:4px 6px">
+      <div style="display:flex;flex-direction:column;gap:2px">
+        <input class="asm-row-code" type="text" placeholder="输入编码搜索..." value="${p.code||''}"
+          style="font-size:11px;border:1px solid var(--color-border-secondary);border-radius:4px;padding:3px 7px;width:100%"
+          oninput="asmRowSearch(this,${idx})" autocomplete="off">
+        <input class="asm-row-pid" type="hidden" value="${productId||''}">
+        <div class="asm-row-drop" id="asmDrop${idx}" style="display:none;position:absolute;z-index:999;background:var(--color-background-primary);border:1px solid var(--color-border-secondary);border-radius:4px;max-height:120px;overflow-y:auto;font-size:11px;min-width:220px"></div>
+        <div class="asm-row-info" style="font-size:10px;color:${p.name?'#1D9E75':'var(--color-text-tertiary)'}">${p.name?('✓ '+p.name+(p.spec?' '+p.spec:'')):'未选择'}</div>
+      </div>
+    </td>
+    <td style="padding:4px 6px">
+      <input class="asm-row-qty" type="number" value="${need||''}" min="0" step="0.01" placeholder="用量"
+        style="width:80px;border:1px solid var(--color-border-secondary);border-radius:4px;padding:3px 6px;font-size:11px;text-align:right"
+        oninput="asmRowUpdateStock(${idx})">
+    </td>
+    <td class="asm-row-stock" style="padding:4px 6px;text-align:right;font-size:11px">${stock!==null?stock.toLocaleString():'-'}</td>
+    <td class="asm-row-status" style="padding:4px 6px;text-align:center;font-size:11px">${stock!==null?(enough?'<span style="color:#1D9E75">✓</span>':'<span style="color:#E24B4A">✗</span>'):''}</td>
+    <td style="padding:4px 6px;text-align:center">
+      <button onclick="this.closest('tr').remove()" style="background:none;border:none;cursor:pointer;color:#E24B4A;font-size:14px;padding:0">✕</button>
+    </td>`;
+  tbl.appendChild(tr);
+}
+
+function asmRowSearch(input, idx){
+  const q   = input.value.trim();
+  const drop= document.getElementById('asmDrop'+idx);
+  if(!drop) return;
+  if(!q){ drop.style.display='none'; return; }
+  const matched = DB.products.filter(p=>(p.code+p.name+(p.spec||'')).toLowerCase().includes(q.toLowerCase())).slice(0,8);
+  if(!matched.length){ drop.style.display='none'; return; }
+  drop.style.display='block';
+  drop.innerHTML = matched.map(p=>`<div style="padding:6px 10px;cursor:pointer;border-bottom:0.5px solid var(--color-border-tertiary)"
+    onmousedown="asmRowSelect(${idx},'${p.id}')"
+    onmouseover="this.style.background='var(--color-background-secondary)'"
+    onmouseout="this.style.background=''">${p.code} | ${p.name}${p.spec?' '+p.spec:''}</div>`).join('');
+}
+
+function asmRowSelect(idx, pid){
+  const p    = DB.products.find(x=>x.id===pid);
+  if(!p) return;
+  const tbl  = document.getElementById('asmMatTbl');
+  const rows = tbl ? tbl.querySelectorAll('.asm-mat-row') : [];
+  let row = null;
+  rows.forEach(r=>{ if(r.dataset.idx==idx) row=r; });
+  if(!row) return;
+  row.querySelector('.asm-row-code').value = p.code;
+  row.querySelector('.asm-row-pid').value  = p.id;
+  row.querySelector('.asm-row-info').innerHTML = '✓ '+p.name+(p.spec?' '+p.spec:'');
+  row.querySelector('.asm-row-info').style.color = '#1D9E75';
+  const drop = document.getElementById('asmDrop'+idx);
+  if(drop) drop.style.display='none';
+  asmRowUpdateStock(idx);
+}
+
+function asmRowUpdateStock(idx){
+  const tbl  = document.getElementById('asmMatTbl');
+  if(!tbl) return;
+  let row = null;
+  tbl.querySelectorAll('.asm-mat-row').forEach(r=>{ if(r.dataset.idx==idx) row=r; });
+  if(!row) return;
+  const pid   = row.querySelector('.asm-row-pid').value;
+  const qty   = parseFloat(row.querySelector('.asm-row-qty').value)||0;
+  const whId  = (document.getElementById('fasw')||{}).value;
+  const stock = pid&&whId ? getStock(pid, whId) : null;
+  const enough= stock===null ? true : stock>=qty;
+  const stockEl  = row.querySelector('.asm-row-stock');
+  const statusEl = row.querySelector('.asm-row-status');
+  if(stockEl) stockEl.textContent = stock!==null ? stock.toLocaleString() : '-';
+  if(statusEl) statusEl.innerHTML = stock!==null?(enough?'<span style="color:#1D9E75">✓</span>':'<span style="color:#E24B4A">✗</span>'):'';
+  row.style.background = (!enough&&stock!==null) ? 'rgba(226,75,74,0.05)' : '';
+  // 检查总体警告
+  const hasWarn = Array.from(tbl.querySelectorAll('.asm-row-status')).some(el=>el.querySelector('span')&&el.querySelector('span').style.color==='rgb(226, 75, 74)');
+  const warnEl = document.getElementById('asmStockWarn');
+  if(warnEl) warnEl.style.display = hasWarn?'':'none';
+}
+
+// ── 组装单：从BOM导入物料行 ──
+function asmLoadMaterials(){
+  const bomId = (document.getElementById('fasbom')||{}).value;
+  const tbl   = document.getElementById('asmMatTbl');
+  if(!tbl) return;
+  if(!bomId){ return; } // 手动模式，不清空
+  const bom = DB.bom.find(b=>b.id===bomId);
+  if(!bom||!bom.materials) return;
+  const qty    = parseFloat((document.getElementById('fasq')||{}).value)||1;
+  const stdQty = bom.stdQty||1;
+  // 清空现有行，用BOM数据填充
+  tbl.innerHTML='';
+  _asmRowIdx=0;
+  bom.materials.forEach(m=>{
+    const need = Math.round(m.qty*qty/stdQty*10000)/10000;
+    asmAddRow(m.productId, need);
+  });
+  // 同步成品信息
+  const prod = DB.products.find(x=>x.id===bom.productId);
+  if(prod){
+    const codeEl = document.getElementById('fasProCode');
+    const idEl   = document.getElementById('fasProId');
+    const infoEl = document.getElementById('fasProInfo');
+    if(codeEl) codeEl.value = prod.code;
+    if(idEl)   idEl.value   = prod.id;
+    if(infoEl) infoEl.innerHTML = `<span style="color:#1D9E75;font-size:11px">✓ ${prod.code} ${prod.name}</span>`;
   }
-  const materials=bom?bom.materials.map(m=>({productId:m.productId,qty:m.qty*qty/bom.stdQty})):[];
-  DB.assembly.push({id:gid(),no:gno('ASM'),productId,warehouseId,qty,date:(document.getElementById('fasd')||{}).value,materials,status:'done'});
-  saveStore('assembly');closeModal();renderASM();renderDashboard();showToast('组装单已确认，库存已更新');
+  showToast('已从BOM导入 '+bom.materials.length+' 种物料');
+}
+
+function asmToggleAll(checked){
+  document.querySelectorAll('.asm-mat-chk').forEach(cb=>cb.checked=checked);
+}
+
+function saveAssembly(){
+  const productId  = (document.getElementById('fasProId')||{}).value;
+  const warehouseId= (document.getElementById('fasw')||{}).value;
+  const qty        = parseFloat((document.getElementById('fasq')||{}).value)||0;
+  const bomId      = (document.getElementById('fasbom')||{}).value;
+
+  if(!productId){showToast('请先选择成品','error');return;}
+  if(!warehouseId){showToast('请选择仓库','error');return;}
+  if(qty<=0){showToast('组装数量必须大于0','error');return;}
+
+  // 读取所有物料行
+  const matRows = document.querySelectorAll('#asmMatTbl .asm-mat-row');
+  if(!matRows.length){showToast('请添加至少一条物料','error');return;}
+
+  const materials = [];
+  for(const row of matRows){
+    const pid    = (row.querySelector('.asm-row-pid')||{}).value;
+    const useQty = parseFloat((row.querySelector('.asm-row-qty')||{}).value)||0;
+    if(!pid){showToast('有物料未选择商品，请检查','error');return;}
+    if(useQty<=0){showToast('物料用量必须大于0，请检查','error');return;}
+    // 库存校验
+    const stock = getStock(pid, warehouseId);
+    if(stock < useQty){
+      showToast(pname(pid)+' 库存不足！需要 '+useQty+'，当前 '+stock,'error');
+      return;
+    }
+    materials.push({productId:pid, qty:useQty});
+  }
+
+  const prod = DB.products.find(x=>x.id===productId);
+  DB.assembly.push({
+    id:gid(), no:gno('ASM'),
+    productId,
+    bomId: bomId||'',
+    warehouseId, qty,
+    handler: (document.getElementById('fashandler')||{}).value||'',
+    date:    (document.getElementById('fasd')||{}).value,
+    materials,
+    status:'done'
+  });
+
+  saveStore('assembly');
+  closeModal();
+  renderASM();
+  renderDashboard();
+  writeLog('新建','组装','新建组装单 '+(prod?prod.name:''));
+  showToast('✓ 组装单已保存，共扣减 '+materials.length+' 种物料库存');
 }
 
 /* ── View Bill ── */
