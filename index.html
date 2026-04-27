@@ -437,6 +437,7 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
       <div class="nav-label">库存管理</div>
       <div class="nav-item" onclick="closeMobileMenu();nav('otherIn')">⬇️ 其他入库</div>
       <div class="nav-item" onclick="closeMobileMenu();nav('otherOut')">⬆️ 其他出库</div>
+      <div class="nav-item" onclick="closeMobileMenu();nav('transfer')">🔄 调拨单</div>
       <div class="nav-item" onclick="closeMobileMenu();nav('bom')">🔧 BOM表</div>
       <div class="nav-item" onclick="closeMobileMenu();nav('assembly')">⚙️ 组装单</div>
       <div class="nav-item" onclick="closeMobileMenu();nav('stockQuery')">🔍 库存查询</div>
@@ -644,6 +645,28 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
         <div class="card">
           <div class="card-header"><div class="card-title">其他入库单</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-warning" onclick="openBatchOIModal()" title="批量录入其他入库">📋 批量录入</button><button class="btn btn-success" onclick="exportExcel('otherIn')">📊 导出Excel</button><button class="btn btn-primary" onclick="openModal('otherIn')">+ 新建</button></div></div>
           <table><thead><tr><th style="width:32px"><input type="checkbox" onclick="toggleAllCheck('otherIn',this)" title="全选"></th><th>单号</th><th>类型</th><th>经办人</th><th>仓库</th><th>日期</th><th>商品编码</th><th>商品名称</th><th style="text-align:right">数量</th><th style="text-align:right">单价</th><th style="text-align:right">金额</th><th>备注</th><th>操作</th></tr></thead><tbody id="oiTbl"></tbody></table>
+        </div>
+      </div>
+
+      <!-- 调拨单 -->
+      <div id="page-transfer" class="page">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">调拨单</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn-success" onclick="exportExcel('transfer')">📊 导出Excel</button>
+              <button class="btn btn-primary" onclick="openModal('transfer')">+ 新建调拨单</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table><thead><tr>
+              <th style="width:32px"><input type="checkbox" onclick="toggleAllCheck('transfer',this)" title="全选"></th>
+              <th>调拨单号</th><th>调出仓库</th><th>调入仓库</th><th>经办人</th><th>日期</th>
+              <th>商品编码</th><th>商品名称</th>
+              <th style="text-align:right">数量</th><th style="text-align:right">单价</th>
+              <th style="text-align:right">金额</th><th>状态</th><th>备注</th><th>操作</th>
+            </tr></thead><tbody id="transferTbl"></tbody></table>
+          </div>
         </div>
       </div>
 
@@ -1369,7 +1392,7 @@ const STORES=['products','warehouses','suppliers','customers','units','openstock
   'po','pr','preturn','so','sd','sreturn','otherIn','otherOut','bom','assembly'];
 
 const DB={products:[],warehouses:[],suppliers:[],customers:[],units:[],openstock:[],
-  po:[],pr:[],preturn:[],so:[],sd:[],sreturn:[],otherIn:[],otherOut:[],bom:[],assembly:[]};
+  po:[],pr:[],preturn:[],so:[],sd:[],sreturn:[],otherIn:[],otherOut:[],bom:[],assembly:[],transfer:[]};
 
 let perms={};
 const DEF_PERMS={
@@ -1397,7 +1420,7 @@ const DEF_PERMS={
   so_cost_profit:{admin:1,purchase:0,sales:0,warehouse:0,finance:1,viewer:0}
 };
 
-const PAGE_TITLES={dashboard:'仪表盘',products:'商品管理',warehouses:'仓库管理',suppliers:'供应商',customers:'客户管理',units:'计量单位',openstock:'期初库存',po:'采购订单',pr:'采购入库单',preturn:'采购退货单',so:'销售订单',sd:'销售出库单',sreturn:'销售退货单',otherIn:'其他入库单',otherOut:'其他出库单',bom:'产品BOM表',assembly:'组装单',stockQuery:'库存查询',export:'Excel导出中心',permissions:'权限管理',backup:'备份恢复',users:'用户管理',logs:'操作日志'};
+const PAGE_TITLES={dashboard:'仪表盘',products:'商品管理',warehouses:'仓库管理',suppliers:'供应商',customers:'客户管理',units:'计量单位',openstock:'期初库存',po:'采购订单',pr:'采购入库单',preturn:'采购退货单',so:'销售订单',sd:'销售出库单',sreturn:'销售退货单',otherIn:'其他入库单',otherOut:'其他出库单',transfer:'调拨单',bom:'产品BOM表',assembly:'组装单',stockQuery:'库存查询',export:'Excel导出中心',permissions:'权限管理',backup:'备份恢复',users:'用户管理',logs:'操作日志'};
 
 let currentUser='admin';let currentPage='dashboard';
 
@@ -1609,7 +1632,19 @@ function renderPage(p){
     case 'sd':renderSD();break;
     case 'sreturn':renderSR();break;
     case 'otherIn':renderOI();break;
-    case 'otherOut':renderOO();break;
+    case 'transfer':
+    typeName='调拨单';
+    DB.transfer.forEach(r=>{
+      const fromWH=wname(r.fromWarehouseId), toWH=wname(r.toWarehouseId);
+      (r.items||[]).forEach((item,i)=>{
+        rows.push({'单号':i===0?r.no:'','调出仓库':i===0?fromWH:'','调入仓库':i===0?toWH:'',
+          '经办人':i===0?r.handler||'':'','日期':i===0?r.date||'':'',
+          '商品':pname(item.productId),'数量':item.qty,'单价':fmtNum(item.price),'金额':fmtNum(item.total),
+          '备注':i===0?r.remark||'':''});
+      });
+    });
+    break;
+  case 'otherOut':renderOO();break;
     case 'bom':renderBOM();break;
     case 'assembly':renderASM();break;
     case 'stockQuery':renderSQ();break;
@@ -2107,6 +2142,128 @@ function renderSR(){
   document.getElementById('srTbl').innerHTML=DB.sreturn.map(r=>`<tr><td>${r.no}</td><td>${cname(r.customerId)}</td><td>${wname(r.warehouseId)}</td><td>${r.date||'-'}</td><td>${fmtMoney(r.totalAmt)}</td><td><span class="badge badge-${r.status==='done'?'green':'amber'}">${r.status==='done'?'已退货':'待处理'}</span></td><td style="color:var(--color-text-secondary);font-size:10px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.remark||''}">${r.remark||'-'}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('sreturn','${r.id}')">查看</button> <button class="btn" onclick="editRemark('sreturn','${r.id}',renderSR)" title="编辑备注">备注</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('sreturn','${r.id}',renderSR)">删除</button>`:''}</td></tr>`).join('')||'<tr><td colspan="9" style="text-align:center;color:var(--color-text-tertiary)">暂无退货单</td></tr>';
 }
 
+// ══ 调拨单 ══
+function saveTransfer(){
+  const fromWH = (document.getElementById('ftfrom')||{}).value;
+  const toWH   = (document.getElementById('ftto')||{}).value;
+  if(!fromWH){showToast('请选择调出仓库','error');return;}
+  if(!toWH){showToast('请选择调入仓库','error');return;}
+  if(fromWH===toWH){showToast('调出和调入仓库不能相同','error');return;}
+  const items = getEditableItems('transferLines');
+  if(!items.length){showToast('请添加调拨明细','error');return;}
+  const totalAmt = items.reduce((s,i)=>s+fmtNum(i.total),0);
+  DB.transfer.push({
+    id:gid(), no:gno('TF'),
+    fromWarehouseId: fromWH,
+    toWarehouseId:   toWH,
+    handler: (document.getElementById('fthandler')||{}).value||'',
+    date:    (document.getElementById('ftd')||{}).value,
+    remark:  (document.getElementById('ftremark')||{}).value||'',
+    items, totalAmt,
+    status:'done'  // 调拨单保存即生效
+  });
+  saveStore('transfer');
+  closeModal();
+  renderTransfer();
+  renderDashboard();
+  writeLog('新建','调拨','新建调拨单');
+  showToast('✓ 调拨单已保存并生效');
+}
+
+function renderTransfer(){
+  const tbl = document.getElementById('transferTbl');
+  if(!tbl) return;
+  const rows=[];
+  DB.transfer.forEach(r=>{
+    const items=r.items&&r.items.length?r.items:[{}];
+    const n=items.length;
+    const rs=n>1?' rowspan="'+n+'"':'';
+    const bs='border-bottom:0.5px solid var(--color-border-tertiary)';
+    items.forEach((i,idx)=>{
+      const p=DB.products.find(x=>x.id===i.productId)||{};
+      const isFirst=idx===0;
+      let tr='<tr style="vertical-align:middle">';
+      if(isFirst){
+        tr+=`<td${rs} style="text-align:center;${bs}"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="transfer"></td>`;
+        tr+=`<td${rs} style="${bs}">${r.no}</td>`;
+        tr+=`<td${rs} style="${bs}">${wname(r.fromWarehouseId)}</td>`;
+        tr+=`<td${rs} style="${bs}">→ ${wname(r.toWarehouseId)}</td>`;
+        tr+=`<td${rs} style="${bs}">${r.handler||'-'}</td>`;
+        tr+=`<td${rs} style="${bs}">${r.date||'-'}</td>`;
+      }
+      tr+=`<td style="font-size:11px;${bs}">${p.code||'-'}</td>`;
+      tr+=`<td style="font-size:11px;${bs}">${p.name||'-'}${p.spec?'<span style="color:var(--color-text-tertiary);font-size:10px"> '+p.spec+'</span>':''}</td>`;
+      tr+=`<td style="text-align:right;${bs}">${(+i.qty||0).toLocaleString()}</td>`;
+      tr+=`<td style="text-align:right;${bs}">${fmtMoney(i.price||0)}</td>`;
+      if(isFirst){
+        tr+=`<td${rs} style="text-align:right;${bs};font-weight:600">${fmtMoney(r.totalAmt)}</td>`;
+        tr+=`<td${rs} style="${bs}"><span class="badge badge-green">已生效</span></td>`;
+        tr+=`<td${rs} style="font-size:10px;color:var(--color-text-secondary);${bs}">${r.remark||'-'}</td>`;
+        tr+=`<td${rs} style="white-space:nowrap;${bs}">
+          <button class="btn" onclick="viewBill('transfer','${r.id}')">查看</button>
+          <button class="btn" onclick="printTransfer('${r.id}')">🖨 打印</button>
+          ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('transfer','${r.id}',renderTransfer)">删除</button>`:''}
+        </td>`;
+      }
+      tr+='</tr>';
+      rows.push(tr);
+    });
+  });
+  tbl.innerHTML=rows.join('')||'<tr><td colspan="14" style="text-align:center;color:var(--color-text-tertiary)">暂无调拨单</td></tr>';
+}
+
+function printTransfer(id){
+  const r=DB.transfer.find(x=>x.id===id);
+  if(!r) return;
+  const key='inv_print_'+Date.now();
+  const d=getMoneyDecimals();
+  const fm=v=>'¥'+(+v||0).toFixed(d);
+  const thS='background:#f0f0f0;padding:7px 10px;font-weight:600;border:1px solid #ccc;font-size:11px;';
+  const tdS='padding:6px 10px;border:1px solid #ddd;font-size:11px;vertical-align:top;';
+  const tdRS=tdS+'text-align:right;';
+  const rows=(r.items||[]).map((i,idx)=>{
+    const p=DB.products.find(x=>x.id===i.productId)||{};
+    return '<tr>'
+      +'<td style="'+tdS+'">'+(idx+1)+'</td>'
+      +'<td style="'+tdS+'">'+(p.code||'-')+'</td>'
+      +'<td style="'+tdS+'">'+(p.name||'-')+'</td>'
+      +'<td style="'+tdS+'">'+(p.spec||'-')+'</td>'
+      +'<td style="'+tdS+'">'+(p.unit||'-')+'</td>'
+      +'<td style="'+tdRS+'">'+i.qty+'</td>'
+      +'<td style="'+tdRS+'">'+fm(i.price)+'</td>'
+      +'<td style="'+tdRS+'">'+fm(i.total)+'</td>'
+      +'</tr>';
+  }).join('');
+  window[key]='<div style="text-align:center;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #333">'
+    +'<div style="font-size:18px;font-weight:700;letter-spacing:2px;margin-bottom:4px">库存调拨单</div>'
+    +'<div class="print-time" style="font-size:10px;color:#888">单号：<strong>'+r.no+'</strong> &nbsp;|&nbsp; 打印时间：'+new Date().toLocaleString('zh-CN')+'</div>'
+    +'</div>'
+    +'<table style="width:100%;border-collapse:collapse;margin-bottom:8px"><tr>'
+    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;color:#666;width:80px;background:#fafafa;font-weight:500">调出仓库</td>'
+    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;font-weight:600">'+wname(r.fromWarehouseId)+'</td>'
+    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;color:#666;width:80px;background:#fafafa;font-weight:500">调入仓库</td>'
+    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;font-weight:600">'+wname(r.toWarehouseId)+'</td>'
+    +'</tr><tr>'
+    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;color:#666;background:#fafafa;font-weight:500">经办人</td>'
+    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;font-weight:600">'+(r.handler||'-')+'</td>'
+    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;color:#666;background:#fafafa;font-weight:500">日期</td>'
+    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;font-weight:600">'+(r.date||'-')+'</td>'
+    +'</tr></table>'
+    +'<table style="width:100%;border-collapse:collapse;margin-top:10px"><thead><tr>'
+    +'<th style="'+thS+'">序号</th><th style="'+thS+'">商品编码</th><th style="'+thS+'">商品名称</th>'
+    +'<th style="'+thS+'">规格</th><th style="'+thS+'">单位</th>'
+    +'<th style="'+thS+'text-align:right">数量</th><th style="'+thS+'text-align:right">单价</th><th style="'+thS+'text-align:right">金额</th>'
+    +'</tr></thead><tbody>'+rows
+    +'<tr><td colspan="7" style="'+tdRS+'font-weight:700">合计金额</td><td style="'+tdRS+'font-weight:700;font-size:13px">'+fm(r.totalAmt)+'</td></tr>'
+    +'</tbody></table>'
+    +'<div class="print-sign" style="margin-top:28px;border-top:1px solid #ddd;padding-top:14px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#333">'
+    +'<span>制单人：<span style="display:inline-block;width:110px;border-bottom:1px solid #999;margin-left:4px">&nbsp;</span></span>'
+    +'<span>审核人：<span style="display:inline-block;width:110px;border-bottom:1px solid #999;margin-left:4px">&nbsp;</span></span>'
+    +'<span>收货人：<span style="display:inline-block;width:110px;border-bottom:1px solid #999;margin-left:4px">&nbsp;</span></span>'
+    +'</div>';
+  openPrintWindow(key,'库存调拨单',r.no);
+}
+
 function renderOI(){
   const rows=[];
   DB.otherIn.forEach(r=>{
@@ -2553,6 +2710,25 @@ function openModal(type,data){
       <div id="oiTotal" style="text-align:right;font-size:12px;font-weight:600;color:#185FA5;margin-top:6px">合计：¥0.00</div>`,
       `<button class="btn btn-primary" onclick="saveOtherIn()">确认入库</button>`);
     setTimeout(()=>addEditableLine('oiLines','其他'),50);
+  }else if(type==='transfer'){
+    html=wrap('新建调拨单',
+      `<div class="form-row c3">
+        <div class="form-group"><label>调出仓库*</label><select id="ftfrom"><option value="">选择</option>${getWHOpts()}</select></div>
+        <div class="form-group"><label>调入仓库*</label><select id="ftto"><option value="">选择</option>${getWHOpts()}</select></div>
+        <div class="form-group"><label>日期</label><input id="ftd" type="date" value="${today()}"></div>
+      </div>
+      <div class="form-row c2">
+        <div class="form-group"><label>经办人</label><input id="fthandler" type="text" placeholder="经办人姓名"></div>
+        <div class="form-group"><label>备注</label><input id="ftremark" type="text" placeholder="选填备注"></div>
+      </div>
+      <div style="font-size:11px;font-weight:500;margin:10px 0 4px">调拨明细</div>
+      <div id="transferLines"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+        <button class="btn" onclick="addEditableLine('transferLines','调拨')">+ 添加商品行</button>
+        <div style="font-size:13px;font-weight:700;color:#185FA5;background:var(--color-background-secondary);padding:6px 16px;border-radius:6px;border:1px solid var(--color-border-secondary)">合计金额：<span id="transferTotal">¥0.00</span></div>
+      </div>`,
+      `<button class="btn btn-primary" onclick="saveTransfer()">保存</button>`);
+    setTimeout(()=>addEditableLine('transferLines','调拨'),50);
   }else if(type==='otherOut'){
     html=wrap('新建其他出库单',
       `<div class="form-row c3"><div class="form-group"><label>类型*</label><select id="footyp"><option>盘亏</option><option>领料</option><option>调拨出库</option><option>报废</option><option>其他</option></select></div><div class="form-group"><label>仓库*</label><select id="foowh"><option value="">选择</option>${getWHOpts()}</select></div><div class="form-group"><label>日期</label><input id="food" type="date" value="${today()}"></div></div>
