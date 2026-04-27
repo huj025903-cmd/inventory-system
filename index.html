@@ -690,7 +690,7 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
       <div class="page" id="page-assembly">
         <div class="card">
           <div class="card-header"><div class="card-title">组装单</div><div style="display:flex;gap:6px"><button class="btn btn-success" onclick="exportExcel('assembly')">📊 导出Excel</button><button class="btn btn-primary" onclick="openModal('assembly')">+ 新建</button></div></div>
-          <table><thead><tr><th>组装单号</th><th>成品</th><th>数量</th><th>仓库</th><th>日期</th><th>状态</th><th>备注</th><th>操作</th></tr></thead><tbody id="asmTbl"></tbody></table>
+          <table><thead><tr><th>组装单号</th><th>成品</th><th>数量</th><th>物料出库仓库</th><th>成品入库仓库</th><th>经办人</th><th>日期</th><th>状态</th><th>备注</th><th>操作</th></tr></thead><tbody id="asmTbl"></tbody></table>
         </div>
       </div>
 
@@ -1564,7 +1564,18 @@ function getStock(pid, wid){
   DB.sreturn.forEach(r=>{if(r.status==='done' && _whName(r.warehouseId)===wn) r.items&&r.items.forEach(i=>{if(i.productId===pid)q+=+i.qty||0;});});
   DB.otherIn.forEach(r=>{if(r.status==='done' && _whName(r.warehouseId)===wn) r.items&&r.items.forEach(i=>{if(i.productId===pid)q+=+i.qty||0;});});
   DB.otherOut.forEach(r=>{if(r.status==='done' && _whName(r.warehouseId)===wn) r.items&&r.items.forEach(i=>{if(i.productId===pid)q-=+i.qty||0;});});
-  DB.assembly.forEach(r=>{if(r.status==='done'){const rw=_whName(r.warehouseId);if(r.productId===pid&&rw===wn)q+=+r.qty||0;r.materials&&r.materials.forEach(m=>{if(m.productId===pid&&rw===wn)q-=+m.qty||0;});}});
+  DB.assembly.forEach(r=>{
+    if(r.status==='done'){
+      const matWH  = _whName(r.warehouseId);       // 物料出库仓库
+      const prodWH = _whName(r.toWarehouseId || r.warehouseId); // 成品入库仓库（兼容旧数据）
+      // 成品入库：进入成品仓库
+      if(r.productId===pid && prodWH===wn) q+=+r.qty||0;
+      // 物料消耗：从物料仓库扣减
+      r.materials&&r.materials.forEach(m=>{
+        if(m.productId===pid && matWH===wn) q-=+m.qty||0;
+      });
+    }
+  });
   return q;
 }
 // getTotalStock：按名称去重后再汇总，避免重复 id 的仓库被重复计算
@@ -2328,12 +2339,197 @@ function renderOO(){
   });
   document.getElementById('ooTbl').innerHTML=rows.join('')||'<tr><td colspan="11" style="text-align:center;color:var(--color-text-tertiary)">暂无记录</td></tr>';
 }
+// ── 编辑 BOM 表 ──
+function editBOM(id){
+  const b = DB.bom.find(x=>x.id===id);
+  if(!b){ showToast('找不到BOM','error'); return; }
+  const p = DB.products.find(x=>x.id===b.productId)||{};
+  const mc = document.getElementById('modalContainer');
+  const matRows = (b.materials||[]).map((m,idx)=>{
+    const mp = DB.products.find(x=>x.id===m.productId)||{};
+    return `<tr class="bom-edit-row" data-idx="${idx}">
+      <td style="padding:5px 8px;font-size:11px">${mp.code||'-'}</td>
+      <td style="padding:5px 8px;font-size:11px">${mp.name||m.productId}</td>
+      <td style="padding:5px 8px"><input type="hidden" class="bom-pid" value="${m.productId}">
+        <input type="number" class="bom-qty" value="${m.qty}" min="0" step="0.01"
+          style="width:80px;border:1px solid var(--color-border-secondary);border-radius:4px;padding:3px 6px;font-size:11px;text-align:right">
+      </td>
+      <td style="padding:5px 8px;text-align:center">
+        <button onclick="this.closest('tr').remove()" style="background:none;border:none;cursor:pointer;color:#E24B4A;font-size:14px">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  mc.innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal" style="width:600px;max-width:96%">
+      <div class="modal-header"><span>✏ 编辑BOM — ${p.code} ${p.name}</span><button class="btn" onclick="closeModal()">✕</button></div>
+      <div class="modal-body">
+        <div class="form-row c3" style="margin-bottom:12px">
+          <div class="form-group"><label>版本</label><input id="beVer" value="${b.version||'V1.0'}" style="width:100%"></div>
+          <div class="form-group"><label>标准产量</label><input id="beQty" type="number" value="${b.stdQty||1}" style="width:100%"></div>
+          <div class="form-group"><label>状态</label>
+            <select id="beActive" style="width:100%">
+              <option value="1" ${b.active!==false?'selected':''}>启用</option>
+              <option value="0" ${b.active===false?'selected':''}>禁用</option>
+            </select>
+          </div>
+        </div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px">物料清单（可修改用量、删除行）</div>
+        <div style="border:1px solid var(--color-border-secondary);border-radius:6px;overflow:hidden;max-height:320px;overflow-y:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:11px">
+            <thead><tr style="background:var(--color-background-tertiary)">
+              <th style="padding:7px 8px">商品编码</th>
+              <th style="padding:7px 8px">物料名称</th>
+              <th style="padding:7px 8px;text-align:right">用量</th>
+              <th style="padding:7px 8px;width:40px"></th>
+            </tr></thead>
+            <tbody id="bomEditTbl">${matRows}</tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveBOMEdit('${id}')">💾 保存</button>
+      </div>
+    </div>
+  </div>`;
+  mc.style.pointerEvents='all';
+}
+
+function saveBOMEdit(id){
+  const b = DB.bom.find(x=>x.id===id);
+  if(!b) return;
+  b.version  = (document.getElementById('beVer')||{}).value||'V1.0';
+  b.stdQty   = parseFloat((document.getElementById('beQty')||{}).value)||1;
+  b.active   = (document.getElementById('beActive')||{}).value === '1';
+  const rows = document.querySelectorAll('#bomEditTbl .bom-edit-row');
+  b.materials = Array.from(rows).map(row=>({
+    productId: row.querySelector('.bom-pid').value,
+    qty: parseFloat(row.querySelector('.bom-qty').value)||0
+  })).filter(m=>m.productId && m.qty>0);
+  saveStore('bom').then(()=>{ closeModal(); renderBOM(); showToast('✓ BOM已保存'); });
+}
+
+// ── 编辑组装单 ──
+function editAssembly(id){
+  const r = DB.assembly.find(x=>x.id===id);
+  if(!r){ showToast('找不到组装单','error'); return; }
+  const prod = DB.products.find(x=>x.id===r.productId)||{};
+  const mc   = document.getElementById('modalContainer');
+  const matRows = (r.materials||[]).map((m,idx)=>{
+    const mp = DB.products.find(x=>x.id===m.productId)||{};
+    const stock = getStock(m.productId, r.warehouseId);
+    return `<tr class="asm-edit-row" data-idx="${idx}">
+      <td style="padding:5px 8px;font-size:11px">${mp.code||'-'}</td>
+      <td style="padding:5px 8px;font-size:11px">${mp.name||m.productId}</td>
+      <td style="padding:5px 8px"><input type="hidden" class="asm-edit-pid" value="${m.productId}">
+        <input type="number" class="asm-edit-qty" value="${m.qty}" min="0" step="0.01"
+          style="width:80px;border:1px solid var(--color-border-secondary);border-radius:4px;padding:3px 6px;font-size:11px;text-align:right">
+      </td>
+      <td style="padding:5px 8px;text-align:right;font-size:11px;color:var(--color-text-secondary)">${stock.toLocaleString()}</td>
+      <td style="padding:5px 8px;text-align:center">
+        <button onclick="this.closest('tr').remove()" style="background:none;border:none;cursor:pointer;color:#E24B4A;font-size:14px">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  mc.innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal" style="width:640px;max-width:96%">
+      <div class="modal-header"><span>✏ 编辑组装单 — ${r.no}</span><button class="btn" onclick="closeModal()">✕</button></div>
+      <div class="modal-body">
+        <div class="form-row c3" style="margin-bottom:12px">
+          <div class="form-group"><label>成品</label><input value="${prod.code||''} ${prod.name||''}" disabled style="width:100%;background:var(--color-background-secondary)"></div>
+          <div class="form-group"><label>组装数量</label><input id="aeQty" type="number" value="${r.qty||1}" style="width:100%"></div>
+          <div class="form-group"><label>经办人</label><input id="aeHandler" value="${r.handler||''}" style="width:100%"></div>
+        </div>
+        <div class="form-row c2" style="margin-bottom:12px">
+          <div class="form-group"><label>物料出库仓库</label>
+            <select id="aeWH" style="width:100%">${DB.warehouses.map(w=>`<option value="${w.id}" ${w.id===r.warehouseId?'selected':''}>${w.name}</option>`).join('')}</select>
+          </div>
+          <div class="form-group"><label>成品入库仓库</label>
+            <select id="aeToWH" style="width:100%">${DB.warehouses.map(w=>`<option value="${w.id}" ${w.id===(r.toWarehouseId||r.warehouseId)?'selected':''}>${w.name}</option>`).join('')}</select>
+          </div>
+        </div>
+        <div class="form-row c2" style="margin-bottom:12px">
+          <div class="form-group"><label>日期</label><input id="aeDate" type="date" value="${r.date||''}" style="width:100%"></div>
+          <div class="form-group"><label>备注</label><input id="aeRemark" value="${r.remark||''}" style="width:100%"></div>
+        </div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px">物料清单（可修改用量、删除行）</div>
+        <div style="border:1px solid var(--color-border-secondary);border-radius:6px;overflow:hidden;max-height:300px;overflow-y:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:11px">
+            <thead><tr style="background:var(--color-background-tertiary)">
+              <th style="padding:7px 8px">商品编码</th>
+              <th style="padding:7px 8px">物料名称</th>
+              <th style="padding:7px 8px;text-align:right">用量</th>
+              <th style="padding:7px 8px;text-align:right">当前库存</th>
+              <th style="padding:7px 8px;width:40px"></th>
+            </tr></thead>
+            <tbody id="asmEditTbl">${matRows}</tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveAssemblyEdit('${id}')">💾 保存</button>
+      </div>
+    </div>
+  </div>`;
+  mc.style.pointerEvents='all';
+}
+
+function saveAssemblyEdit(id){
+  const r = DB.assembly.find(x=>x.id===id);
+  if(!r) return;
+  r.qty            = parseFloat((document.getElementById('aeQty')||{}).value)||r.qty;
+  r.handler        = (document.getElementById('aeHandler')||{}).value||'';
+  r.date           = (document.getElementById('aeDate')||{}).value||r.date;
+  r.remark         = (document.getElementById('aeRemark')||{}).value||'';
+  r.warehouseId    = (document.getElementById('aeWH')||{}).value||r.warehouseId;
+  r.toWarehouseId  = (document.getElementById('aeToWH')||{}).value||r.toWarehouseId;
+  const rows = document.querySelectorAll('#asmEditTbl .asm-edit-row');
+  r.materials = Array.from(rows).map(row=>({
+    productId: row.querySelector('.asm-edit-pid').value,
+    qty: parseFloat(row.querySelector('.asm-edit-qty').value)||0
+  })).filter(m=>m.productId && m.qty>0);
+  saveStore('assembly').then(()=>{ closeModal(); renderASM(); renderDashboard(); showToast('✓ 组装单已保存'); });
+}
+
 function renderBOM(){
-  document.getElementById('bomTbl').innerHTML=DB.bom.map(b=>{const p=DB.products.find(x=>x.id===b.productId);return`<tr><td style="text-align:center"><input type="checkbox" class="bill-check" data-id="${b.id}" data-type="bom"></td><td>${p?p.code:'-'}</td><td>${p?p.name:'-'}</td><td>${b.version||'V1.0'}</td><td>${b.stdQty||1}</td><td>${b.materials?b.materials.length:0}</td><td><span class="badge badge-${b.active?'green':'gray'}">${b.active?'启用':'禁用'}</span></td><td><button class="btn" onclick="viewBill('bom','${b.id}')">查看</button> <button class="btn btn-danger" onclick="delItem('bom','${b.id}',renderBOM)">删除</button></td></tr>`;}).join('')||'<tr><td colspan="8" style="text-align:center;color:var(--color-text-tertiary)">暂无BOM表</td></tr>';
+  document.getElementById('bomTbl').innerHTML=DB.bom.map(b=>{
+    const p=DB.products.find(x=>x.id===b.productId);
+    return`<tr>
+      <td style="text-align:center"><input type="checkbox" class="bill-check" data-id="${b.id}" data-type="bom"></td>
+      <td>${p?p.code:'-'}</td><td>${p?p.name:'-'}</td>
+      <td>${b.version||'V1.0'}</td><td>${b.stdQty||1}</td>
+      <td>${b.materials?b.materials.length:0}</td>
+      <td><span class="badge badge-${b.active!==false?'green':'gray'}">${b.active!==false?'启用':'禁用'}</span></td>
+      <td style="white-space:nowrap">
+        <button class="btn" onclick="viewBill('bom','${b.id}')">查看</button>
+        <button class="btn btn-warning" onclick="editBOM('${b.id}')">✏ 编辑</button>
+        <button class="btn btn-danger" onclick="delItem('bom','${b.id}',renderBOM)">删除</button>
+      </td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="8" style="text-align:center;color:var(--color-text-tertiary)">暂无BOM表</td></tr>';
 }
 
 function renderASM(){
-  document.getElementById('asmTbl').innerHTML=DB.assembly.map(r=>`<tr><td>${r.no}</td><td>${pname(r.productId)}</td><td>${r.qty||0}</td><td>${wname(r.warehouseId)}</td><td>${r.date||'-'}</td><td><span class="badge badge-${r.status==='done'?'green':'amber'}">${r.status==='done'?'已完成':'进行中'}</span></td><td style="color:var(--color-text-secondary);font-size:10px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.remark||''}">${r.remark||'-'}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('assembly','${r.id}')">查看</button> <button class="btn" onclick="editRemark('assembly','${r.id}',renderASM)" title="编辑备注">备注</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('assembly','${r.id}',renderASM)">删除</button>`:''}</td></tr>`).join('')||'<tr><td colspan="8" style="text-align:center;color:var(--color-text-tertiary)">暂无组装单</td></tr>';
+  document.getElementById('asmTbl').innerHTML=DB.assembly.map(r=>`<tr>
+    <td>${r.no}</td>
+    <td>${pname(r.productId)}</td>
+    <td style="text-align:right">${r.qty||0}</td>
+    <td style="font-size:11px">${wname(r.warehouseId)}</td>
+    <td style="font-size:11px">${wname(r.toWarehouseId||r.warehouseId)}</td>
+    <td style="font-size:11px">${r.handler||'-'}</td>
+    <td>${r.date||'-'}</td>
+    <td><span class="badge badge-${r.status==='done'?'green':'amber'}">${r.status==='done'?'已完成':'进行中'}</span></td>
+    <td style="color:var(--color-text-secondary);font-size:10px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.remark||''}">${r.remark||'-'}</td>
+    <td style="white-space:nowrap">
+      <button class="btn" onclick="viewBill('assembly','${r.id}')">查看</button>
+      <button class="btn btn-warning" onclick="editAssembly('${r.id}')">✏ 编辑</button>
+      <button class="btn" onclick="editRemark('assembly','${r.id}',renderASM)">备注</button>
+      ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('assembly','${r.id}',renderASM)">删除</button>`:''}
+    </td>
+  </tr>`).join('')||'<tr><td colspan="8" style="text-align:center;color:var(--color-text-tertiary)">暂无组装单</td></tr>';
 }
 
 function renderSQ(){
@@ -2787,6 +2983,13 @@ function openModal(type,data){
       <div class="form-row c3">
         <div class="form-group"><label>经办人</label><input id="fashandler" type="text" placeholder="经办人姓名"></div>
         <div class="form-group"><label>日期</label><input id="fasd" type="date" value="${today()}"></div>
+        <div class="form-group"><label>成品入库仓库*</label>
+          <select id="fasToW" style="width:100%">
+            <option value="">选择仓库</option>${getWHOpts()}
+          </select>
+        </div>
+      </div>
+      <div class="form-row c3">
         <div class="form-group"><label>来源</label>
           <select id="fasbom" onchange="asmLoadMaterials()" style="width:100%">
             <option value="">✏️ 手动填写物料</option>
@@ -3994,13 +4197,15 @@ function asmToggleAll(checked){
 }
 
 function saveAssembly(){
-  const productId  = (document.getElementById('fasProId')||{}).value;
-  const warehouseId= (document.getElementById('fasw')||{}).value;
-  const qty        = parseFloat((document.getElementById('fasq')||{}).value)||0;
-  const bomId      = (document.getElementById('fasbom')||{}).value;
+  const productId    = (document.getElementById('fasProId')||{}).value;
+  const warehouseId  = (document.getElementById('fasw')||{}).value;    // 物料出库仓库
+  const toWarehouseId= (document.getElementById('fasToW')||{}).value;  // 成品入库仓库
+  const qty          = parseFloat((document.getElementById('fasq')||{}).value)||0;
+  const bomId        = (document.getElementById('fasbom')||{}).value;
 
   if(!productId){showToast('请先选择成品','error');return;}
-  if(!warehouseId){showToast('请选择仓库','error');return;}
+  if(!warehouseId){showToast('请选择物料出库仓库','error');return;}
+  if(!toWarehouseId){showToast('请选择成品入库仓库','error');return;}
   if(qty<=0){showToast('组装数量必须大于0','error');return;}
 
   // 读取所有物料行
@@ -4027,7 +4232,9 @@ function saveAssembly(){
     id:gid(), no:gno('ASM'),
     productId,
     bomId: bomId||'',
-    warehouseId, qty,
+    warehouseId,       // 物料出库仓库
+    toWarehouseId,     // 成品入库仓库
+    qty,
     handler: (document.getElementById('fashandler')||{}).value||'',
     date:    (document.getElementById('fasd')||{}).value,
     materials,
