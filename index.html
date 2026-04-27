@@ -1808,22 +1808,18 @@ function renderOpenstock(){
     const locked = s.locked;
     // 已锁定：只读显示；待确认：数量/单价/备注可直接编辑
     const qtyCell   = locked ? s.qty
-      : `<input type="number" value="${s.qty}" min="0" step="1"
-           style="width:80px;border:1px solid var(--color-border-secondary);border-radius:4px;padding:3px 6px;font-size:12px;text-align:right"
-           onchange="osUpdateField('${s.id}','qty',this.value)">`;
+      : `<input type="number" id="os_qty_${s.id}" value="${s.qty}" min="0" step="1"
+           style="width:80px;border:1px solid var(--color-border-secondary);border-radius:4px;padding:3px 6px;font-size:12px;text-align:right">`;
     const priceCell = locked ? fmtMoney(s.costPrice)
-      : `<input type="number" value="${s.costPrice}" min="0" step="0.0001"
-           style="width:100px;border:1px solid var(--color-border-secondary);border-radius:4px;padding:3px 6px;font-size:12px;text-align:right"
-           onchange="osUpdateField('${s.id}','costPrice',this.value)">`;
+      : `<input type="number" id="os_price_${s.id}" value="${s.costPrice}" min="0" step="0.0001"
+           style="width:100px;border:1px solid var(--color-border-secondary);border-radius:4px;padding:3px 6px;font-size:12px;text-align:right">`;
     const amtCell   = locked ? fmtMoney(fmtNum((s.qty||0)*(s.costPrice||0)))
-      : `<input type="number" value="${fmtNum((s.qty||0)*(s.costPrice||0))}" min="0" step="0.01"
+      : `<input type="number" id="os_amt_${s.id}" value="${fmtNum((s.qty||0)*(s.costPrice||0))}" min="0" step="0.01"
            style="width:110px;border:1px solid var(--color-border-secondary);border-radius:4px;padding:3px 6px;font-size:12px;text-align:right"
-           title="修改金额将自动倒挤单价"
-           onchange="osUpdateAmt('${s.id}',this.value)">`;
+           title="修改金额将自动倒挤单价">`;
     const remarkCell= locked ? (s.remark||'-')
-      : `<input type="text" value="${s.remark||''}" placeholder="备注"
-           style="width:80px;border:1px solid var(--color-border-secondary);border-radius:4px;padding:3px 6px;font-size:12px"
-           onchange="osUpdateField('${s.id}','remark',this.value)">`;
+      : `<input type="text" id="os_rem_${s.id}" value="${s.remark||''}" placeholder="备注"
+           style="width:80px;border:1px solid var(--color-border-secondary);border-radius:4px;padding:3px 6px;font-size:12px">`;
     return `<tr style="${!locked?'background:var(--color-background-info, #f0f6ff)':''}">
     <td>${pcode(s.productId)}</td>
     <td>${pcat(s.productId)}</td>
@@ -1887,34 +1883,39 @@ function osUpdateAmt(id, amtVal){
 // 保存单行期初
 function osSaveRow(id){
   const r = DB.openstock.find(x=>x.id===id);
-  if(!r) return;
-  // 从 DOM 读取输入框当前值（优先于内存缓存）
-  const row = document.querySelector(`tr [onclick*="osSaveRow('${id}')"]`)
-    ? document.querySelector(`tr [onclick*="osSaveRow('${id}')"]`).closest('tr')
-    : null;
-  if(row){
-    const qtyInput   = row.querySelector('input[onchange*="qty"]');
-    const priceInput = row.querySelector('input[onchange*="costPrice"]');
-    const amtInput   = row.querySelector('input[onchange*="osUpdateAmt"]');
-    const remInput   = row.querySelector('input[onchange*="remark"]');
-    if(qtyInput)   r.qty        = parseFloat(qtyInput.value)||0;
-    if(priceInput) r.costPrice  = parseFloat(priceInput.value)||0;
-    if(amtInput){
-      const amt = parseFloat(amtInput.value)||0;
-      r.totalAmt = amt;
-      if(r.qty) r.costPrice = Math.round(amt/r.qty*10000)/10000;
+  if(!r){ showToast('找不到记录','error'); return; }
+
+  // 直接用固定 id 读取输入框当前值，最可靠
+  const qtyEl   = document.getElementById('os_qty_'  + id);
+  const priceEl = document.getElementById('os_price_'+ id);
+  const amtEl   = document.getElementById('os_amt_'  + id);
+  const remEl   = document.getElementById('os_rem_'  + id);
+
+  if(qtyEl)   r.qty       = parseFloat(qtyEl.value)   || 0;
+  if(priceEl) r.costPrice = parseFloat(priceEl.value) || 0;
+
+  // 如果修改了金额，倒挤单价
+  if(amtEl){
+    const amt = parseFloat(amtEl.value) || 0;
+    if(amt !== fmtNum((r.qty||0)*(r.costPrice||0))){
+      r.totalAmt  = amt;
+      r.costPrice = r.qty ? Math.round(amt/r.qty*10000)/10000 : 0;
     } else {
       r.totalAmt = fmtNum((r.qty||0)*(r.costPrice||0));
     }
-    if(remInput) r.remark = remInput.value;
   } else {
     r.totalAmt = fmtNum((r.qty||0)*(r.costPrice||0));
   }
+  if(remEl) r.remark = remEl.value;
+
+  console.log('保存期初:', id, 'qty='+r.qty, 'price='+r.costPrice, 'amt='+r.totalAmt);
+
   saveStore('openstock').then(()=>{
-    renderOpenstock&&renderOpenstock();
-    showToast('✓ 期初数据已保存至云端');
-  }).catch(()=>{
-    showToast('⚠ 网络异常，请检查连接后重试','error');
+    renderOpenstock && renderOpenstock();
+    showToast('✓ 已保存');
+  }).catch(err=>{
+    console.error('保存失败:', err);
+    showToast('⚠ 网络异常，请稍后重试','error');
   });
 }
 
