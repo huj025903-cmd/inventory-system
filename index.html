@@ -2580,7 +2580,7 @@ function renderSQ(){
       let openQty=0;
       DB.openstock.filter(s=>s.productId===p.id && _whName(s.warehouseId)===wn).forEach(s=>openQty+=+s.qty||0);
 
-      // 区间内入库（采购入库 + 其他入库 + 销售退货）
+      // 区间内入库（采购入库 + 其他入库 + 销售退货 + 组装成品入库 + 调拨入库）
       let inQty=0;
       DB.pr.filter(r=>r.status==='done' && _whName(r.warehouseId)===wn && inRange(r.date))
         .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
@@ -2588,14 +2588,26 @@ function renderSQ(){
         .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
       DB.sreturn.filter(r=>r.status==='done' && _whName(r.warehouseId)===wn && inRange(r.date))
         .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
+      // 组装成品入库（入库仓库 = toWarehouseId）
+      DB.assembly.filter(r=>r.status==='done' && _whName(r.toWarehouseId||r.warehouseId)===wn && inRange(r.date))
+        .forEach(r=>{ if(r.productId===p.id) inQty+=+r.qty||0; });
+      // 调拨入库（调入仓库）
+      DB.transfer.filter(r=>r.status==='done' && _whName(r.toWarehouseId)===wn && inRange(r.date))
+        .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
 
-      // 区间内出库（销售出库 + 其他出库 + 采购退货）
+      // 区间内出库（销售出库 + 其他出库 + 采购退货 + 组装物料消耗 + 调拨出库）
       let outQty=0;
       DB.sd.filter(r=>r.status==='done' && _whName(r.warehouseId)===wn && inRange(r.date))
         .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
       DB.otherOut.filter(r=>r.status==='done' && _whName(r.warehouseId)===wn && inRange(r.date))
         .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
       DB.preturn.filter(r=>r.status==='done' && _whName(r.warehouseId)===wn && inRange(r.date))
+        .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
+      // 组装物料消耗（出库仓库 = warehouseId）
+      DB.assembly.filter(r=>r.status==='done' && _whName(r.warehouseId)===wn && inRange(r.date))
+        .forEach(r=>r.materials&&r.materials.forEach(m=>{if(m.productId===p.id)outQty+=+m.qty||0;}));
+      // 调拨出库（调出仓库）
+      DB.transfer.filter(r=>r.status==='done' && _whName(r.fromWarehouseId)===wn && inRange(r.date))
         .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
 
       // 区间末库存 = 期初 + 区间入库 - 区间出库
@@ -2676,12 +2688,20 @@ function exportSQExcel(){
     whs.forEach(w=>{
       let openQty=0,inQty=0,outQty=0;
       DB.openstock.filter(s=>s.productId===p.id&&s.warehouseId===w.id).forEach(s=>openQty+=+s.qty||0);
-      DB.pr.filter(r=>r.status==='done'&&r.warehouseId===w.id&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
-      DB.otherIn.filter(r=>r.status==='done'&&r.warehouseId===w.id&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
-      DB.sreturn.filter(r=>r.status==='done'&&r.warehouseId===w.id&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
-      DB.sd.filter(r=>r.status==='done'&&r.warehouseId===w.id&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
-      DB.otherOut.filter(r=>r.status==='done'&&r.warehouseId===w.id&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
-      DB.preturn.filter(r=>r.status==='done'&&r.warehouseId===w.id&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
+      DB.pr.filter(r=>r.status==='done'&&_whName(r.warehouseId)===w.name&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
+      DB.otherIn.filter(r=>r.status==='done'&&_whName(r.warehouseId)===w.name&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
+      DB.sreturn.filter(r=>r.status==='done'&&_whName(r.warehouseId)===w.name&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
+      // 组装成品入库
+      DB.assembly.filter(r=>r.status==='done'&&_whName(r.toWarehouseId||r.warehouseId)===w.name&&inRange(r.date)).forEach(r=>{if(r.productId===p.id)inQty+=+r.qty||0;});
+      // 调拨入库
+      DB.transfer.filter(r=>r.status==='done'&&_whName(r.toWarehouseId)===w.name&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
+      DB.sd.filter(r=>r.status==='done'&&_whName(r.warehouseId)===w.name&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
+      DB.otherOut.filter(r=>r.status==='done'&&_whName(r.warehouseId)===w.name&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
+      DB.preturn.filter(r=>r.status==='done'&&_whName(r.warehouseId)===w.name&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
+      // 组装物料消耗
+      DB.assembly.filter(r=>r.status==='done'&&_whName(r.warehouseId)===w.name&&inRange(r.date)).forEach(r=>r.materials&&r.materials.forEach(m=>{if(m.productId===p.id)outQty+=+m.qty||0;}));
+      // 调拨出库
+      DB.transfer.filter(r=>r.status==='done'&&_whName(r.fromWarehouseId)===w.name&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
       const endQty=openQty+inQty-outQty;
       if(openQty||inQty||outQty||endQty>0){
         rows.push({
