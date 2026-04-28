@@ -2254,7 +2254,7 @@ function renderTransfer(){
   (DB.transfer||[]).forEach(r=>{
     const items=r.items&&r.items.length?r.items:[{}];
     const n=items.length;
-    const bs= + BS + ;
+    const bs='border-bottom:0.5px solid var(--color-border-tertiary)';
     items.forEach((i,idx)=>{
       const p=DB.products.find(x=>x.id===i.productId)||{};
       const isFirst=idx===0;
@@ -4024,7 +4024,7 @@ function openPrintWindow(printKey, typeName, docNo){
     + '<span style="margin-left:8px;font-size:11px;color:#888;align-self:center">调整页面：浏览器打印设置 → 纸张方向 / 缩放</span>'
     + '</div>'
     + '<div class="page-wrap">' + html + '</div>'
-    + '</body></html>';
+    + '<\/body><\/html>';
 
   var w = window.open('', '_blank', 'width=860,height=720,menubar=no,toolbar=no');
   if(!w){ showToast('弹窗被拦截，请允许弹出窗口后重试','error'); return; }
@@ -4444,7 +4444,7 @@ function batchPrint(type){
     +'}'
     +'function doPrint(){toggleSections();window.print();}'
     +'<\/script>'
-    +'</body></html>');
+    +'<\/body><\/html>');
   w.document.close();
 }
 
@@ -4925,3 +4925,5 @@ function exportSQExcel(){
 
 init();
 </script>
+</body>
+</html>
