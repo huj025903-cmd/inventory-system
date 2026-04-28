@@ -1556,7 +1556,13 @@ function updateDBInfo(){
 
 /* ── Helpers ── */
 function gid(){return Math.random().toString(36).slice(2,10);}
-function gno(pfx){return pfx+(Date.now().toString().slice(-7));}
+function gno(pfx){
+  if(!window._gnoCounter) window._gnoCounter=0;
+  window._gnoCounter++;
+  const ts = Date.now().toString().slice(-6);
+  const seq = String(window._gnoCounter).padStart(3,'0');
+  return pfx + ts + seq;
+}
 function today(){return new Date().toISOString().slice(0,10);}
 // 金额小数位数从全局配置读取，默认2位
 function getMoneyDecimals(){ return parseInt(localStorage.getItem('inv_moneyDecimals')||'2',10); }
@@ -2030,7 +2036,7 @@ function renderPO(){
       tr+=`<td style="white-space:nowrap;border-bottom:0.5px solid var(--color-border-tertiary)">`+
       (r.approved&&r.arriveStatus!=='done'?`<button class="btn btn-warning" onclick="openGenPR('${r.id}')" style="font-size:10px">📥 入库单</button> `:'')+
       (!r.approved&&(currentUser==='admin'||currentUser==='finance')?`<button class="btn btn-primary" onclick="approvePO('${r.id}')">审核</button> `:'')+
-      `<button class="btn" onclick="viewBill('po','${r.id}')">查看</button> `+
+      `<button class="btn" onclick="viewBill('po','${r.id}')">查看</button> `+`<button class="btn btn-warning" onclick="editBill('po','${r.id}')">编辑</button> `+
       `<button class="btn" onclick="editRemark('po','${r.id}',renderPO)">备注</button> `+
       (currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('po','${r.id}',renderPO)">删除</button>`:'')+
       `</td>`;
@@ -2110,7 +2116,7 @@ function renderSO(){
       tr+=`<td style="white-space:nowrap;border-bottom:0.5px solid var(--color-border-tertiary)">`+
       (r.approved&&r.shipStatus!=='done'?`<button class="btn btn-warning" onclick="openGenSD('${r.id}')" style="font-size:10px">📤 出库单</button> `:'')+
       (!r.approved&&(currentUser==='admin'||currentUser==='finance')?`<button class="btn btn-primary" onclick="approveSO('${r.id}')">审核</button> `:'')+
-      `<button class="btn" onclick="viewBill('so','${r.id}')">查看</button> `+
+      `<button class="btn" onclick="viewBill('so','${r.id}')">查看</button> `+`<button class="btn btn-warning" onclick="editBill('so','${r.id}')">编辑</button> `+
       `<button class="btn" onclick="editRemark('so','${r.id}',renderSO)">备注</button> `+
       (currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('so','${r.id}',renderSO)">删除</button>`:'')+
       `</td>`;
@@ -2201,7 +2207,7 @@ function renderOO(){
       tr+=`<td style="text-align:right;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(i.total||0)}</td>`;
       tr+=`<td style="text-align:right;font-weight:600;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(r.totalAmt)}</td>`;
       tr+=`<td style="font-size:10px;border-bottom:0.5px solid var(--color-border-tertiary)">${r.note||'-'}</td>`;
-      tr+=`<td style="white-space:nowrap;border-bottom:0.5px solid var(--color-border-tertiary)"><button class="btn" onclick="viewBill('otherOut','${r.id}')">查看</button> <button class="btn" onclick="editRemark('otherOut','${r.id}',renderOO)">备注</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('otherOut','${r.id}',renderOO)">删除</button>`:''}</td>`;
+      tr+=`<td style="white-space:nowrap;border-bottom:0.5px solid var(--color-border-tertiary)"><button class="btn" onclick="viewBill('otherOut','${r.id}')">查看</button> <button class="btn btn-warning" onclick="editBill('otherOut','${r.id}')">编辑</button> <button class="btn" onclick="editRemark('otherOut','${r.id}',renderOO)">备注</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('otherOut','${r.id}',renderOO)">删除</button>`:''}</td>`;
       tr+='</tr>';
       rows.push(tr);
     });
@@ -4065,7 +4071,57 @@ function editBill(type, id){
 
   // 构建头部字段
   let headerHTML = '';
-  if(type==='pr'){
+  if(type==='po'){
+    headerHTML = `
+      <div class="form-row c3">
+        <div class="form-group"><label>供应商*</label>
+          <select id="eb_sup"><option value="">选择</option>${getSupOpts(resolvedSupId)}</select>
+        </div>
+        <div class="form-group"><label>经办人</label><input id="eb_handler" type="text" value="${r.handler||''}"></div>
+        <div class="form-group"><label>日期</label><input id="eb_date" type="date" value="${r.date||''}"></div>
+      </div>`;
+  } else if(type==='so'){
+    headerHTML = `
+      <div class="form-row c3">
+        <div class="form-group"><label>客户*</label>
+          <select id="eb_cust"><option value="">选择</option>${getCustOpts(resolvedCustId)}</select>
+        </div>
+        <div class="form-group"><label>经办人</label><input id="eb_handler" type="text" value="${r.handler||''}"></div>
+        <div class="form-group"><label>日期</label><input id="eb_date" type="date" value="${r.date||''}"></div>
+      </div>`;
+  } else if(type==='sd'){
+    const soOpts2 = DB.so.filter(s=>s.approved).map(s=>`<option value="${s.id}"${s.id===r.soId?' selected':''}>${s.no} — ${cname(s.customerId)}</option>`).join('');
+    headerHTML = `
+      <div class="form-row c3">
+        <div class="form-group"><label>关联销售单</label>
+          <select id="eb_so"><option value="">无/直接出库</option>${soOpts2}</select>
+        </div>
+        <div class="form-group"><label>客户*</label>
+          <select id="eb_cust"><option value="">选择</option>${getCustOpts(resolvedCustId)}</select>
+        </div>
+        <div class="form-group"><label>仓库*</label>
+          <select id="eb_wh"><option value="">选择</option>${getWHOpts(resolvedWHName)}</select>
+        </div>
+      </div>
+      <div class="form-row c2">
+        <div class="form-group"><label>经办人</label><input id="eb_handler" type="text" value="${r.handler||''}"></div>
+        <div class="form-group"><label>日期</label><input id="eb_date" type="date" value="${r.date||''}"></div>
+      </div>`;
+  } else if(type==='otherOut'){
+    const typeOpts2 = ['盘亏','礼品出库','调拨出库','其他'].map(t=>`<option${t===r.type?' selected':''}>${t}</option>`).join('');
+    headerHTML = `
+      <div class="form-row c3">
+        <div class="form-group"><label>类型</label><select id="eb_otype">${typeOpts2}</select></div>
+        <div class="form-group"><label>仓库*</label>
+          <select id="eb_wh"><option value="">选择</option>${getWHOpts(resolvedWHName)}</select>
+        </div>
+        <div class="form-group"><label>日期</label><input id="eb_date" type="date" value="${r.date||''}"></div>
+      </div>
+      <div class="form-row c2">
+        <div class="form-group"><label>经办人</label><input id="eb_handler" type="text" value="${r.handler||''}"></div>
+        <div class="form-group"><label>备注</label><input id="eb_note" type="text" value="${r.note||''}"></div>
+      </div>`;
+  } else if(type==='pr'){
     const poOpts = DB.po.filter(p=>p.approved).map(p=>`<option value="${p.id}"${p.id===r.poId?' selected':''}>${p.no} — ${sname(p.supplierId)}</option>`).join('');
     headerHTML = `
       <div class="form-row c3">
@@ -4244,8 +4300,20 @@ async function saveBillEdit(type, id){
   if(!items.length){ showToast('请至少保留一行有效明细','error'); return; }
 
   // eb_wh.value 现在直接是仓库名称（唯一），直接存名称，_whName() 能正确解析
+  // PO/SO 无仓库字段，特殊处理
+  if(type==='po'){
+    const sup=(document.getElementById('eb_sup')||{}).value;
+    if(sup) r.supplierId=sup;
+  } else if(type==='so'){
+    const cust=(document.getElementById('eb_cust')||{}).value;
+    if(cust) r.customerId=cust;
+  } else if(type==='otherOut'){
+    r.type=(document.getElementById('eb_otype')||{}).value||r.type;
+    r.note=(document.getElementById('eb_note')||{}).value||'';
+  }
   const warehouseName = (document.getElementById('eb_wh')||{}).value || '';
-  if(!warehouseName){ showToast('请选择仓库','error'); return; }
+  const noWhTypes = ['po','so'];
+  if(!warehouseName && !noWhTypes.includes(type)){ showToast('请选择仓库','error'); return; }
   const handler = (document.getElementById('eb_handler')||{}).value || r.handler || '';
   const date = (document.getElementById('eb_date')||{}).value || r.date || '';
   const totalAmt = items.reduce((s,i)=>s+i.total, 0);
