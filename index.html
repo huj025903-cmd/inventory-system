@@ -715,7 +715,22 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
             </div>
           </div>
           <div id="sqSummary" style="display:none;margin:8px 0;padding:8px 12px;background:var(--color-background-secondary);border-radius:6px;font-size:11px;display:flex;gap:20px;flex-wrap:wrap"></div>
-          <table><thead><tr><th>商品编码</th><th>商品名称</th><th>规格型号</th><th>仓库</th><th>期初数量</th><th>区间入库</th><th>区间出库</th><th>区间末库存</th><th>安全库存</th><th>库存状态</th></tr></thead><tbody id="sqTbl"></tbody></table>
+          <table id="sqTable"><thead>
+  <tr>
+    <th rowspan="2">商品编码</th><th rowspan="2">商品名称</th><th rowspan="2">规格</th><th rowspan="2">单位</th><th rowspan="2">仓库</th>
+    <th colspan="2" style="text-align:center;border-bottom:1px solid var(--color-border-secondary)">期初</th>
+    <th colspan="2" style="text-align:center;border-bottom:1px solid var(--color-border-secondary)">入库</th>
+    <th colspan="2" style="text-align:center;border-bottom:1px solid var(--color-border-secondary)">出库</th>
+    <th colspan="2" style="text-align:center;border-bottom:1px solid var(--color-border-secondary)">期末</th>
+    <th rowspan="2">操作</th>
+  </tr>
+  <tr>
+    <th style="text-align:right">数量</th><th style="text-align:right">金额</th>
+    <th style="text-align:right">数量</th><th style="text-align:right">金额</th>
+    <th style="text-align:right">数量</th><th style="text-align:right">金额</th>
+    <th style="text-align:right">数量</th><th style="text-align:right;color:#185FA5">金额</th>
+  </tr>
+</thead><tbody id="sqTbl"></tbody></table>
         </div>
       </div>
 
@@ -1995,11 +2010,11 @@ function renderPO(){
   DB.po.forEach(r=>{
     const items=r.items&&r.items.length?r.items:[{}];
     const n=items.length;
-    const rs=n>1?' rowspan="'+n+'"':'';
+    const rs=''; // 不合并单元格，每行独立显示
     items.forEach((i,idx)=>{
       const p=DB.products.find(x=>x.id===i.productId)||{};
-      const isFirst=idx===0;
-      let tr='<tr style="vertical-align:middle">';
+      const isFirst=idx===0; const rowBg=(!isFirst)?'background:var(--color-background-secondary);opacity:0.7;':'';
+      let tr='<tr style="vertical-align:middle;'+rowBg+'">';
       if(isFirst){
         tr+=`<td${rs} style="text-align:center;border-bottom:0.5px solid var(--color-border-tertiary)"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="po"></td>`;
         tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.no}</td>`;
@@ -2032,11 +2047,11 @@ function renderPR(){
   DB.pr.forEach(r=>{
     const items=r.items&&r.items.length?r.items:[{}];
     const n=items.length;
-    const rs=n>1?' rowspan="'+n+'"':'';
+    const rs=''; // 不合并单元格，每行独立显示
     items.forEach((i,idx)=>{
       const p=DB.products.find(x=>x.id===i.productId)||{};
-      const isFirst=idx===0;
-      let tr='<tr style="vertical-align:middle">';
+      const isFirst=idx===0; const rowBg=(!isFirst)?'background:var(--color-background-secondary);opacity:0.7;':'';
+      let tr='<tr style="vertical-align:middle;'+rowBg+'">';
       if(isFirst){
         tr+=`<td${rs} style="text-align:center;border-bottom:0.5px solid var(--color-border-tertiary)"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="pr"></td>`;
         tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.no}</td>`;
@@ -2082,11 +2097,11 @@ function renderSO(){
     const profitColor=profit>=0?'#1D9E75':'#E24B4A';
     const items=r.items&&r.items.length?r.items:[{}];
     const n=items.length;
-    const rs=n>1?' rowspan="'+n+'"':'';
+    const rs=''; // 不合并单元格，每行独立显示
     items.forEach((i,idx)=>{
       const p=DB.products.find(x=>x.id===i.productId)||{};
-      const isFirst=idx===0;
-      let tr='<tr style="vertical-align:middle">';
+      const isFirst=idx===0; const rowBg=(!isFirst)?'background:var(--color-background-secondary);opacity:0.7;':'';
+      let tr='<tr style="vertical-align:middle;'+rowBg+'">';
       if(isFirst){
         tr+=`<td${rs} style="text-align:center;border-bottom:0.5px solid var(--color-border-tertiary)"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="so"></td>`;
         tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.no}</td>`;
@@ -2119,11 +2134,11 @@ function renderSD(){
   DB.sd.forEach(r=>{
     const items=r.items&&r.items.length?r.items:[{}];
     const n=items.length;
-    const rs=n>1?' rowspan="'+n+'"':'';
+    const rs=''; // 不合并单元格，每行独立显示
     items.forEach((i,idx)=>{
       const p=DB.products.find(x=>x.id===i.productId)||{};
-      const isFirst=idx===0;
-      let tr='<tr style="vertical-align:middle">';
+      const isFirst=idx===0; const rowBg=(!isFirst)?'background:var(--color-background-secondary);opacity:0.7;':'';
+      let tr='<tr style="vertical-align:middle;'+rowBg+'">';
       if(isFirst){
         tr+=`<td${rs} style="text-align:center;border-bottom:0.5px solid var(--color-border-tertiary)"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="sd"></td>`;
         tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.no}</td>`;
@@ -2280,11 +2295,11 @@ function renderOI(){
   DB.otherIn.forEach(r=>{
     const items=r.items&&r.items.length?r.items:[{}];
     const n=items.length;
-    const rs=n>1?' rowspan="'+n+'"':'';
+    const rs=''; // 不合并单元格，每行独立显示
     items.forEach((i,idx)=>{
       const p=DB.products.find(x=>x.id===i.productId)||{};
-      const isFirst=idx===0;
-      let tr='<tr style="vertical-align:middle">';
+      const isFirst=idx===0; const rowBg=(!isFirst)?'background:var(--color-background-secondary);opacity:0.7;':'';
+      let tr='<tr style="vertical-align:middle;'+rowBg+'">';
       if(isFirst){
         tr+=`<td${rs} style="text-align:center;border-bottom:0.5px solid var(--color-border-tertiary)"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="otherIn"></td>`;
         tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.no}</td>`;
@@ -2313,11 +2328,11 @@ function renderOO(){
   DB.otherOut.forEach(r=>{
     const items=r.items&&r.items.length?r.items:[{}];
     const n=items.length;
-    const rs=n>1?' rowspan="'+n+'"':'';
+    const rs=''; // 不合并单元格，每行独立显示
     items.forEach((i,idx)=>{
       const p=DB.products.find(x=>x.id===i.productId)||{};
-      const isFirst=idx===0;
-      let tr='<tr style="vertical-align:middle">';
+      const isFirst=idx===0; const rowBg=(!isFirst)?'background:var(--color-background-secondary);opacity:0.7;':'';
+      let tr='<tr style="vertical-align:middle;'+rowBg+'">';
       if(isFirst){
         tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.no}</td>`;
         tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.type||'-'}</td>`;
@@ -2615,7 +2630,13 @@ function renderSQ(){
 
       const rowAmt = fmtNum(endQty*(p.costPrice||0));
       if(openQty||inQty||outQty||endQty>0){
-        rows.push({p,w,openQty,inQty,outQty,endQty,rowAmt,safe:p.safeQty||0});
+        // 计算各阶段金额（以成本价为基准）
+        const cp = p.costPrice||0;
+        const openAmt = fmtNum(openQty * cp);
+        const inAmt   = fmtNum(inQty   * cp);
+        const outAmt  = fmtNum(outQty  * cp);
+        const endAmt  = fmtNum(endQty  * cp);
+        rows.push({p,w,openQty,inQty,outQty,endQty,rowAmt:endAmt,openAmt,inAmt,outAmt,endAmt,safe:p.safeQty||0});
       }
     });
   });
@@ -2704,9 +2725,14 @@ function exportSQExcel(){
       DB.transfer.filter(r=>r.status==='done'&&_whName(r.fromWarehouseId)===w.name&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
       const endQty=openQty+inQty-outQty;
       if(openQty||inQty||outQty||endQty>0){
+        const ecp=p.costPrice||0;
         rows.push({
-          '商品编码':p.code,'商品名称':p.name,'规格型号':p.spec||'','仓库':w.name,
-          '期初数量':openQty,'区间入库':inQty,'区间出库':outQty,'区间末库存':endQty,
+          '商品编码':p.code,'商品名称':p.name,'规格型号':p.spec||'','计量单位':p.unit||'','仓库':w.name,
+          '期初数量':openQty,'期初金额':fmtNum(openQty*ecp),
+          '入库数量':inQty,'入库金额':fmtNum(inQty*ecp),
+          '出库数量':outQty,'出库金额':fmtNum(outQty*ecp),
+          '期末数量':endQty,'期末金额':fmtNum(endQty*ecp),
+          '成本单价':fmtNum(ecp),
           '安全库存':p.safeQty||0,'库存状态':endQty<(p.safeQty||0)?'低库存':'正常',
           '查询区间':(dateFrom||'全部')+' 至 '+(dateTo||'今日')
         });
@@ -2716,7 +2742,7 @@ function exportSQExcel(){
 
   const wb=XLSX.utils.book_new();
   const ws=XLSX.utils.json_to_sheet(rows.length?rows:[{'说明':'暂无数据'}]);
-  ws['!cols']=[{wch:12},{wch:20},{wch:15},{wch:18},{wch:10},{wch:10},{wch:10},{wch:12},{wch:10},{wch:10},{wch:20}];
+  ws['!cols']=[{wch:12},{wch:20},{wch:15},{wch:10},{wch:18},{wch:10},{wch:12},{wch:10},{wch:12},{wch:10},{wch:12},{wch:10},{wch:12},{wch:10},{wch:10},{wch:10},{wch:20}];
   XLSX.utils.book_append_sheet(wb,ws,'库存收发明细');
   const rangeStr=(dateFrom||'全部')+'_至_'+(dateTo||'今日');
   XLSX.writeFile(wb,`库存收发查询_${rangeStr}.xlsx`);
