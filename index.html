@@ -2005,89 +2005,83 @@ function lockOS(id){
   s.locked=true;saveStore('openstock');renderOpenstock();showToast('已锁定期初库存');
 }
 
+
 function renderPO(){
   const rows=[];
   DB.po.forEach(r=>{
     const items=r.items&&r.items.length?r.items:[{}];
     const n=items.length;
-    const rs=''; // 不合并单元格，每行独立显示
     items.forEach((i,idx)=>{
       const p=DB.products.find(x=>x.id===i.productId)||{};
-      const isFirst=idx===0; const rowBg=(!isFirst)?'background:var(--color-background-secondary);opacity:0.7;':'';
-      let tr='<tr style="vertical-align:middle;'+rowBg+'">';
-      if(isFirst){
-        tr+=`<td${rs} style="text-align:center;border-bottom:0.5px solid var(--color-border-tertiary)"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="po"></td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.no}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${sname(r.supplierId)}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.handler||'-'}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.date||'-'}</td>`;
-      }
+      const isFirst=idx===0;
+      const ds=!isFirst?'color:var(--color-text-tertiary);font-size:10px;':'';
+      const rs=n>1&&isFirst?' rowspan="'+n+'"':'';
+      let tr='<tr style="vertical-align:middle">';
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary);text-align:center">${isFirst?`<input type="checkbox" class="bill-check" data-id="${r.id}" data-type="po">`:''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?r.no:''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?sname(r.supplierId):''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?r.handler||'-':''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?r.date||'-':''}</td>`;
       tr+=`<td style="font-size:11px;border-bottom:0.5px solid var(--color-border-tertiary)">${p.code||'-'}</td>`;
       tr+=`<td style="font-size:11px;border-bottom:0.5px solid var(--color-border-tertiary)" title="${(p.name||'')+' '+(p.spec||'')}">${p.name||'-'}${p.spec?'<span style="color:var(--color-text-tertiary);font-size:10px"> '+p.spec+'</span>':''}</td>`;
       tr+=`<td style="font-size:11px;text-align:right;border-bottom:0.5px solid var(--color-border-tertiary)">${(+i.qty||0).toLocaleString()}</td>`;
       tr+=`<td style="font-size:11px;text-align:right;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(i.price||0)}</td>`;
       if(isFirst){
-        tr+=`<td${rs} style="text-align:right;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(r.totalAmt)}</td>`;
+        tr+=`<td${rs} style="text-align:right;font-weight:600;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(r.totalAmt)}</td>`;
         tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)"><span class="badge badge-${r.arriveStatus==='done'?'green':r.arriveStatus==='partial'?'amber':'blue'}">${r.arriveStatus==='done'?'全部到货':r.arriveStatus==='partial'?'部分到货':'未到货'}</span></td>`;
         tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)"><span class="badge badge-${r.approved?'green':'amber'}">${r.approved?'已审核':'待审核'}</span></td>`;
-        tr+=`<td${rs} style="font-size:10px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary)" title="${r.remark||''}">${r.remark||'-'}</td>`;
-        tr+=`<td${rs} style="white-space:nowrap;border-bottom:0.5px solid var(--color-border-tertiary)">${r.approved&&r.arriveStatus!=='done'?`<button class="btn btn-warning" onclick="openGenPR('${r.id}')" style="font-size:10px">📥 生成入库单</button> `:''}${!r.approved&&(currentUser==='admin'||currentUser==='finance')?`<button class="btn btn-primary" onclick="approvePO('${r.id}')">审核</button> `:''}<button class="btn" onclick="viewBill('po','${r.id}')">查看</button> <button class="btn" onclick="editRemark('po','${r.id}',renderPO)">备注</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('po','${r.id}',renderPO)">删除</button>`:''}</td>`;
+        tr+=`<td${rs} style="font-size:10px;color:var(--color-text-secondary);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-bottom:0.5px solid var(--color-border-tertiary)" title="${r.remark||''}">${r.remark||'-'}</td>`;
+        tr+=`<td${rs} style="white-space:nowrap;border-bottom:0.5px solid var(--color-border-tertiary)">${r.approved&&r.arriveStatus!=='done'?`<button class="btn btn-warning" onclick="openGenPR('${r.id}')" style="font-size:10px">📥 入库单</button> `:''}${!r.approved&&(currentUser==='admin'||currentUser==='finance')?`<button class="btn btn-primary" onclick="approvePO('${r.id}')">审核</button> `:''}<button class="btn" onclick="viewBill('po','${r.id}')">查看</button> <button class="btn" onclick="editRemark('po','${r.id}',renderPO)">备注</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('po','${r.id}',renderPO)">删除</button>`:''}</td>`;
       }
       tr+='</tr>';
       rows.push(tr);
     });
   });
-  document.getElementById('poTbl').innerHTML=rows.join('')||'<tr><td colspan="13" style="text-align:center;color:var(--color-text-tertiary)">暂无采购订单</td></tr>';
+  document.getElementById('poTbl').innerHTML=rows.join('')||'<tr><td colspan="14" style="text-align:center;color:var(--color-text-tertiary)">暂无采购订单</td></tr>';
 }
-function approvePO(id){const r=DB.po.find(x=>x.id===id);if(r){r.approved=true;saveStore('po');renderPO();writeLog('审核','采购','审核采购订单 '+r.no);showToast('采购订单已审核');}}
-function approveSO(id){const r=DB.so.find(x=>x.id===id);if(r){r.approved=true;saveStore('so');renderSO();writeLog('审核','销售','审核销售订单 '+r.no);showToast('销售订单已审核');}}
 
 function renderPR(){
   const rows=[];
   DB.pr.forEach(r=>{
     const items=r.items&&r.items.length?r.items:[{}];
     const n=items.length;
-    const rs=''; // 不合并单元格，每行独立显示
     items.forEach((i,idx)=>{
       const p=DB.products.find(x=>x.id===i.productId)||{};
-      const isFirst=idx===0; const rowBg=(!isFirst)?'background:var(--color-background-secondary);opacity:0.7;':'';
-      let tr='<tr style="vertical-align:middle;'+rowBg+'">';
-      if(isFirst){
-        tr+=`<td${rs} style="text-align:center;border-bottom:0.5px solid var(--color-border-tertiary)"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="pr"></td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.no}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.poNo||'-'}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${sname(r.supplierId)}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.handler||'-'}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${wname(r.warehouseId)}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.date||'-'}</td>`;
-      }
+      const isFirst=idx===0;
+      const ds=!isFirst?'color:var(--color-text-tertiary);font-size:10px;':'';
+      const rs=n>1&&isFirst?' rowspan="'+n+'"':'';
+      let tr='<tr style="vertical-align:middle">';
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary);text-align:center">${isFirst?`<input type="checkbox" class="bill-check" data-id="${r.id}" data-type="pr">`:''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?r.no:''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?r.poNo||'-':''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?sname(r.supplierId):''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?r.handler||'-':''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?wname(r.warehouseId):''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?r.date||'-':''}</td>`;
       tr+=`<td style="font-size:11px;border-bottom:0.5px solid var(--color-border-tertiary)">${p.code||'-'}</td>`;
       tr+=`<td style="font-size:11px;border-bottom:0.5px solid var(--color-border-tertiary)" title="${(p.name||'')+' '+(p.spec||'')}">${p.name||'-'}${p.spec?'<span style="color:var(--color-text-tertiary);font-size:10px"> '+p.spec+'</span>':''}</td>`;
       tr+=`<td style="font-size:11px;text-align:right;border-bottom:0.5px solid var(--color-border-tertiary)">${(+i.qty||0).toLocaleString()}</td>`;
       tr+=`<td style="font-size:11px;text-align:right;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(i.price||0)}</td>`;
       if(isFirst){
-        tr+=`<td${rs} style="text-align:right;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(r.totalAmt)}</td>`;
+        tr+=`<td${rs} style="text-align:right;font-weight:600;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(r.totalAmt)}</td>`;
         tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)"><span class="badge badge-${r.status==='done'?'green':'amber'}">${r.status==='done'?'已入库':'待处理'}</span></td>`;
-        tr+=`<td${rs} style="font-size:10px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary)" title="${r.remark||''}">${r.remark||'-'}</td>`;
+        tr+=`<td${rs} style="font-size:10px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary)">${r.remark||'-'}</td>`;
         tr+=`<td${rs} style="white-space:nowrap;border-bottom:0.5px solid var(--color-border-tertiary)"><button class="btn" onclick="viewBill('pr','${r.id}')">查看</button> <button class="btn btn-warning" onclick="editBill('pr','${r.id}')">编辑</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('pr','${r.id}',renderPR)">删除</button>`:''}</td>`;
       }
       tr+='</tr>';
       rows.push(tr);
     });
   });
-  document.getElementById('prTbl').innerHTML=rows.join('')||'<tr><td colspan="14" style="text-align:center;color:var(--color-text-tertiary)">暂无入库单</td></tr>';
+  document.getElementById('prTbl').innerHTML=rows.join('')||'<tr><td colspan="15" style="text-align:center;color:var(--color-text-tertiary)">暂无入库单</td></tr>';
 }
+
 function renderPT(){
-  document.getElementById('ptTbl').innerHTML=DB.preturn.map(r=>`<tr><td>${r.no}</td><td>${sname(r.supplierId)}</td><td>${wname(r.warehouseId)}</td><td>${r.date||'-'}</td><td>${fmtMoney(r.totalAmt)}</td><td><span class="badge badge-${r.status==='done'?'green':'amber'}">${r.status==='done'?'已退货':'待处理'}</span></td><td style="color:var(--color-text-secondary);font-size:10px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.remark||''}">${r.remark||'-'}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('preturn','${r.id}')">查看</button> <button class="btn" onclick="editRemark('preturn','${r.id}',renderPT)" title="编辑备注">备注</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('preturn','${r.id}',renderPT)">删除</button>`:''}</td></tr>`).join('')||'<tr><td colspan="9" style="text-align:center;color:var(--color-text-tertiary)">暂无退货单</td></tr>';
+  document.getElementById('preturnTbl').innerHTML=DB.preturn.map(r=>`<tr><td>${r.no}</td><td>${sname(r.supplierId)}</td><td>${wname(r.warehouseId)}</td><td>${r.date||'-'}</td><td>${fmtMoney(r.totalAmt)}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('preturn','${r.id}')">查看</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('preturn','${r.id}',renderPT)">删除</button>`:''}</td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--color-text-tertiary)">暂无记录</td></tr>';
 }
 
 function renderSO(){
-  const showCP = perms['so_cost_profit'] && perms['so_cost_profit'][currentUser];
+  const showCP=perms['so_cost_profit']&&perms['so_cost_profit'][currentUser];
   document.querySelectorAll('.so-cost-col,.so-profit-col').forEach(el=>el.style.display=showCP?'':'none');
-  let costAmt=0;
-  if(DB.so.length){
-    DB.so.forEach(r=>{if(r.items)r.items.forEach(item=>{const p=DB.products.find(x=>x.id===item.productId);costAmt+=fmtNum((p?p.costPrice||0:0)*(item.qty||0));});});
-  }
   const rows=[];
   DB.so.forEach(r=>{
     let rCost=0;
@@ -2097,197 +2091,75 @@ function renderSO(){
     const profitColor=profit>=0?'#1D9E75':'#E24B4A';
     const items=r.items&&r.items.length?r.items:[{}];
     const n=items.length;
-    const rs=''; // 不合并单元格，每行独立显示
     items.forEach((i,idx)=>{
       const p=DB.products.find(x=>x.id===i.productId)||{};
-      const isFirst=idx===0; const rowBg=(!isFirst)?'background:var(--color-background-secondary);opacity:0.7;':'';
-      let tr='<tr style="vertical-align:middle;'+rowBg+'">';
-      if(isFirst){
-        tr+=`<td${rs} style="text-align:center;border-bottom:0.5px solid var(--color-border-tertiary)"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="so"></td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.no}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${cname(r.customerId)}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.handler||'-'}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.date||'-'}</td>`;
-      }
+      const isFirst=idx===0;
+      const ds=!isFirst?'color:var(--color-text-tertiary);font-size:10px;':'';
+      const rs=n>1&&isFirst?' rowspan="'+n+'"':'';
+      let tr='<tr style="vertical-align:middle">';
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary);text-align:center">${isFirst?`<input type="checkbox" class="bill-check" data-id="${r.id}" data-type="so">`:''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?r.no:''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?cname(r.customerId):''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?r.handler||'-':''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?r.date||'-':''}</td>`;
       tr+=`<td style="font-size:11px;border-bottom:0.5px solid var(--color-border-tertiary)">${p.code||'-'}</td>`;
       tr+=`<td style="font-size:11px;border-bottom:0.5px solid var(--color-border-tertiary)" title="${(p.name||'')+' '+(p.spec||'')}">${p.name||'-'}${p.spec?'<span style="color:var(--color-text-tertiary);font-size:10px"> '+p.spec+'</span>':''}</td>`;
       tr+=`<td style="font-size:11px;text-align:right;border-bottom:0.5px solid var(--color-border-tertiary)">${(+i.qty||0).toLocaleString()}</td>`;
       tr+=`<td style="font-size:11px;text-align:right;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(i.price||0)}</td>`;
       if(isFirst){
-        tr+=`<td${rs} style="text-align:right;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(r.totalAmt)}</td>`;
+        tr+=`<td${rs} style="text-align:right;font-weight:600;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(r.totalAmt)}</td>`;
         tr+=`<td${rs} class="so-cost-col" style="display:${showCP?'':'none'};text-align:right;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(rCost)}</td>`;
         tr+=`<td${rs} class="so-profit-col" style="display:${showCP?'':'none'};text-align:right;color:${profitColor};font-weight:600;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(profit)}</td>`;
         tr+=`<td${rs} class="so-profit-col" style="display:${showCP?'':'none'};text-align:right;color:${profitColor};border-bottom:0.5px solid var(--color-border-tertiary)">${margin}</td>`;
         tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)"><span class="badge badge-${r.shipStatus==='done'?'green':r.shipStatus==='partial'?'amber':'blue'}">${r.shipStatus==='done'?'全部发货':r.shipStatus==='partial'?'部分发货':'未发货'}</span></td>`;
         tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)"><span class="badge badge-${r.approved?'green':'amber'}">${r.approved?'已审核':'待审核'}</span></td>`;
-        tr+=`<td${rs} style="font-size:10px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary)" title="${r.remark||''}">${r.remark||'-'}</td>`;
-        tr+=`<td${rs} style="white-space:nowrap;border-bottom:0.5px solid var(--color-border-tertiary)">${r.approved&&r.shipStatus!=='done'?`<button class="btn btn-warning" onclick="openGenSD('${r.id}')" style="font-size:10px">📤 生成出库单</button> `:''}${!r.approved&&(currentUser==='admin'||currentUser==='finance')?`<button class="btn btn-primary" onclick="approveSO('${r.id}')">审核</button> `:''}<button class="btn" onclick="viewBill('so','${r.id}')">查看</button> <button class="btn" onclick="editRemark('so','${r.id}',renderSO)">备注</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('so','${r.id}',renderSO)">删除</button>`:''}</td>`;
+        tr+=`<td${rs} style="font-size:10px;color:var(--color-text-secondary);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-bottom:0.5px solid var(--color-border-tertiary)" title="${r.remark||''}">${r.remark||'-'}</td>`;
+        tr+=`<td${rs} style="white-space:nowrap;border-bottom:0.5px solid var(--color-border-tertiary)">${r.approved&&r.shipStatus!=='done'?`<button class="btn btn-warning" onclick="openGenSD('${r.id}')" style="font-size:10px">📤 出库单</button> `:''}${!r.approved&&(currentUser==='admin'||currentUser==='finance')?`<button class="btn btn-primary" onclick="approveSO('${r.id}')">审核</button> `:''}<button class="btn" onclick="viewBill('so','${r.id}')">查看</button> <button class="btn" onclick="editRemark('so','${r.id}',renderSO)">备注</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('so','${r.id}',renderSO)">删除</button>`:''}</td>`;
       }
       tr+='</tr>';
       rows.push(tr);
     });
   });
-  document.getElementById('soTbl').innerHTML=rows.join('')||'<tr><td colspan="16" style="text-align:center;color:var(--color-text-tertiary)">暂无销售订单</td></tr>';
+  document.getElementById('soTbl').innerHTML=rows.join('')||'<tr><td colspan="17" style="text-align:center;color:var(--color-text-tertiary)">暂无销售订单</td></tr>';
 }
+
 function renderSD(){
   const rows=[];
   DB.sd.forEach(r=>{
     const items=r.items&&r.items.length?r.items:[{}];
     const n=items.length;
-    const rs=''; // 不合并单元格，每行独立显示
     items.forEach((i,idx)=>{
       const p=DB.products.find(x=>x.id===i.productId)||{};
-      const isFirst=idx===0; const rowBg=(!isFirst)?'background:var(--color-background-secondary);opacity:0.7;':'';
-      let tr='<tr style="vertical-align:middle;'+rowBg+'">';
-      if(isFirst){
-        tr+=`<td${rs} style="text-align:center;border-bottom:0.5px solid var(--color-border-tertiary)"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="sd"></td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.no}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.soNo||'-'}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${cname(r.customerId)}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${wname(r.warehouseId)}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.handler||'-'}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.date||'-'}</td>`;
-      }
+      const isFirst=idx===0;
+      const ds=!isFirst?'color:var(--color-text-tertiary);font-size:10px;':'';
+      const rs=n>1&&isFirst?' rowspan="'+n+'"':'';
+      let tr='<tr style="vertical-align:middle">';
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary);text-align:center">${isFirst?`<input type="checkbox" class="bill-check" data-id="${r.id}" data-type="sd">`:''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?r.no:''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?r.soNo||'-':''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?cname(r.customerId):''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?wname(r.warehouseId):''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?r.handler||'-':''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?r.date||'-':''}</td>`;
       tr+=`<td style="font-size:11px;border-bottom:0.5px solid var(--color-border-tertiary)">${p.code||'-'}</td>`;
       tr+=`<td style="font-size:11px;border-bottom:0.5px solid var(--color-border-tertiary)" title="${(p.name||'')+' '+(p.spec||'')}">${p.name||'-'}${p.spec?'<span style="color:var(--color-text-tertiary);font-size:10px"> '+p.spec+'</span>':''}</td>`;
       tr+=`<td style="font-size:11px;text-align:right;border-bottom:0.5px solid var(--color-border-tertiary)">${(+i.qty||0).toLocaleString()}</td>`;
       tr+=`<td style="font-size:11px;text-align:right;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(i.price||0)}</td>`;
       if(isFirst){
-        tr+=`<td${rs} style="text-align:right;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(r.totalAmt)}</td>`;
+        tr+=`<td${rs} style="text-align:right;font-weight:600;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(r.totalAmt)}</td>`;
         tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)"><span class="badge badge-${r.status==='done'?'green':'amber'}">${r.status==='done'?'已出库':'待处理'}</span></td>`;
-        tr+=`<td${rs} style="font-size:10px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary)" title="${r.remark||''}">${r.remark||'-'}</td>`;
+        tr+=`<td${rs} style="font-size:10px;border-bottom:0.5px solid var(--color-border-tertiary)">${r.remark||'-'}</td>`;
         tr+=`<td${rs} style="white-space:nowrap;border-bottom:0.5px solid var(--color-border-tertiary)"><button class="btn" onclick="viewBill('sd','${r.id}')">查看</button> <button class="btn btn-warning" onclick="editBill('sd','${r.id}')">编辑</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('sd','${r.id}',renderSD)">删除</button>`:''}</td>`;
       }
       tr+='</tr>';
       rows.push(tr);
     });
   });
-  document.getElementById('sdTbl').innerHTML=rows.join('')||'<tr><td colspan="14" style="text-align:center;color:var(--color-text-tertiary)">暂无出库单</td></tr>';
+  document.getElementById('sdTbl').innerHTML=rows.join('')||'<tr><td colspan="15" style="text-align:center;color:var(--color-text-tertiary)">暂无出库单</td></tr>';
 }
+
 function renderSR(){
-  document.getElementById('srTbl').innerHTML=DB.sreturn.map(r=>`<tr><td>${r.no}</td><td>${cname(r.customerId)}</td><td>${wname(r.warehouseId)}</td><td>${r.date||'-'}</td><td>${fmtMoney(r.totalAmt)}</td><td><span class="badge badge-${r.status==='done'?'green':'amber'}">${r.status==='done'?'已退货':'待处理'}</span></td><td style="color:var(--color-text-secondary);font-size:10px;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.remark||''}">${r.remark||'-'}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('sreturn','${r.id}')">查看</button> <button class="btn" onclick="editRemark('sreturn','${r.id}',renderSR)" title="编辑备注">备注</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('sreturn','${r.id}',renderSR)">删除</button>`:''}</td></tr>`).join('')||'<tr><td colspan="9" style="text-align:center;color:var(--color-text-tertiary)">暂无退货单</td></tr>';
-}
-
-// ══ 调拨单 ══
-function saveTransfer(){
-  const fromWH = (document.getElementById('ftfrom')||{}).value;
-  const toWH   = (document.getElementById('ftto')||{}).value;
-  if(!fromWH){showToast('请选择调出仓库','error');return;}
-  if(!toWH){showToast('请选择调入仓库','error');return;}
-  if(fromWH===toWH){showToast('调出和调入仓库不能相同','error');return;}
-  const items = getEditableItems('transferLines');
-  if(!items.length){showToast('请添加调拨明细','error');return;}
-  const totalAmt = items.reduce((s,i)=>s+fmtNum(i.total),0);
-  DB.transfer.push({
-    id:gid(), no:gno('TF'),
-    fromWarehouseId: fromWH,
-    toWarehouseId:   toWH,
-    handler: (document.getElementById('fthandler')||{}).value||'',
-    date:    (document.getElementById('ftd')||{}).value,
-    remark:  (document.getElementById('ftremark')||{}).value||'',
-    items, totalAmt,
-    status:'done'  // 调拨单保存即生效
-  });
-  saveStore('transfer');
-  closeModal();
-  renderTransfer();
-  renderDashboard();
-  writeLog('新建','调拨','新建调拨单');
-  showToast('✓ 调拨单已保存并生效');
-}
-
-function renderTransfer(){
-  const tbl = document.getElementById('transferTbl');
-  if(!tbl) return;
-  const rows=[];
-  DB.transfer.forEach(r=>{
-    const items=r.items&&r.items.length?r.items:[{}];
-    const n=items.length;
-    const rs=n>1?' rowspan="'+n+'"':'';
-    const bs='border-bottom:0.5px solid var(--color-border-tertiary)';
-    items.forEach((i,idx)=>{
-      const p=DB.products.find(x=>x.id===i.productId)||{};
-      const isFirst=idx===0;
-      let tr='<tr style="vertical-align:middle">';
-      if(isFirst){
-        tr+=`<td${rs} style="text-align:center;${bs}"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="transfer"></td>`;
-        tr+=`<td${rs} style="${bs}">${r.no}</td>`;
-        tr+=`<td${rs} style="${bs}">${wname(r.fromWarehouseId)}</td>`;
-        tr+=`<td${rs} style="${bs}">→ ${wname(r.toWarehouseId)}</td>`;
-        tr+=`<td${rs} style="${bs}">${r.handler||'-'}</td>`;
-        tr+=`<td${rs} style="${bs}">${r.date||'-'}</td>`;
-      }
-      tr+=`<td style="font-size:11px;${bs}">${p.code||'-'}</td>`;
-      tr+=`<td style="font-size:11px;${bs}">${p.name||'-'}${p.spec?'<span style="color:var(--color-text-tertiary);font-size:10px"> '+p.spec+'</span>':''}</td>`;
-      tr+=`<td style="text-align:right;${bs}">${(+i.qty||0).toLocaleString()}</td>`;
-      tr+=`<td style="text-align:right;${bs}">${fmtMoney(i.price||0)}</td>`;
-      if(isFirst){
-        tr+=`<td${rs} style="text-align:right;${bs};font-weight:600">${fmtMoney(r.totalAmt)}</td>`;
-        tr+=`<td${rs} style="${bs}"><span class="badge badge-green">已生效</span></td>`;
-        tr+=`<td${rs} style="font-size:10px;color:var(--color-text-secondary);${bs}">${r.remark||'-'}</td>`;
-        tr+=`<td${rs} style="white-space:nowrap;${bs}">
-          <button class="btn" onclick="viewBill('transfer','${r.id}')">查看</button>
-          <button class="btn" onclick="printTransfer('${r.id}')">🖨 打印</button>
-          ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('transfer','${r.id}',renderTransfer)">删除</button>`:''}
-        </td>`;
-      }
-      tr+='</tr>';
-      rows.push(tr);
-    });
-  });
-  tbl.innerHTML=rows.join('')||'<tr><td colspan="14" style="text-align:center;color:var(--color-text-tertiary)">暂无调拨单</td></tr>';
-}
-
-function printTransfer(id){
-  const r=DB.transfer.find(x=>x.id===id);
-  if(!r) return;
-  const key='inv_print_'+Date.now();
-  const d=getMoneyDecimals();
-  const fm=v=>'¥'+(+v||0).toFixed(d);
-  const thS='background:#f0f0f0;padding:7px 10px;font-weight:600;border:1px solid #ccc;font-size:11px;';
-  const tdS='padding:6px 10px;border:1px solid #ddd;font-size:11px;vertical-align:top;';
-  const tdRS=tdS+'text-align:right;';
-  const rows=(r.items||[]).map((i,idx)=>{
-    const p=DB.products.find(x=>x.id===i.productId)||{};
-    return '<tr>'
-      +'<td style="'+tdS+'">'+(idx+1)+'</td>'
-      +'<td style="'+tdS+'">'+(p.code||'-')+'</td>'
-      +'<td style="'+tdS+'">'+(p.name||'-')+'</td>'
-      +'<td style="'+tdS+'">'+(p.spec||'-')+'</td>'
-      +'<td style="'+tdS+'">'+(p.unit||'-')+'</td>'
-      +'<td style="'+tdRS+'">'+i.qty+'</td>'
-      +'<td style="'+tdRS+'">'+fm(i.price)+'</td>'
-      +'<td style="'+tdRS+'">'+fm(i.total)+'</td>'
-      +'</tr>';
-  }).join('');
-  window[key]='<div style="text-align:center;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #333">'
-    +'<div style="font-size:18px;font-weight:700;letter-spacing:2px;margin-bottom:4px">库存调拨单</div>'
-    +'<div class="print-time" style="font-size:10px;color:#888">单号：<strong>'+r.no+'</strong> &nbsp;|&nbsp; 打印时间：'+new Date().toLocaleString('zh-CN')+'</div>'
-    +'</div>'
-    +'<table style="width:100%;border-collapse:collapse;margin-bottom:8px"><tr>'
-    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;color:#666;width:80px;background:#fafafa;font-weight:500">调出仓库</td>'
-    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;font-weight:600">'+wname(r.fromWarehouseId)+'</td>'
-    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;color:#666;width:80px;background:#fafafa;font-weight:500">调入仓库</td>'
-    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;font-weight:600">'+wname(r.toWarehouseId)+'</td>'
-    +'</tr><tr>'
-    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;color:#666;background:#fafafa;font-weight:500">经办人</td>'
-    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;font-weight:600">'+(r.handler||'-')+'</td>'
-    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;color:#666;background:#fafafa;font-weight:500">日期</td>'
-    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;font-weight:600">'+(r.date||'-')+'</td>'
-    +'</tr></table>'
-    +'<table style="width:100%;border-collapse:collapse;margin-top:10px"><thead><tr>'
-    +'<th style="'+thS+'">序号</th><th style="'+thS+'">商品编码</th><th style="'+thS+'">商品名称</th>'
-    +'<th style="'+thS+'">规格</th><th style="'+thS+'">单位</th>'
-    +'<th style="'+thS+'text-align:right">数量</th><th style="'+thS+'text-align:right">单价</th><th style="'+thS+'text-align:right">金额</th>'
-    +'</tr></thead><tbody>'+rows
-    +'<tr><td colspan="7" style="'+tdRS+'font-weight:700">合计金额</td><td style="'+tdRS+'font-weight:700;font-size:13px">'+fm(r.totalAmt)+'</td></tr>'
-    +'</tbody></table>'
-    +'<div class="print-sign" style="margin-top:28px;border-top:1px solid #ddd;padding-top:14px;display:flex;justify-content:space-between;align-items:center;font-size:11px;color:#333">'
-    +'<span>制单人：<span style="display:inline-block;width:110px;border-bottom:1px solid #999;margin-left:4px">&nbsp;</span></span>'
-    +'<span>审核人：<span style="display:inline-block;width:110px;border-bottom:1px solid #999;margin-left:4px">&nbsp;</span></span>'
-    +'<span>收货人：<span style="display:inline-block;width:110px;border-bottom:1px solid #999;margin-left:4px">&nbsp;</span></span>'
-    +'</div>';
-  openPrintWindow(key,'库存调拨单',r.no);
+  document.getElementById('sreturnTbl').innerHTML=(DB.sreturn||[]).map(r=>`<tr><td>${r.no}</td><td>${cname(r.customerId)}</td><td>${wname(r.warehouseId)}</td><td>${r.date||'-'}</td><td>${fmtMoney(r.totalAmt)}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('sreturn','${r.id}')">查看</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('sreturn','${r.id}',renderSR)">删除</button>`:''}</td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--color-text-tertiary)">暂无记录</td></tr>';
 }
 
 function renderOI(){
@@ -2295,25 +2167,24 @@ function renderOI(){
   DB.otherIn.forEach(r=>{
     const items=r.items&&r.items.length?r.items:[{}];
     const n=items.length;
-    const rs=''; // 不合并单元格，每行独立显示
     items.forEach((i,idx)=>{
       const p=DB.products.find(x=>x.id===i.productId)||{};
-      const isFirst=idx===0; const rowBg=(!isFirst)?'background:var(--color-background-secondary);opacity:0.7;':'';
-      let tr='<tr style="vertical-align:middle;'+rowBg+'">';
-      if(isFirst){
-        tr+=`<td${rs} style="text-align:center;border-bottom:0.5px solid var(--color-border-tertiary)"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="otherIn"></td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.no}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.type||'-'}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.handler||'-'}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${wname(r.warehouseId)}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.date||'-'}</td>`;
-      }
+      const isFirst=idx===0;
+      const ds=!isFirst?'color:var(--color-text-tertiary);font-size:10px;':'';
+      const rs=n>1&&isFirst?' rowspan="'+n+'"':'';
+      let tr='<tr style="vertical-align:middle">';
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary);text-align:center">${isFirst?`<input type="checkbox" class="bill-check" data-id="${r.id}" data-type="otherIn">`:''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?r.no:''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?r.type||'-':''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?r.handler||'-':''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?wname(r.warehouseId):''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?r.date||'-':''}</td>`;
       tr+=`<td style="font-size:11px;border-bottom:0.5px solid var(--color-border-tertiary)">${p.code||'-'}</td>`;
       tr+=`<td style="font-size:11px;border-bottom:0.5px solid var(--color-border-tertiary)" title="${(p.name||'')+' '+(p.spec||'')}">${p.name||'-'}${p.spec?'<span style="color:var(--color-text-tertiary);font-size:10px"> '+p.spec+'</span>':''}</td>`;
       tr+=`<td style="font-size:11px;text-align:right;border-bottom:0.5px solid var(--color-border-tertiary)">${(+i.qty||0).toLocaleString()}</td>`;
       tr+=`<td style="font-size:11px;text-align:right;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(i.price||0)}</td>`;
       if(isFirst){
-        tr+=`<td${rs} style="text-align:right;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(r.totalAmt)}</td>`;
+        tr+=`<td${rs} style="text-align:right;font-weight:600;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(r.totalAmt)}</td>`;
         tr+=`<td${rs} style="font-size:10px;border-bottom:0.5px solid var(--color-border-tertiary)">${r.note||'-'}</td>`;
         tr+=`<td${rs} style="white-space:nowrap;border-bottom:0.5px solid var(--color-border-tertiary)"><button class="btn" onclick="viewBill('otherIn','${r.id}')">查看</button> <button class="btn btn-warning" onclick="editBill('otherIn','${r.id}')">编辑</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('otherIn','${r.id}',renderOI)">删除</button>`:''}</td>`;
       }
@@ -2321,30 +2192,30 @@ function renderOI(){
       rows.push(tr);
     });
   });
-  document.getElementById('oiTbl').innerHTML=rows.join('')||'<tr><td colspan="12" style="text-align:center;color:var(--color-text-tertiary)">暂无记录</td></tr>';
+  document.getElementById('oiTbl').innerHTML=rows.join('')||'<tr><td colspan="13" style="text-align:center;color:var(--color-text-tertiary)">暂无记录</td></tr>';
 }
+
 function renderOO(){
   const rows=[];
   DB.otherOut.forEach(r=>{
     const items=r.items&&r.items.length?r.items:[{}];
     const n=items.length;
-    const rs=''; // 不合并单元格，每行独立显示
     items.forEach((i,idx)=>{
       const p=DB.products.find(x=>x.id===i.productId)||{};
-      const isFirst=idx===0; const rowBg=(!isFirst)?'background:var(--color-background-secondary);opacity:0.7;':'';
-      let tr='<tr style="vertical-align:middle;'+rowBg+'">';
-      if(isFirst){
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.no}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.type||'-'}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${wname(r.warehouseId)}</td>`;
-        tr+=`<td${rs} style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.date||'-'}</td>`;
-      }
+      const isFirst=idx===0;
+      const ds=!isFirst?'color:var(--color-text-tertiary);font-size:10px;':'';
+      const rs=n>1&&isFirst?' rowspan="'+n+'"':'';
+      let tr='<tr style="vertical-align:middle">';
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?r.no:''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?r.type||'-':''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?wname(r.warehouseId):''}</td>`;
+      tr+=`<td style="${ds}border-bottom:0.5px solid var(--color-border-tertiary)">${isFirst?r.date||'-':''}</td>`;
       tr+=`<td style="font-size:11px;border-bottom:0.5px solid var(--color-border-tertiary)">${p.code||'-'}</td>`;
       tr+=`<td style="font-size:11px;border-bottom:0.5px solid var(--color-border-tertiary)" title="${(p.name||'')+' '+(p.spec||'')}">${p.name||'-'}${p.spec?'<span style="color:var(--color-text-tertiary);font-size:10px"> '+p.spec+'</span>':''}</td>`;
       tr+=`<td style="font-size:11px;text-align:right;border-bottom:0.5px solid var(--color-border-tertiary)">${(+i.qty||0).toLocaleString()}</td>`;
       tr+=`<td style="font-size:11px;text-align:right;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(i.price||0)}</td>`;
       if(isFirst){
-        tr+=`<td${rs} style="text-align:right;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(r.totalAmt)}</td>`;
+        tr+=`<td${rs} style="text-align:right;font-weight:600;border-bottom:0.5px solid var(--color-border-tertiary)">${fmtMoney(r.totalAmt)}</td>`;
         tr+=`<td${rs} style="font-size:10px;border-bottom:0.5px solid var(--color-border-tertiary)">${r.note||'-'}</td>`;
         tr+=`<td${rs} style="white-space:nowrap;border-bottom:0.5px solid var(--color-border-tertiary)"><button class="btn" onclick="viewBill('otherOut','${r.id}')">查看</button> <button class="btn" onclick="editRemark('otherOut','${r.id}',renderOO)">备注</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('otherOut','${r.id}',renderOO)">删除</button>`:''}</td>`;
       }
@@ -2354,165 +2225,11 @@ function renderOO(){
   });
   document.getElementById('ooTbl').innerHTML=rows.join('')||'<tr><td colspan="11" style="text-align:center;color:var(--color-text-tertiary)">暂无记录</td></tr>';
 }
-// ── 编辑 BOM 表 ──
-function editBOM(id){
-  const b = DB.bom.find(x=>x.id===id);
-  if(!b){ showToast('找不到BOM','error'); return; }
-  const p = DB.products.find(x=>x.id===b.productId)||{};
-  const mc = document.getElementById('modalContainer');
-  const matRows = (b.materials||[]).map((m,idx)=>{
-    const mp = DB.products.find(x=>x.id===m.productId)||{};
-    return `<tr class="bom-edit-row" data-idx="${idx}">
-      <td style="padding:5px 8px;font-size:11px">${mp.code||'-'}</td>
-      <td style="padding:5px 8px;font-size:11px">${mp.name||m.productId}</td>
-      <td style="padding:5px 8px"><input type="hidden" class="bom-pid" value="${m.productId}">
-        <input type="number" class="bom-qty" value="${m.qty}" min="0" step="0.01"
-          style="width:80px;border:1px solid var(--color-border-secondary);border-radius:4px;padding:3px 6px;font-size:11px;text-align:right">
-      </td>
-      <td style="padding:5px 8px;text-align:center">
-        <button onclick="this.closest('tr').remove()" style="background:none;border:none;cursor:pointer;color:#E24B4A;font-size:14px">✕</button>
-      </td>
-    </tr>`;
-  }).join('');
-
-  mc.innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
-    <div class="modal" style="width:600px;max-width:96%">
-      <div class="modal-header"><span>✏ 编辑BOM — ${p.code} ${p.name}</span><button class="btn" onclick="closeModal()">✕</button></div>
-      <div class="modal-body">
-        <div class="form-row c3" style="margin-bottom:12px">
-          <div class="form-group"><label>版本</label><input id="beVer" value="${b.version||'V1.0'}" style="width:100%"></div>
-          <div class="form-group"><label>标准产量</label><input id="beQty" type="number" value="${b.stdQty||1}" style="width:100%"></div>
-          <div class="form-group"><label>状态</label>
-            <select id="beActive" style="width:100%">
-              <option value="1" ${b.active!==false?'selected':''}>启用</option>
-              <option value="0" ${b.active===false?'selected':''}>禁用</option>
-            </select>
-          </div>
-        </div>
-        <div style="font-size:12px;font-weight:600;margin-bottom:8px">物料清单（可修改用量、删除行）</div>
-        <div style="border:1px solid var(--color-border-secondary);border-radius:6px;overflow:hidden;max-height:320px;overflow-y:auto">
-          <table style="width:100%;border-collapse:collapse;font-size:11px">
-            <thead><tr style="background:var(--color-background-tertiary)">
-              <th style="padding:7px 8px">商品编码</th>
-              <th style="padding:7px 8px">物料名称</th>
-              <th style="padding:7px 8px;text-align:right">用量</th>
-              <th style="padding:7px 8px;width:40px"></th>
-            </tr></thead>
-            <tbody id="bomEditTbl">${matRows}</tbody>
-          </table>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn" onclick="closeModal()">取消</button>
-        <button class="btn btn-primary" onclick="saveBOMEdit('${id}')">💾 保存</button>
-      </div>
-    </div>
-  </div>`;
-  mc.style.pointerEvents='all';
-}
-
-function saveBOMEdit(id){
-  const b = DB.bom.find(x=>x.id===id);
-  if(!b) return;
-  b.version  = (document.getElementById('beVer')||{}).value||'V1.0';
-  b.stdQty   = parseFloat((document.getElementById('beQty')||{}).value)||1;
-  b.active   = (document.getElementById('beActive')||{}).value === '1';
-  const rows = document.querySelectorAll('#bomEditTbl .bom-edit-row');
-  b.materials = Array.from(rows).map(row=>({
-    productId: row.querySelector('.bom-pid').value,
-    qty: parseFloat(row.querySelector('.bom-qty').value)||0
-  })).filter(m=>m.productId && m.qty>0);
-  saveStore('bom').then(()=>{ closeModal(); renderBOM(); showToast('✓ BOM已保存'); });
-}
-
-// ── 编辑组装单 ──
-function editAssembly(id){
-  const r = DB.assembly.find(x=>x.id===id);
-  if(!r){ showToast('找不到组装单','error'); return; }
-  const prod = DB.products.find(x=>x.id===r.productId)||{};
-  const mc   = document.getElementById('modalContainer');
-  const matRows = (r.materials||[]).map((m,idx)=>{
-    const mp = DB.products.find(x=>x.id===m.productId)||{};
-    const stock = getStock(m.productId, r.warehouseId);
-    return `<tr class="asm-edit-row" data-idx="${idx}">
-      <td style="padding:5px 8px;font-size:11px">${mp.code||'-'}</td>
-      <td style="padding:5px 8px;font-size:11px">${mp.name||m.productId}</td>
-      <td style="padding:5px 8px"><input type="hidden" class="asm-edit-pid" value="${m.productId}">
-        <input type="number" class="asm-edit-qty" value="${m.qty}" min="0" step="0.01"
-          style="width:80px;border:1px solid var(--color-border-secondary);border-radius:4px;padding:3px 6px;font-size:11px;text-align:right">
-      </td>
-      <td style="padding:5px 8px;text-align:right;font-size:11px;color:var(--color-text-secondary)">${stock.toLocaleString()}</td>
-      <td style="padding:5px 8px;text-align:center">
-        <button onclick="this.closest('tr').remove()" style="background:none;border:none;cursor:pointer;color:#E24B4A;font-size:14px">✕</button>
-      </td>
-    </tr>`;
-  }).join('');
-
-  mc.innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
-    <div class="modal" style="width:640px;max-width:96%">
-      <div class="modal-header"><span>✏ 编辑组装单 — ${r.no}</span><button class="btn" onclick="closeModal()">✕</button></div>
-      <div class="modal-body">
-        <div class="form-row c3" style="margin-bottom:12px">
-          <div class="form-group"><label>成品</label><input value="${prod.code||''} ${prod.name||''}" disabled style="width:100%;background:var(--color-background-secondary)"></div>
-          <div class="form-group"><label>组装数量</label><input id="aeQty" type="number" value="${r.qty||1}" style="width:100%"></div>
-          <div class="form-group"><label>经办人</label><input id="aeHandler" value="${r.handler||''}" style="width:100%"></div>
-        </div>
-        <div class="form-row c2" style="margin-bottom:12px">
-          <div class="form-group"><label>物料出库仓库</label>
-            <select id="aeWH" style="width:100%">${DB.warehouses.map(w=>`<option value="${w.id}" ${w.id===r.warehouseId?'selected':''}>${w.name}</option>`).join('')}</select>
-          </div>
-          <div class="form-group"><label>成品入库仓库</label>
-            <select id="aeToWH" style="width:100%">${DB.warehouses.map(w=>`<option value="${w.id}" ${w.id===(r.toWarehouseId||r.warehouseId)?'selected':''}>${w.name}</option>`).join('')}</select>
-          </div>
-        </div>
-        <div class="form-row c2" style="margin-bottom:12px">
-          <div class="form-group"><label>日期</label><input id="aeDate" type="date" value="${r.date||''}" style="width:100%"></div>
-          <div class="form-group"><label>备注</label><input id="aeRemark" value="${r.remark||''}" style="width:100%"></div>
-        </div>
-        <div style="font-size:12px;font-weight:600;margin-bottom:8px">物料清单（可修改用量、删除行）</div>
-        <div style="border:1px solid var(--color-border-secondary);border-radius:6px;overflow:hidden;max-height:300px;overflow-y:auto">
-          <table style="width:100%;border-collapse:collapse;font-size:11px">
-            <thead><tr style="background:var(--color-background-tertiary)">
-              <th style="padding:7px 8px">商品编码</th>
-              <th style="padding:7px 8px">物料名称</th>
-              <th style="padding:7px 8px;text-align:right">用量</th>
-              <th style="padding:7px 8px;text-align:right">当前库存</th>
-              <th style="padding:7px 8px;width:40px"></th>
-            </tr></thead>
-            <tbody id="asmEditTbl">${matRows}</tbody>
-          </table>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn" onclick="closeModal()">取消</button>
-        <button class="btn btn-primary" onclick="saveAssemblyEdit('${id}')">💾 保存</button>
-      </div>
-    </div>
-  </div>`;
-  mc.style.pointerEvents='all';
-}
-
-function saveAssemblyEdit(id){
-  const r = DB.assembly.find(x=>x.id===id);
-  if(!r) return;
-  r.qty            = parseFloat((document.getElementById('aeQty')||{}).value)||r.qty;
-  r.handler        = (document.getElementById('aeHandler')||{}).value||'';
-  r.date           = (document.getElementById('aeDate')||{}).value||r.date;
-  r.remark         = (document.getElementById('aeRemark')||{}).value||'';
-  r.warehouseId    = (document.getElementById('aeWH')||{}).value||r.warehouseId;
-  r.toWarehouseId  = (document.getElementById('aeToWH')||{}).value||r.toWarehouseId;
-  const rows = document.querySelectorAll('#asmEditTbl .asm-edit-row');
-  r.materials = Array.from(rows).map(row=>({
-    productId: row.querySelector('.asm-edit-pid').value,
-    qty: parseFloat(row.querySelector('.asm-edit-qty').value)||0
-  })).filter(m=>m.productId && m.qty>0);
-  saveStore('assembly').then(()=>{ closeModal(); renderASM(); renderDashboard(); showToast('✓ 组装单已保存'); });
-}
 
 function renderBOM(){
   document.getElementById('bomTbl').innerHTML=DB.bom.map(b=>{
     const p=DB.products.find(x=>x.id===b.productId);
-    return`<tr>
+    return `<tr>
       <td style="text-align:center"><input type="checkbox" class="bill-check" data-id="${b.id}" data-type="bom"></td>
       <td>${p?p.code:'-'}</td><td>${p?p.name:'-'}</td>
       <td>${b.version||'V1.0'}</td><td>${b.stdQty||1}</td>
@@ -2544,209 +2261,50 @@ function renderASM(){
       <button class="btn" onclick="editRemark('assembly','${r.id}',renderASM)">备注</button>
       ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('assembly','${r.id}',renderASM)">删除</button>`:''}
     </td>
-  </tr>`).join('')||'<tr><td colspan="8" style="text-align:center;color:var(--color-text-tertiary)">暂无组装单</td></tr>';
+  </tr>`).join('')||'<tr><td colspan="10" style="text-align:center;color:var(--color-text-tertiary)">暂无组装单</td></tr>';
 }
 
-function renderSQ(){
-  const code=(document.getElementById('sqCode')||{}).value.trim();
-  const q=(document.getElementById('sqSearch')||{}).value.trim();
-  const wf=(document.getElementById('sqWh')||{}).value||'';
-  const dateFrom=(document.getElementById('sqDateFrom')||{}).value||'';
-  const dateTo=(document.getElementById('sqDateTo')||{}).value||'';
-
-  // 更新仓库下拉：用名称去重，避免重复 id 仓库出现两次
-  const wsel=document.getElementById('sqWh');
-  if(wsel){
-    const seenWH=new Set();
-    const whOpts=DB.warehouses.filter(w=>{if(seenWH.has(w.name))return false;seenWH.add(w.name);return true;})
-      .map(w=>`<option value="${w.name}"${w.name===wf?' selected':''}>${w.name}</option>`).join('');
-    wsel.innerHTML='<option value="">全部仓库</option>'+whOpts;
-  }
-
-  // 日期区间过滤函数
-  const inRange=(d)=>{
-    if(!d) return true;
-    if(dateFrom && d < dateFrom) return false;
-    if(dateTo   && d > dateTo)   return false;
-    return true;
-  };
-
-  // 筛选商品
-  let filteredProds = DB.products;
-  if(code){
-    filteredProds = DB.products.filter(p=>p.code&&(
-      p.code.toUpperCase()===code.toUpperCase()||
-      p.code.toUpperCase().startsWith(code.toUpperCase())
-    ));
-  } else if(q){
-    filteredProds = DB.products.filter(p=>(p.code+p.name+(p.spec||'')).toLowerCase().includes(q.toLowerCase()));
-  }
-
-  // 按仓库名称去重后的仓库列表
-  const seenWH2=new Set();
-  const dedupWHs=DB.warehouses.filter(w=>{if(seenWH2.has(w.name))return false;seenWH2.add(w.name);return true;});
-
+function renderTransfer(){
+  const tbl=document.getElementById('transferTbl');
+  if(!tbl) return;
   const rows=[];
-  filteredProds.forEach(p=>{
-    const whs = wf ? dedupWHs.filter(w=>w.name===wf) : dedupWHs;
-    whs.forEach(w=>{
-      const wn = w.name; // 用名称作为唯一键
-      // 期初：不受日期区间限制（固定基准）
-      let openQty=0;
-      DB.openstock.filter(s=>s.productId===p.id && _whName(s.warehouseId)===wn).forEach(s=>openQty+=+s.qty||0);
-
-      // 区间内入库（采购入库 + 其他入库 + 销售退货 + 组装成品入库 + 调拨入库）
-      let inQty=0;
-      DB.pr.filter(r=>r.status==='done' && _whName(r.warehouseId)===wn && inRange(r.date))
-        .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
-      DB.otherIn.filter(r=>r.status==='done' && _whName(r.warehouseId)===wn && inRange(r.date))
-        .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
-      DB.sreturn.filter(r=>r.status==='done' && _whName(r.warehouseId)===wn && inRange(r.date))
-        .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
-      // 组装成品入库（入库仓库 = toWarehouseId）
-      DB.assembly.filter(r=>r.status==='done' && _whName(r.toWarehouseId||r.warehouseId)===wn && inRange(r.date))
-        .forEach(r=>{ if(r.productId===p.id) inQty+=+r.qty||0; });
-      // 调拨入库（调入仓库）
-      DB.transfer.filter(r=>r.status==='done' && _whName(r.toWarehouseId)===wn && inRange(r.date))
-        .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
-
-      // 区间内出库（销售出库 + 其他出库 + 采购退货 + 组装物料消耗 + 调拨出库）
-      let outQty=0;
-      DB.sd.filter(r=>r.status==='done' && _whName(r.warehouseId)===wn && inRange(r.date))
-        .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
-      DB.otherOut.filter(r=>r.status==='done' && _whName(r.warehouseId)===wn && inRange(r.date))
-        .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
-      DB.preturn.filter(r=>r.status==='done' && _whName(r.warehouseId)===wn && inRange(r.date))
-        .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
-      // 组装物料消耗（出库仓库 = warehouseId）
-      DB.assembly.filter(r=>r.status==='done' && _whName(r.warehouseId)===wn && inRange(r.date))
-        .forEach(r=>r.materials&&r.materials.forEach(m=>{if(m.productId===p.id)outQty+=+m.qty||0;}));
-      // 调拨出库（调出仓库）
-      DB.transfer.filter(r=>r.status==='done' && _whName(r.fromWarehouseId)===wn && inRange(r.date))
-        .forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
-
-      // 区间末库存 = 期初 + 区间入库 - 区间出库
-      const endQty = openQty + inQty - outQty;
-
-      const rowAmt = fmtNum(endQty*(p.costPrice||0));
-      if(openQty||inQty||outQty||endQty>0){
-        // 计算各阶段金额（以成本价为基准）
-        const cp = p.costPrice||0;
-        const openAmt = fmtNum(openQty * cp);
-        const inAmt   = fmtNum(inQty   * cp);
-        const outAmt  = fmtNum(outQty  * cp);
-        const endAmt  = fmtNum(endQty  * cp);
-        rows.push({p,w,openQty,inQty,outQty,endQty,rowAmt:endAmt,openAmt,inAmt,outAmt,endAmt,safe:p.safeQty||0});
+  (DB.transfer||[]).forEach(r=>{
+    const items=r.items&&r.items.length?r.items:[{}];
+    const n=items.length;
+    const bs= + BS + ;
+    items.forEach((i,idx)=>{
+      const p=DB.products.find(x=>x.id===i.productId)||{};
+      const isFirst=idx===0;
+      const ds=!isFirst?'color:var(--color-text-tertiary);font-size:10px;':'';
+      const rs=n>1&&isFirst?' rowspan="'+n+'"':'';
+      let tr='<tr style="vertical-align:middle">';
+      if(isFirst){
+        tr+=`<td${rs} style="${ds}${bs};text-align:center"><input type="checkbox" class="bill-check" data-id="${r.id}" data-type="transfer"></td>`;
+        tr+=`<td${rs} style="${ds}${bs}">${r.no}</td>`;
+        tr+=`<td${rs} style="${ds}${bs}">${wname(r.fromWarehouseId)}</td>`;
+        tr+=`<td${rs} style="${ds}${bs}">→ ${wname(r.toWarehouseId)}</td>`;
+        tr+=`<td${rs} style="${ds}${bs}">${r.handler||'-'}</td>`;
+        tr+=`<td${rs} style="${ds}${bs}">${r.date||'-'}</td>`;
       }
+      tr+=`<td style="font-size:11px;${bs}">${p.code||'-'}</td>`;
+      tr+=`<td style="font-size:11px;${bs}">${p.name||'-'}${p.spec?'<span style="color:var(--color-text-tertiary);font-size:10px"> '+p.spec+'</span>':''}</td>`;
+      tr+=`<td style="text-align:right;${bs}">${(+i.qty||0).toLocaleString()}</td>`;
+      tr+=`<td style="text-align:right;${bs}">${fmtMoney(i.price||0)}</td>`;
+      if(isFirst){
+        tr+=`<td${rs} style="text-align:right;font-weight:600;${bs}">${fmtMoney(r.totalAmt)}</td>`;
+        tr+=`<td${rs} style="${bs}"><span class="badge badge-green">已生效</span></td>`;
+        tr+=`<td${rs} style="font-size:10px;${bs}">${r.remark||'-'}</td>`;
+        tr+=`<td${rs} style="white-space:nowrap;${bs}">
+          <button class="btn" onclick="viewBill('transfer','${r.id}')">查看</button>
+          <button class="btn" onclick="printTransfer('${r.id}')">🖨 打印</button>
+          ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('transfer','${r.id}',renderTransfer)">删除</button>`:''}
+        </td>`;
+      }
+      tr+='</tr>';
+      rows.push(tr);
     });
   });
-
-  // 汇总栏
-  const summaryEl=document.getElementById('sqSummary');
-  if(summaryEl){
-    const totalOpen=rows.reduce((s,r)=>s+r.openQty,0);
-    const totalIn=rows.reduce((s,r)=>s+r.inQty,0);
-    const totalOut=rows.reduce((s,r)=>s+r.outQty,0);
-    const totalEnd=rows.reduce((s,r)=>s+r.endQty,0);
-    const prodCount=[...new Set(rows.map(r=>r.p.id))].length;
-    const rangeLabel=dateFrom||dateTo?`${dateFrom||'起始'}  ～  ${dateTo||'今日'}`:'全部日期';
-    summaryEl.style.display='flex';
-    summaryEl.innerHTML=
-      `<span>📅 <strong>${rangeLabel}</strong></span>`+
-      `<span>🔍 <strong>${prodCount}</strong> 种商品 / <strong>${rows.length}</strong> 条记录</span>`+
-      `<span>📦 期初合计：<strong>${totalOpen}</strong></span>`+
-      `<span>⬇️ 区间入库：<strong style="color:#1D9E75">${totalIn}</strong></span>`+
-      `<span>⬆️ 区间出库：<strong style="color:#D85A30">${totalOut}</strong></span>`+
-      `<span>🏷️ 区间末库存：<strong style="color:#378ADD">${totalEnd}</strong></span>`;
-  }
-
-  document.getElementById('sqTbl').innerHTML=rows.length
-    ?rows.map(r=>{
-      const warn=r.endQty<r.safe;
-      return`<tr>
-        <td><strong>${r.p.code}</strong></td>
-        <td>${r.p.name}</td>
-        <td>${r.p.spec||'-'}</td>
-        <td>${r.w.name}</td>
-        <td style="color:var(--color-text-secondary)">${r.openQty}</td>
-        <td style="color:#1D9E75;font-weight:500">${r.inQty}</td>
-        <td style="color:#D85A30;font-weight:500">${r.outQty}</td>
-        <td style="font-weight:600;color:${warn?'#A32D2D':'#185FA5'}">${r.endQty}</td>
-        <td>${r.safe||'-'}</td>
-        <td><span class="badge badge-${warn?'red':'green'}">${warn?'⚠ 低库存':'正常'}</span></td>
-      </tr>`;
-    }).join('')
-    :`<tr><td colspan="10" style="text-align:center;color:var(--color-text-tertiary);padding:20px">
-        暂无符合条件的库存记录
-      </td></tr>`;
-}
-
-function sqClearAll(){
-  ['sqCode','sqSearch','sqDateFrom','sqDateTo'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.value='';
-  });
-  const ws=document.getElementById('sqWh');if(ws)ws.value='';
-  renderSQ();
-}
-
-function exportSQExcel(){
-  if(typeof XLSX==='undefined'){showToast('Excel库加载中，请稍后重试','error');return;}
-  // 收集当前查询结果
-  const code=(document.getElementById('sqCode')||{}).value.trim();
-  const q=(document.getElementById('sqSearch')||{}).value.trim();
-  const wf=(document.getElementById('sqWh')||{}).value||'';
-  const dateFrom=(document.getElementById('sqDateFrom')||{}).value||'';
-  const dateTo=(document.getElementById('sqDateTo')||{}).value||'';
-  const inRange=(d)=>{if(!d)return true;if(dateFrom&&d<dateFrom)return false;if(dateTo&&d>dateTo)return false;return true;};
-
-  let filteredProds=DB.products;
-  if(code) filteredProds=DB.products.filter(p=>p.code&&(p.code.toUpperCase()===code.toUpperCase()||p.code.toUpperCase().startsWith(code.toUpperCase())));
-  else if(q) filteredProds=DB.products.filter(p=>(p.code+p.name+(p.spec||'')).toLowerCase().includes(q.toLowerCase()));
-
-  const rows=[];
-  filteredProds.forEach(p=>{
-    const whs=wf?DB.warehouses.filter(w=>w.id===wf):DB.warehouses;
-    whs.forEach(w=>{
-      let openQty=0,inQty=0,outQty=0;
-      DB.openstock.filter(s=>s.productId===p.id&&s.warehouseId===w.id).forEach(s=>openQty+=+s.qty||0);
-      DB.pr.filter(r=>r.status==='done'&&_whName(r.warehouseId)===w.name&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
-      DB.otherIn.filter(r=>r.status==='done'&&_whName(r.warehouseId)===w.name&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
-      DB.sreturn.filter(r=>r.status==='done'&&_whName(r.warehouseId)===w.name&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
-      // 组装成品入库
-      DB.assembly.filter(r=>r.status==='done'&&_whName(r.toWarehouseId||r.warehouseId)===w.name&&inRange(r.date)).forEach(r=>{if(r.productId===p.id)inQty+=+r.qty||0;});
-      // 调拨入库
-      DB.transfer.filter(r=>r.status==='done'&&_whName(r.toWarehouseId)===w.name&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
-      DB.sd.filter(r=>r.status==='done'&&_whName(r.warehouseId)===w.name&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
-      DB.otherOut.filter(r=>r.status==='done'&&_whName(r.warehouseId)===w.name&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
-      DB.preturn.filter(r=>r.status==='done'&&_whName(r.warehouseId)===w.name&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
-      // 组装物料消耗
-      DB.assembly.filter(r=>r.status==='done'&&_whName(r.warehouseId)===w.name&&inRange(r.date)).forEach(r=>r.materials&&r.materials.forEach(m=>{if(m.productId===p.id)outQty+=+m.qty||0;}));
-      // 调拨出库
-      DB.transfer.filter(r=>r.status==='done'&&_whName(r.fromWarehouseId)===w.name&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
-      const endQty=openQty+inQty-outQty;
-      if(openQty||inQty||outQty||endQty>0){
-        const ecp=p.costPrice||0;
-        rows.push({
-          '商品编码':p.code,'商品名称':p.name,'规格型号':p.spec||'','计量单位':p.unit||'','仓库':w.name,
-          '期初数量':openQty,'期初金额':fmtNum(openQty*ecp),
-          '入库数量':inQty,'入库金额':fmtNum(inQty*ecp),
-          '出库数量':outQty,'出库金额':fmtNum(outQty*ecp),
-          '期末数量':endQty,'期末金额':fmtNum(endQty*ecp),
-          '成本单价':fmtNum(ecp),
-          '安全库存':p.safeQty||0,'库存状态':endQty<(p.safeQty||0)?'低库存':'正常',
-          '查询区间':(dateFrom||'全部')+' 至 '+(dateTo||'今日')
-        });
-      }
-    });
-  });
-
-  const wb=XLSX.utils.book_new();
-  const ws=XLSX.utils.json_to_sheet(rows.length?rows:[{'说明':'暂无数据'}]);
-  ws['!cols']=[{wch:12},{wch:20},{wch:15},{wch:10},{wch:18},{wch:10},{wch:12},{wch:10},{wch:12},{wch:10},{wch:12},{wch:10},{wch:12},{wch:10},{wch:10},{wch:10},{wch:20}];
-  XLSX.utils.book_append_sheet(wb,ws,'库存收发明细');
-  const rangeStr=(dateFrom||'全部')+'_至_'+(dateTo||'今日');
-  XLSX.writeFile(wb,`库存收发查询_${rangeStr}.xlsx`);
-  showToast('库存收发明细已导出Excel','success');
+  tbl.innerHTML=rows.join('')||'<tr><td colspan="14" style="text-align:center;color:var(--color-text-tertiary)">暂无调拨单</td></tr>';
 }
 
 function renderPerms(){
@@ -5218,6 +4776,169 @@ function fixMobileInputs(){
     if(!el.getAttribute('inputmode')) el.setAttribute('inputmode','text');
   });
 }
+
+
+function renderSQ(){
+  const code=(document.getElementById('sqCode')||{}).value.trim();
+  const q=(document.getElementById('sqSearch')||{}).value.trim();
+  const wf=(document.getElementById('sqWh')||{}).value||'';
+  const dateFrom=(document.getElementById('sqDateFrom')||{}).value||'';
+  const dateTo=(document.getElementById('sqDateTo')||{}).value||'';
+
+  const wsel=document.getElementById('sqWh');
+  if(wsel){
+    const seen=new Set();
+    const opts=DB.warehouses.filter(w=>{if(seen.has(w.name))return false;seen.add(w.name);return true;})
+      .map(w=>`<option value="${w.name}"${w.name===wf?' selected':''}>${w.name}</option>`).join('');
+    wsel.innerHTML='<option value="">全部仓库</option>'+opts;
+  }
+
+  const inRange=(d)=>{
+    if(!d) return true;
+    if(dateFrom && d<dateFrom) return false;
+    if(dateTo   && d>dateTo)   return false;
+    return true;
+  };
+
+  let filteredProds=DB.products;
+  if(code) filteredProds=DB.products.filter(p=>p.code&&(p.code.toUpperCase()===code.toUpperCase()||p.code.toUpperCase().startsWith(code.toUpperCase())));
+  else if(q) filteredProds=DB.products.filter(p=>(p.code+p.name+(p.spec||'')).toLowerCase().includes(q.toLowerCase()));
+
+  const seen2=new Set();
+  const dedupWHs=DB.warehouses.filter(w=>{if(seen2.has(w.name))return false;seen2.add(w.name);return true;});
+
+  const rows=[];
+  filteredProds.forEach(p=>{
+    const whs=wf?dedupWHs.filter(w=>w.name===wf):dedupWHs;
+    whs.forEach(w=>{
+      const wn=w.name;
+      let openQty=0;
+      DB.openstock.filter(s=>s.productId===p.id&&_whName(s.warehouseId)===wn).forEach(s=>openQty+=+s.qty||0);
+      let inQty=0;
+      DB.pr.filter(r=>r.status==='done'&&_whName(r.warehouseId)===wn&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
+      DB.otherIn.filter(r=>r.status==='done'&&_whName(r.warehouseId)===wn&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
+      DB.sreturn.filter(r=>r.status==='done'&&_whName(r.warehouseId)===wn&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
+      DB.assembly.filter(r=>r.status==='done'&&_whName(r.toWarehouseId||r.warehouseId)===wn&&inRange(r.date)).forEach(r=>{if(r.productId===p.id)inQty+=+r.qty||0;});
+      DB.transfer.filter(r=>r.status==='done'&&_whName(r.toWarehouseId)===wn&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
+      let outQty=0;
+      DB.sd.filter(r=>r.status==='done'&&_whName(r.warehouseId)===wn&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
+      DB.otherOut.filter(r=>r.status==='done'&&_whName(r.warehouseId)===wn&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
+      DB.preturn.filter(r=>r.status==='done'&&_whName(r.warehouseId)===wn&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
+      DB.assembly.filter(r=>r.status==='done'&&_whName(r.warehouseId)===wn&&inRange(r.date)).forEach(r=>r.materials&&r.materials.forEach(m=>{if(m.productId===p.id)outQty+=+m.qty||0;}));
+      DB.transfer.filter(r=>r.status==='done'&&_whName(r.fromWarehouseId)===wn&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
+      const endQty=openQty+inQty-outQty;
+      const cp=p.costPrice||0;
+      const openAmt=fmtNum(openQty*cp);
+      const inAmt=fmtNum(inQty*cp);
+      const outAmt=fmtNum(outQty*cp);
+      const endAmt=fmtNum(endQty*cp);
+      if(openQty||inQty||outQty||endQty>0){
+        rows.push({p,w,openQty,inQty,outQty,endQty,openAmt,inAmt,outAmt,endAmt,safe:p.safeQty||0});
+      }
+    });
+  });
+
+  const summaryEl=document.getElementById('sqSummary');
+  if(summaryEl){
+    const totalOpen=rows.reduce((s,r)=>s+r.openQty,0);
+    const totalIn=rows.reduce((s,r)=>s+r.inQty,0);
+    const totalOut=rows.reduce((s,r)=>s+r.outQty,0);
+    const totalEnd=rows.reduce((s,r)=>s+r.endQty,0);
+    const prodCount=[...new Set(rows.map(r=>r.p.id))].length;
+    summaryEl.style.display='flex';
+    summaryEl.innerHTML=
+      `<span>📅 ${dateFrom||dateTo?(dateFrom||'起始')+'～'+(dateTo||'今日'):'全部日期'}</span>`+
+      `<span>🔍 <strong>${prodCount}</strong> 种商品 / <strong>${rows.length}</strong> 条记录</span>`+
+      `<span>📦 期初：<strong>${totalOpen.toLocaleString()}</strong></span>`+
+      `<span>⬇️ 入库：<strong style="color:#1D9E75">${totalIn.toLocaleString()}</strong></span>`+
+      `<span>⬆️ 出库：<strong style="color:#E24B4A">${totalOut.toLocaleString()}</strong></span>`+
+      `<span>🏷 期末：<strong style="color:#185FA5">${totalEnd.toLocaleString()}</strong></span>`;
+  }
+
+  document.getElementById('sqTbl').innerHTML=rows.map(r=>{
+    const safe=r.safe||0;
+    const endStatus=r.endQty<=0?'badge-red':r.endQty<=safe?'badge-amber':'badge-green';
+    return `<tr>
+      <td>${r.p.code||'-'}</td>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.p.name||''}">${r.p.name||'-'}</td>
+      <td>${r.p.spec||'-'}</td>
+      <td>${r.p.unit||'-'}</td>
+      <td style="font-size:11px">${r.w.name}</td>
+      <td style="text-align:right">${r.openQty.toLocaleString()}</td>
+      <td style="text-align:right;font-size:11px;color:var(--color-text-secondary)">${fmtMoney(r.openAmt)}</td>
+      <td style="text-align:right">${r.inQty.toLocaleString()}</td>
+      <td style="text-align:right;font-size:11px;color:var(--color-text-secondary)">${fmtMoney(r.inAmt)}</td>
+      <td style="text-align:right">${r.outQty.toLocaleString()}</td>
+      <td style="text-align:right;font-size:11px;color:var(--color-text-secondary)">${fmtMoney(r.outAmt)}</td>
+      <td style="text-align:right;font-weight:600">${r.endQty.toLocaleString()}</td>
+      <td style="text-align:right;font-size:11px;font-weight:600;color:#185FA5">${fmtMoney(r.endAmt)}</td>
+      <td><span class="badge ${endStatus}">${r.endQty<=0?'零库存':r.endQty<=safe?'低库存':'正常'}</span></td>
+    </tr>`;
+  }).join('')||'<tr><td colspan="14" style="text-align:center;color:var(--color-text-tertiary)">暂无数据，请调整筛选条件</td></tr>';
+}
+
+function sqClearAll(){
+  ['sqCode','sqSearch','sqDateFrom','sqDateTo'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const wsel=document.getElementById('sqWh');if(wsel)wsel.value='';
+  renderSQ();
+}
+
+function exportSQExcel(){
+  if(typeof XLSX==='undefined'){showToast('Excel库加载中，请稍后重试','error');return;}
+  const code=(document.getElementById('sqCode')||{}).value.trim();
+  const q=(document.getElementById('sqSearch')||{}).value.trim();
+  const wf=(document.getElementById('sqWh')||{}).value||'';
+  const dateFrom=(document.getElementById('sqDateFrom')||{}).value||'';
+  const dateTo=(document.getElementById('sqDateTo')||{}).value||'';
+  const inRange=(d)=>{if(!d)return true;if(dateFrom&&d<dateFrom)return false;if(dateTo&&d>dateTo)return false;return true;};
+
+  let filteredProds=DB.products;
+  if(code) filteredProds=DB.products.filter(p=>p.code&&(p.code.toUpperCase()===code.toUpperCase()||p.code.toUpperCase().startsWith(code.toUpperCase())));
+  else if(q) filteredProds=DB.products.filter(p=>(p.code+p.name+(p.spec||'')).toLowerCase().includes(q.toLowerCase()));
+
+  const seen3=new Set();
+  const dedupWHs2=DB.warehouses.filter(w=>{if(seen3.has(w.name))return false;seen3.add(w.name);return true;});
+
+  const rows=[];
+  filteredProds.forEach(p=>{
+    const whs=wf?dedupWHs2.filter(w=>w.name===wf):dedupWHs2;
+    whs.forEach(w=>{
+      const wn=w.name;
+      let openQty=0,inQty=0,outQty=0;
+      DB.openstock.filter(s=>s.productId===p.id&&_whName(s.warehouseId)===wn).forEach(s=>openQty+=+s.qty||0);
+      DB.pr.filter(r=>r.status==='done'&&_whName(r.warehouseId)===wn&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
+      DB.otherIn.filter(r=>r.status==='done'&&_whName(r.warehouseId)===wn&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
+      DB.sreturn.filter(r=>r.status==='done'&&_whName(r.warehouseId)===wn&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
+      DB.assembly.filter(r=>r.status==='done'&&_whName(r.toWarehouseId||r.warehouseId)===wn&&inRange(r.date)).forEach(r=>{if(r.productId===p.id)inQty+=+r.qty||0;});
+      DB.transfer.filter(r=>r.status==='done'&&_whName(r.toWarehouseId)===wn&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)inQty+=+i.qty||0;}));
+      DB.sd.filter(r=>r.status==='done'&&_whName(r.warehouseId)===wn&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
+      DB.otherOut.filter(r=>r.status==='done'&&_whName(r.warehouseId)===wn&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
+      DB.preturn.filter(r=>r.status==='done'&&_whName(r.warehouseId)===wn&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
+      DB.assembly.filter(r=>r.status==='done'&&_whName(r.warehouseId)===wn&&inRange(r.date)).forEach(r=>r.materials&&r.materials.forEach(m=>{if(m.productId===p.id)outQty+=+m.qty||0;}));
+      DB.transfer.filter(r=>r.status==='done'&&_whName(r.fromWarehouseId)===wn&&inRange(r.date)).forEach(r=>r.items&&r.items.forEach(i=>{if(i.productId===p.id)outQty+=+i.qty||0;}));
+      const endQty=openQty+inQty-outQty;
+      if(openQty||inQty||outQty||endQty>0){
+        const ecp=p.costPrice||0;
+        rows.push({'商品编码':p.code,'商品名称':p.name,'规格型号':p.spec||'','计量单位':p.unit||'','仓库':wn,
+          '期初数量':openQty,'期初金额':fmtNum(openQty*ecp),
+          '入库数量':inQty,'入库金额':fmtNum(inQty*ecp),
+          '出库数量':outQty,'出库金额':fmtNum(outQty*ecp),
+          '期末数量':endQty,'期末金额':fmtNum(endQty*ecp),
+          '成本单价':fmtNum(ecp),'安全库存':p.safeQty||0,
+          '库存状态':endQty<(p.safeQty||0)?'低库存':'正常',
+          '查询区间':(dateFrom||'全部')+' 至 '+(dateTo||'今日')});
+      }
+    });
+  });
+
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.json_to_sheet(rows.length?rows:[{'说明':'暂无数据'}]);
+  ws['!cols']=[{wch:12},{wch:20},{wch:15},{wch:10},{wch:18},{wch:10},{wch:12},{wch:10},{wch:12},{wch:10},{wch:12},{wch:10},{wch:12},{wch:10},{wch:10},{wch:10},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,ws,'库存收发明细');
+  XLSX.writeFile(wb,`库存收发查询_${(dateFrom||'全部')}_至_${(dateTo||'今日')}.xlsx`);
+  showToast('库存收发明细已导出Excel','success');
+}
+
 
 init();
 </script>
