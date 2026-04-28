@@ -2027,7 +2027,13 @@ function renderPO(){
       tr+=`<td style="border-bottom:0.5px solid var(--color-border-tertiary)"><span class="badge badge-${r.arriveStatus==='done'?'green':r.arriveStatus==='partial'?'amber':'blue'}">${r.arriveStatus==='done'?'全部到货':r.arriveStatus==='partial'?'部分到货':'未到货'}</span></td>`;
       tr+=`<td style="border-bottom:0.5px solid var(--color-border-tertiary)"><span class="badge badge-${r.approved?'green':'amber'}">${r.approved?'已审核':'待审核'}</span></td>`;
       tr+=`<td style="font-size:10px;border-bottom:0.5px solid var(--color-border-tertiary)">${r.remark||'-'}</td>`;
-      tr+=`<td style="white-space:nowrap;border-bottom:0.5px solid var(--color-border-tertiary)">${r.approved&&r.arriveStatus!=='done'?`<button class="btn btn-warning" onclick="openGenPR('${r.id}')" style="font-size:10px">📥</button> `:''}{'${!r.approved&&(currentUser===\'admin\'||currentUser===\'finance\')?`<button class=\"btn btn-primary\" onclick=\"approvePO(\'${r.id}\')\">>审核</button> `:&#39;&#39;}<button class=\"btn\" onclick=\"viewBill(\'po\',\'${r.id}\')\">>查看</button> <button class=\"btn\" onclick=\"editRemark(\'po\',\'${r.id}\',renderPO)\">>备注</button> ${currentUser===\'admin\'?`<button class=\"btn btn-danger\" onclick=\"delBill(\'po\',\'${r.id}\',renderPO)\">>删除</button>`:&#39;&#39;}'}</td>`;
+      tr+=`<td style="white-space:nowrap;border-bottom:0.5px solid var(--color-border-tertiary)">`+
+      (r.approved&&r.arriveStatus!=='done'?`<button class="btn btn-warning" onclick="openGenPR('${r.id}')" style="font-size:10px">📥 入库单</button> `:'')+
+      (!r.approved&&(currentUser==='admin'||currentUser==='finance')?`<button class="btn btn-primary" onclick="approvePO('${r.id}')">审核</button> `:'')+
+      `<button class="btn" onclick="viewBill('po','${r.id}')">查看</button> `+
+      `<button class="btn" onclick="editRemark('po','${r.id}',renderPO)">备注</button> `+
+      (currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('po','${r.id}',renderPO)">删除</button>`:'')+
+      `</td>`;
       tr+='</tr>';
       rows.push(tr);
     });
@@ -2101,7 +2107,13 @@ function renderSO(){
       tr+=`<td style="border-bottom:0.5px solid var(--color-border-tertiary)"><span class="badge badge-${r.shipStatus==='done'?'green':r.shipStatus==='partial'?'amber':'blue'}">${r.shipStatus==='done'?'全部发货':r.shipStatus==='partial'?'部分发货':'未发货'}</span></td>`;
       tr+=`<td style="border-bottom:0.5px solid var(--color-border-tertiary)"><span class="badge badge-${r.approved?'green':'amber'}">${r.approved?'已审核':'待审核'}</span></td>`;
       tr+=`<td style="font-size:10px;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary)">${r.remark||'-'}</td>`;
-      tr+=`<td style="white-space:nowrap;border-bottom:0.5px solid var(--color-border-tertiary)">${r.approved&&r.shipStatus!=='done'?`<button class="btn btn-warning" onclick="openGenSD('${r.id}')" style="font-size:10px">📤 出库单</button> `:''}{'${!r.approved&&(currentUser===\'admin\'||currentUser===\'finance\')?`<button class=\"btn btn-primary\" onclick=\"approveSO(\'${r.id}\')\">>审核</button> `:&#39;&#39;}<button class=\"btn\" onclick=\"viewBill(\'so\',\'${r.id}\')\">>查看</button> <button class=\"btn\" onclick=\"editRemark(\'so\',\'${r.id}\',renderSO)\">>备注</button> ${currentUser===\'admin\'?`<button class=\"btn btn-danger\" onclick=\"delBill(\'so\',\'${r.id}\',renderSO)\">>删除</button>`:&#39;&#39;}'}</td>`;
+      tr+=`<td style="white-space:nowrap;border-bottom:0.5px solid var(--color-border-tertiary)">`+
+      (r.approved&&r.shipStatus!=='done'?`<button class="btn btn-warning" onclick="openGenSD('${r.id}')" style="font-size:10px">📤 出库单</button> `:'')+
+      (!r.approved&&(currentUser==='admin'||currentUser==='finance')?`<button class="btn btn-primary" onclick="approveSO('${r.id}')">审核</button> `:'')+
+      `<button class="btn" onclick="viewBill('so','${r.id}')">查看</button> `+
+      `<button class="btn" onclick="editRemark('so','${r.id}',renderSO)">备注</button> `+
+      (currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('so','${r.id}',renderSO)">删除</button>`:'')+
+      `</td>`;
       tr+='</tr>';
       rows.push(tr);
     });
