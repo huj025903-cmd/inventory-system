@@ -5369,6 +5369,496 @@ function ooApplyFilter(){
 function renderOO(){ ooApplyFilter(); }
 
 
+// ── 审核采购订单 ──
+function approvePO(id){
+  const r=DB.po.find(x=>x.id===id);
+  if(!r){showToast('找不到采购订单','error');return;}
+  r.approved=true;
+  saveStore('po').then(()=>{renderPO();writeLog('审核','采购','审核采购订单 '+r.no);showToast('采购订单已审核');});
+}
+
+// ── 审核销售订单 ──
+function approveSO(id){
+  const r=DB.so.find(x=>x.id===id);
+  if(!r){showToast('找不到销售订单','error');return;}
+  r.approved=true;
+  saveStore('so').then(()=>{renderSO();writeLog('审核','销售','审核销售订单 '+r.no);showToast('销售订单已审核');});
+}
+
+// ── 加载 Supabase 数据 ──
+async function loadStore(storeName){
+  try{
+    const res=await sbFetch('/rest/v1/inventory_store?store_name=eq.'+storeName+'&select=data');
+    if(res&&res.length&&res[0].data){
+      if(Array.isArray(res[0].data)) DB[storeName]=res[0].data;
+    }
+  }catch(e){console.warn('loadStore failed:',storeName,e);}
+}
+
+// ── 编辑 BOM ──
+function editBOM(id){
+  const b=DB.bom.find(x=>x.id===id);
+  if(!b){showToast('找不到BOM','error');return;}
+  const p=DB.products.find(x=>x.id===b.productId)||{};
+  const mc=document.getElementById('modalContainer');
+  const matRows=(b.materials||[]).map((m,idx)=>{
+    const mp=DB.products.find(x=>x.id===m.productId)||{};
+    return `<tr class="bom-edit-row" data-idx="${idx}">
+      <td style="padding:5px 8px;font-size:11px">${mp.code||'-'}</td>
+      <td style="padding:5px 8px;font-size:11px">${mp.name||m.productId}</td>
+      <td style="padding:5px 8px"><input type="hidden" class="bom-pid" value="${m.productId}">
+        <input type="number" class="bom-qty" value="${m.qty}" min="0" step="0.01"
+          style="width:80px;border:1px solid var(--color-border-secondary);border-radius:4px;padding:3px 6px;font-size:11px;text-align:right">
+      </td>
+      <td style="padding:5px 8px;text-align:center">
+        <button onclick="this.closest('tr').remove()" style="background:none;border:none;cursor:pointer;color:#E24B4A;font-size:14px">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+  mc.innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal" style="width:600px;max-width:96%">
+      <div class="modal-header"><span>✏ 编辑BOM — ${p.code||''} ${p.name||''}</span><button class="btn" onclick="closeModal()">✕</button></div>
+      <div class="modal-body">
+        <div class="form-row c3" style="margin-bottom:12px">
+          <div class="form-group"><label>版本</label><input id="beVer" value="${b.version||'V1.0'}" style="width:100%"></div>
+          <div class="form-group"><label>标准产量</label><input id="beQty" type="number" value="${b.stdQty||1}" style="width:100%"></div>
+          <div class="form-group"><label>状态</label>
+            <select id="beActive" style="width:100%">
+              <option value="1" ${b.active!==false?'selected':''}>启用</option>
+              <option value="0" ${b.active===false?'selected':''}>禁用</option>
+            </select>
+          </div>
+        </div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px">物料清单</div>
+        <div style="border:1px solid var(--color-border-secondary);border-radius:6px;overflow:hidden;max-height:320px;overflow-y:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:11px">
+            <thead><tr style="background:var(--color-background-tertiary)">
+              <th style="padding:7px 8px">商品编码</th><th style="padding:7px 8px">物料名称</th>
+              <th style="padding:7px 8px;text-align:right">用量</th><th style="padding:7px 8px;width:40px"></th>
+            </tr></thead>
+            <tbody id="bomEditTbl">${matRows}</tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveBOMEdit('${id}')">💾 保存</button>
+      </div>
+    </div>
+  </div>`;
+  mc.style.pointerEvents='all';
+}
+
+function saveBOMEdit(id){
+  const b=DB.bom.find(x=>x.id===id);
+  if(!b) return;
+  b.version=(document.getElementById('beVer')||{}).value||'V1.0';
+  b.stdQty=parseFloat((document.getElementById('beQty')||{}).value)||1;
+  b.active=(document.getElementById('beActive')||{}).value==='1';
+  const rows=document.querySelectorAll('#bomEditTbl .bom-edit-row');
+  b.materials=Array.from(rows).map(row=>({
+    productId:row.querySelector('.bom-pid').value,
+    qty:parseFloat(row.querySelector('.bom-qty').value)||0
+  })).filter(m=>m.productId&&m.qty>0);
+  saveStore('bom').then(()=>{closeModal();renderBOM();showToast('✓ BOM已保存');});
+}
+
+// ── 编辑组装单 ──
+function editAssembly(id){
+  const r=DB.assembly.find(x=>x.id===id);
+  if(!r){showToast('找不到组装单','error');return;}
+  const prod=DB.products.find(x=>x.id===r.productId)||{};
+  const mc=document.getElementById('modalContainer');
+  const matRows=(r.materials||[]).map((m,idx)=>{
+    const mp=DB.products.find(x=>x.id===m.productId)||{};
+    const stock=getStock(m.productId,r.warehouseId);
+    return `<tr class="asm-edit-row" data-idx="${idx}">
+      <td style="padding:5px 8px;font-size:11px">${mp.code||'-'}</td>
+      <td style="padding:5px 8px;font-size:11px">${mp.name||m.productId}</td>
+      <td style="padding:5px 8px"><input type="hidden" class="asm-edit-pid" value="${m.productId}">
+        <input type="number" class="asm-edit-qty" value="${m.qty}" min="0" step="0.01"
+          style="width:80px;border:1px solid var(--color-border-secondary);border-radius:4px;padding:3px 6px;font-size:11px;text-align:right">
+      </td>
+      <td style="padding:5px 8px;text-align:right;font-size:11px;color:var(--color-text-secondary)">${stock.toLocaleString()}</td>
+      <td style="padding:5px 8px;text-align:center">
+        <button onclick="this.closest('tr').remove()" style="background:none;border:none;cursor:pointer;color:#E24B4A;font-size:14px">✕</button>
+      </td>
+    </tr>`;
+  }).join('');
+  mc.innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal" style="width:640px;max-width:96%">
+      <div class="modal-header"><span>✏ 编辑组装单 — ${r.no}</span><button class="btn" onclick="closeModal()">✕</button></div>
+      <div class="modal-body">
+        <div class="form-row c3" style="margin-bottom:12px">
+          <div class="form-group"><label>成品</label><input value="${prod.code||''} ${prod.name||''}" disabled style="width:100%;background:var(--color-background-secondary)"></div>
+          <div class="form-group"><label>组装数量</label><input id="aeQty" type="number" value="${r.qty||1}" style="width:100%"></div>
+          <div class="form-group"><label>经办人</label><input id="aeHandler" value="${r.handler||''}" style="width:100%"></div>
+        </div>
+        <div class="form-row c2" style="margin-bottom:12px">
+          <div class="form-group"><label>日期</label><input id="aeDate" type="date" value="${r.date||''}" style="width:100%"></div>
+          <div class="form-group"><label>备注</label><input id="aeRemark" value="${r.remark||''}" style="width:100%"></div>
+        </div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px">物料清单</div>
+        <div style="border:1px solid var(--color-border-secondary);border-radius:6px;overflow:hidden;max-height:300px;overflow-y:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:11px">
+            <thead><tr style="background:var(--color-background-tertiary)">
+              <th style="padding:7px 8px">商品编码</th><th style="padding:7px 8px">物料名称</th>
+              <th style="padding:7px 8px;text-align:right">用量</th>
+              <th style="padding:7px 8px;text-align:right">当前库存</th>
+              <th style="padding:7px 8px;width:40px"></th>
+            </tr></thead>
+            <tbody id="asmEditTbl">${matRows}</tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveAssemblyEdit('${id}')">💾 保存</button>
+      </div>
+    </div>
+  </div>`;
+  mc.style.pointerEvents='all';
+}
+
+function saveAssemblyEdit(id){
+  const r=DB.assembly.find(x=>x.id===id);
+  if(!r) return;
+  r.qty=parseFloat((document.getElementById('aeQty')||{}).value)||r.qty;
+  r.handler=(document.getElementById('aeHandler')||{}).value||'';
+  r.date=(document.getElementById('aeDate')||{}).value||r.date;
+  r.remark=(document.getElementById('aeRemark')||{}).value||'';
+  const rows=document.querySelectorAll('#asmEditTbl .asm-edit-row');
+  r.materials=Array.from(rows).map(row=>({
+    productId:row.querySelector('.asm-edit-pid').value,
+    qty:parseFloat(row.querySelector('.asm-edit-qty').value)||0
+  })).filter(m=>m.productId&&m.qty>0);
+  saveStore('assembly').then(()=>{closeModal();renderASM();renderDashboard();showToast('✓ 组装单已保存');});
+}
+
+// ── 保存调拨单 ──
+function saveTransfer(){
+  const fromWH=(document.getElementById('ftfrom')||{}).value;
+  const toWH=(document.getElementById('ftto')||{}).value;
+  if(!fromWH){showToast('请选择调出仓库','error');return;}
+  if(!toWH){showToast('请选择调入仓库','error');return;}
+  if(fromWH===toWH){showToast('调出和调入仓库不能相同','error');return;}
+  const items=getEditableItems('transferLines');
+  if(!items.length){showToast('请添加调拨明细','error');return;}
+  const totalAmt=items.reduce((s,i)=>s+fmtNum(i.total),0);
+  DB.transfer.push({
+    id:gid(),no:gno('TF'),
+    fromWarehouseId:fromWH,toWarehouseId:toWH,
+    handler:(document.getElementById('fthandler')||{}).value||'',
+    date:(document.getElementById('ftd')||{}).value,
+    remark:(document.getElementById('ftremark')||{}).value||'',
+    items,totalAmt,status:'done'
+  });
+  saveStore('transfer').then(()=>{
+    closeModal();renderTransfer();renderDashboard();
+    writeLog('新建','调拨','新建调拨单');showToast('✓ 调拨单已保存并生效');
+  });
+}
+
+// ── 打印调拨单 ──
+function printTransfer(id){
+  const r=DB.transfer.find(x=>x.id===id);
+  if(!r) return;
+  const key='inv_print_'+Date.now();
+  const d=getMoneyDecimals();
+  const fm=v=>'¥'+(+v||0).toFixed(d);
+  const thS='background:#f0f0f0;padding:7px 10px;font-weight:600;border:1px solid #ccc;font-size:11px;';
+  const tdS='padding:6px 10px;border:1px solid #ddd;font-size:11px;vertical-align:top;';
+  const tdRS=tdS+'text-align:right;';
+  const rows=(r.items||[]).map((i,idx)=>{
+    const p=DB.products.find(x=>x.id===i.productId)||{};
+    return '<tr>'
+      +'<td style="'+tdS+'">'+(idx+1)+'</td>'
+      +'<td style="'+tdS+'">'+(p.code||'-')+'</td>'
+      +'<td style="'+tdS+'">'+(p.name||'-')+'</td>'
+      +'<td style="'+tdS+'">'+(p.spec||'-')+'</td>'
+      +'<td style="'+tdS+'">'+(p.unit||'-')+'</td>'
+      +'<td style="'+tdRS+'">'+i.qty+'</td>'
+      +'<td style="'+tdRS+'">'+fm(i.price)+'</td>'
+      +'<td style="'+tdRS+'">'+fm(i.total)+'</td>'
+      +'</tr>';
+  }).join('');
+  window[key]='<div style="text-align:center;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #333">'
+    +'<div style="font-size:18px;font-weight:700;letter-spacing:2px;margin-bottom:4px">库存调拨单</div>'
+    +'<div style="font-size:10px;color:#888">单号：<strong>'+r.no+'</strong></div>'
+    +'</div>'
+    +'<table style="width:100%;border-collapse:collapse;margin-bottom:8px"><tr>'
+    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;width:80px;background:#fafafa;font-weight:500">调出仓库</td>'
+    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;font-weight:600">'+wname(r.fromWarehouseId)+'</td>'
+    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;width:80px;background:#fafafa;font-weight:500">调入仓库</td>'
+    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;font-weight:600">'+wname(r.toWarehouseId)+'</td>'
+    +'</tr></table>'
+    +'<table style="width:100%;border-collapse:collapse;margin-top:10px"><thead><tr>'
+    +'<th style="'+thS+'">序号</th><th style="'+thS+'">商品编码</th><th style="'+thS+'">商品名称</th>'
+    +'<th style="'+thS+'">规格</th><th style="'+thS+'">单位</th>'
+    +'<th style="'+thS+'text-align:right">数量</th><th style="'+thS+'text-align:right">单价</th><th style="'+thS+'text-align:right">金额</th>'
+    +'</tr></thead><tbody>'+rows
+    +'<tr><td colspan="7" style="'+tdRS+'font-weight:700">合计</td><td style="'+tdRS+'font-weight:700">'+fm(r.totalAmt)+'</td></tr>'
+    +'</tbody></table>';
+  openPrintWindow(key,'库存调拨单',r.no);
+}
+
+// ── 审核销售订单 ──
+function approveSO(id){
+  const r=DB.so.find(x=>x.id===id);
+  if(!r){showToast('找不到订单','error');return;}
+  if(r.approved){showToast('已审核','error');return;}
+  r.approved=true;
+  saveStore('so').then(()=>{
+    renderSO();
+    writeLog('审核','销售','审核销售订单 '+r.no);
+    showToast('✓ 销售订单已审核');
+  });
+}
+
+// ── 审核采购订单 ──
+function approvePO(id){
+  const r=DB.po.find(x=>x.id===id);
+  if(!r){showToast('找不到订单','error');return;}
+  if(r.approved){showToast('已审核','error');return;}
+  r.approved=true;
+  saveStore('po').then(()=>{
+    renderPO();
+    writeLog('审核','采购','审核采购订单 '+r.no);
+    showToast('✓ 采购订单已审核');
+  });
+}
+
+// ── 编辑 BOM 表 ──
+function editBOM(id){
+  const b=DB.bom.find(x=>x.id===id);
+  if(!b){showToast('找不到BOM','error');return;}
+  const p=DB.products.find(x=>x.id===b.productId)||{};
+  const mc=document.getElementById('modalContainer');
+  const matRows=(b.materials||[]).map((m,idx)=>{
+    const mp=DB.products.find(x=>x.id===m.productId)||{};
+    return `<tr class="bom-edit-row" data-idx="${idx}">
+      <td style="padding:5px 8px;font-size:11px">${mp.code||'-'}</td>
+      <td style="padding:5px 8px;font-size:11px">${mp.name||m.productId}</td>
+      <td style="padding:5px 8px"><input type="hidden" class="bom-pid" value="${m.productId}">
+        <input type="number" class="bom-qty" value="${m.qty}" min="0" step="0.01"
+          style="width:80px;border:1px solid var(--color-border-secondary);border-radius:4px;padding:3px 6px;font-size:11px;text-align:right">
+      </td>
+      <td style="padding:5px 8px;text-align:center">
+        <button onclick="this.closest('tr').remove()" style="background:none;border:none;cursor:pointer;color:#E24B4A;font-size:14px">✕</button>
+      </td></tr>`;
+  }).join('');
+  mc.innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal" style="width:600px;max-width:96%">
+      <div class="modal-header"><span>✏ 编辑BOM — ${p.code||''} ${p.name||''}</span><button class="btn" onclick="closeModal()">✕</button></div>
+      <div class="modal-body">
+        <div class="form-row c3" style="margin-bottom:12px">
+          <div class="form-group"><label>版本</label><input id="beVer" value="${b.version||'V1.0'}" style="width:100%"></div>
+          <div class="form-group"><label>标准产量</label><input id="beQty" type="number" value="${b.stdQty||1}" style="width:100%"></div>
+          <div class="form-group"><label>状态</label>
+            <select id="beActive" style="width:100%">
+              <option value="1" ${b.active!==false?'selected':''}>启用</option>
+              <option value="0" ${b.active===false?'selected':''}>禁用</option>
+            </select>
+          </div>
+        </div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px">物料清单</div>
+        <div style="border:1px solid var(--color-border-secondary);border-radius:6px;overflow:hidden;max-height:320px;overflow-y:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:11px">
+            <thead><tr style="background:var(--color-background-tertiary)">
+              <th style="padding:7px 8px">商品编码</th><th style="padding:7px 8px">物料名称</th>
+              <th style="padding:7px 8px;text-align:right">用量</th><th style="padding:7px 8px;width:40px"></th>
+            </tr></thead>
+            <tbody id="bomEditTbl">${matRows}</tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveBOMEdit('${id}')">💾 保存</button>
+      </div>
+    </div>
+  </div>`;
+  mc.style.pointerEvents='all';
+}
+
+function saveBOMEdit(id){
+  const b=DB.bom.find(x=>x.id===id);
+  if(!b) return;
+  b.version=(document.getElementById('beVer')||{}).value||'V1.0';
+  b.stdQty=parseFloat((document.getElementById('beQty')||{}).value)||1;
+  b.active=(document.getElementById('beActive')||{}).value==='1';
+  const rows=document.querySelectorAll('#bomEditTbl .bom-edit-row');
+  b.materials=Array.from(rows).map(row=>({
+    productId:row.querySelector('.bom-pid').value,
+    qty:parseFloat(row.querySelector('.bom-qty').value)||0
+  })).filter(m=>m.productId&&m.qty>0);
+  saveStore('bom').then(()=>{closeModal();renderBOM();showToast('✓ BOM已保存');});
+}
+
+// ── 编辑组装单 ──
+function editAssembly(id){
+  const r=DB.assembly.find(x=>x.id===id);
+  if(!r){showToast('找不到组装单','error');return;}
+  const prod=DB.products.find(x=>x.id===r.productId)||{};
+  const mc=document.getElementById('modalContainer');
+  const matRows=(r.materials||[]).map((m,idx)=>{
+    const mp=DB.products.find(x=>x.id===m.productId)||{};
+    const stock=getStock(m.productId,r.warehouseId);
+    return `<tr class="asm-edit-row" data-idx="${idx}">
+      <td style="padding:5px 8px;font-size:11px">${mp.code||'-'}</td>
+      <td style="padding:5px 8px;font-size:11px">${mp.name||m.productId}</td>
+      <td style="padding:5px 8px"><input type="hidden" class="asm-edit-pid" value="${m.productId}">
+        <input type="number" class="asm-edit-qty" value="${m.qty}" min="0" step="0.01"
+          style="width:80px;border:1px solid var(--color-border-secondary);border-radius:4px;padding:3px 6px;font-size:11px;text-align:right">
+      </td>
+      <td style="padding:5px 8px;text-align:right;font-size:11px;color:var(--color-text-secondary)">${stock.toLocaleString()}</td>
+      <td style="padding:5px 8px;text-align:center">
+        <button onclick="this.closest('tr').remove()" style="background:none;border:none;cursor:pointer;color:#E24B4A;font-size:14px">✕</button>
+      </td></tr>`;
+  }).join('');
+  mc.innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal" style="width:640px;max-width:96%">
+      <div class="modal-header"><span>✏ 编辑组装单 — ${r.no}</span><button class="btn" onclick="closeModal()">✕</button></div>
+      <div class="modal-body">
+        <div class="form-row c3" style="margin-bottom:12px">
+          <div class="form-group"><label>成品</label><input value="${prod.code||''} ${prod.name||''}" disabled style="width:100%;background:var(--color-background-secondary)"></div>
+          <div class="form-group"><label>组装数量</label><input id="aeQty" type="number" value="${r.qty||1}" style="width:100%"></div>
+          <div class="form-group"><label>经办人</label><input id="aeHandler" value="${r.handler||''}" style="width:100%"></div>
+        </div>
+        <div class="form-row c2" style="margin-bottom:12px">
+          <div class="form-group"><label>日期</label><input id="aeDate" type="date" value="${r.date||''}" style="width:100%"></div>
+          <div class="form-group"><label>备注</label><input id="aeRemark" value="${r.remark||''}" style="width:100%"></div>
+        </div>
+        <div style="font-size:12px;font-weight:600;margin-bottom:8px">物料清单（可修改用量、删除行）</div>
+        <div style="border:1px solid var(--color-border-secondary);border-radius:6px;overflow:hidden;max-height:300px;overflow-y:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:11px">
+            <thead><tr style="background:var(--color-background-tertiary)">
+              <th style="padding:7px 8px">商品编码</th><th style="padding:7px 8px">物料名称</th>
+              <th style="padding:7px 8px;text-align:right">用量</th>
+              <th style="padding:7px 8px;text-align:right">当前库存</th>
+              <th style="padding:7px 8px;width:40px"></th>
+            </tr></thead>
+            <tbody id="asmEditTbl">${matRows}</tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" onclick="closeModal()">取消</button>
+        <button class="btn btn-primary" onclick="saveAssemblyEdit('${id}')">💾 保存</button>
+      </div>
+    </div>
+  </div>`;
+  mc.style.pointerEvents='all';
+}
+
+function saveAssemblyEdit(id){
+  const r=DB.assembly.find(x=>x.id===id);
+  if(!r) return;
+  r.qty=parseFloat((document.getElementById('aeQty')||{}).value)||r.qty;
+  r.handler=(document.getElementById('aeHandler')||{}).value||'';
+  r.date=(document.getElementById('aeDate')||{}).value||r.date;
+  r.remark=(document.getElementById('aeRemark')||{}).value||'';
+  const rows=document.querySelectorAll('#asmEditTbl .asm-edit-row');
+  r.materials=Array.from(rows).map(row=>({
+    productId:row.querySelector('.asm-edit-pid').value,
+    qty:parseFloat(row.querySelector('.asm-edit-qty').value)||0
+  })).filter(m=>m.productId&&m.qty>0);
+  saveStore('assembly').then(()=>{closeModal();renderASM();renderDashboard();showToast('✓ 组装单已保存');});
+}
+
+// ── 调拨单打印 ──
+function printTransfer(id){
+  const r=DB.transfer.find(x=>x.id===id);
+  if(!r) return;
+  const rows=(r.items||[]).map((i,idx)=>{
+    const p=DB.products.find(x=>x.id===i.productId)||{};
+    const ts='padding:6px 10px;border:1px solid #ddd;font-size:11px;';
+    return '<tr>'
+      +'<td style="'+ts+'">'+(idx+1)+'</td>'
+      +'<td style="'+ts+'">'+(p.code||'-')+'</td>'
+      +'<td style="'+ts+'">'+(p.name||'-')+'</td>'
+      +'<td style="'+ts+'">'+(p.spec||'-')+'</td>'
+      +'<td style="'+ts+'">'+(p.unit||'-')+'</td>'
+      +'<td style="'+ts+'text-align:right">'+(i.qty||0)+'</td>'
+      +'<td style="'+ts+'text-align:right">'+fmtMoney(i.price||0)+'</td>'
+      +'<td style="'+ts+'text-align:right">'+fmtMoney(i.total||0)+'</td>'
+      +'</tr>';
+  }).join('');
+  const key='inv_transfer_'+Date.now();
+  window[key]='<div style="text-align:center;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid #333">'
+    +'<div style="font-size:18px;font-weight:700;letter-spacing:2px;margin-bottom:4px">库存调拨单</div>'
+    +'<div style="font-size:10px;color:#888">单号：<strong>'+r.no+'</strong> &nbsp;|&nbsp; 打印时间：'+new Date().toLocaleString('zh-CN')+'</div>'
+    +'</div>'
+    +'<table style="width:100%;border-collapse:collapse;margin-bottom:8px"><tr>'
+    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;background:#fafafa;font-weight:500;width:80px">调出仓库</td>'
+    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;font-weight:600">'+wname(r.fromWarehouseId)+'</td>'
+    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;background:#fafafa;font-weight:500;width:80px">调入仓库</td>'
+    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;font-weight:600">'+wname(r.toWarehouseId)+'</td>'
+    +'</tr><tr>'
+    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;background:#fafafa;font-weight:500">经办人</td>'
+    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;font-weight:600">'+(r.handler||'-')+'</td>'
+    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;background:#fafafa;font-weight:500">日期</td>'
+    +'<td style="padding:5px 10px;border:0.5px solid #e0e0e0;font-size:11px;font-weight:600">'+(r.date||'-')+'</td>'
+    +'</tr></table>'
+    +'<table style="width:100%;border-collapse:collapse"><thead><tr>'
+    +'<th style="background:#f0f0f0;padding:7px 10px;font-weight:600;border:1px solid #ccc;font-size:11px">序号</th>'
+    +'<th style="background:#f0f0f0;padding:7px 10px;font-weight:600;border:1px solid #ccc;font-size:11px">商品编码</th>'
+    +'<th style="background:#f0f0f0;padding:7px 10px;font-weight:600;border:1px solid #ccc;font-size:11px">商品名称</th>'
+    +'<th style="background:#f0f0f0;padding:7px 10px;font-weight:600;border:1px solid #ccc;font-size:11px">规格</th>'
+    +'<th style="background:#f0f0f0;padding:7px 10px;font-weight:600;border:1px solid #ccc;font-size:11px">单位</th>'
+    +'<th style="background:#f0f0f0;padding:7px 10px;font-weight:600;border:1px solid #ccc;font-size:11px;text-align:right">数量</th>'
+    +'<th style="background:#f0f0f0;padding:7px 10px;font-weight:600;border:1px solid #ccc;font-size:11px;text-align:right">单价</th>'
+    +'<th style="background:#f0f0f0;padding:7px 10px;font-weight:600;border:1px solid #ccc;font-size:11px;text-align:right">金额</th>'
+    +'</tr></thead><tbody>'+rows
+    +'<tr><td colspan="7" style="padding:6px 10px;border:1px solid #ddd;font-size:11px;text-align:right;font-weight:700">合计</td>'
+    +'<td style="padding:6px 10px;border:1px solid #ddd;font-size:11px;text-align:right;font-weight:700;font-size:13px">'+fmtMoney(r.totalAmt)+'</td></tr>'
+    +'</tbody></table>'
+    +'<div style="margin-top:28px;border-top:1px solid #ddd;padding-top:14px;display:flex;justify-content:space-between;font-size:11px">'
+    +'<span>制单人：<span style="display:inline-block;width:110px;border-bottom:1px solid #999">&nbsp;</span></span>'
+    +'<span>审核人：<span style="display:inline-block;width:110px;border-bottom:1px solid #999">&nbsp;</span></span>'
+    +'<span>收货人：<span style="display:inline-block;width:110px;border-bottom:1px solid #999">&nbsp;</span></span>'
+    +'</div>';
+  openPrintWindow(key,'库存调拨单',r.no);
+}
+
+// ── 保存调拨单 ──
+function saveTransfer(){
+  const fromWH=(document.getElementById('ftfrom')||{}).value;
+  const toWH=(document.getElementById('ftto')||{}).value;
+  if(!fromWH){showToast('请选择调出仓库','error');return;}
+  if(!toWH){showToast('请选择调入仓库','error');return;}
+  if(fromWH===toWH){showToast('调出和调入仓库不能相同','error');return;}
+  const items=getEditableItems('transferLines');
+  if(!items.length){showToast('请添加调拨明细','error');return;}
+  const totalAmt=items.reduce((s,i)=>s+fmtNum(i.total),0);
+  DB.transfer.push({id:gid(),no:gno('TF'),fromWarehouseId:fromWH,toWarehouseId:toWH,
+    handler:(document.getElementById('fthandler')||{}).value||'',
+    date:(document.getElementById('ftd')||{}).value,
+    remark:(document.getElementById('ftremark')||{}).value||'',
+    items,totalAmt,status:'done'});
+  saveStore('transfer');closeModal();renderTransfer();renderDashboard();
+  writeLog('新建','调拨','新建调拨单');
+  showToast('✓ 调拨单已保存并生效');
+}
+
+// ── 商品编号自动填入 ──
+function autoFillCode(input){
+  const val=(input||{}).value||'';
+  if(!val) return;
+  const p=DB.products.find(x=>x.code&&x.code.toLowerCase()===val.toLowerCase());
+  if(p){
+    const row=input.closest('.code-line-row');
+    if(row){
+      const nameEl=row.querySelector('.pi-n');
+      const priceEl=row.querySelector('.pi-r');
+      if(nameEl) nameEl.value=p.name+(p.spec?' '+p.spec:'');
+      if(priceEl&&(!priceEl.value||priceEl.value==='0')) priceEl.value=p.costPrice||0;
+    }
+  }
+}
+
+
+
 init();
 </script>
 </body>
