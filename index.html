@@ -658,7 +658,12 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
               <button class="btn btn-primary" onclick="openModal('transfer')">+ 新建调拨单</button>
             </div>
           </div>
-          <div class="table-wrap">
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;background:var(--color-background-secondary);border-bottom:1px solid var(--color-border-secondary);border-radius:8px 8px 0 0"><input id="poFltFrom" type="date" onchange="poApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px"><span style="font-size:12px;color:var(--color-text-secondary);margin:0 2px">至</span><input id="poFltTo" type="date" onchange="poApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px"><input id="poFltQ" type="text" placeholder="商品名称/编号" oninput="poApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 10px;font-size:12px;width:160px"><select id="poFltWh" onchange="poApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><option value="">全部仓库</option></select><button onclick="document.getElementById('poFltFrom').value='';document.getElementById('poFltTo').value='';document.getElementById('poFltQ').value='';document.getElementById('poFltWh').value='';poApplyFilter()" style="height:32px;padding:0 14px;border-radius:6px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary)">重置</button><div id="poSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5"></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;background:var(--color-background-secondary);border-bottom:1px solid var(--color-border-secondary);border-radius:8px 8px 0 0"><input id="prFltFrom" type="date" onchange="prApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px"><span style="font-size:12px;color:var(--color-text-secondary);margin:0 2px">至</span><input id="prFltTo" type="date" onchange="prApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px"><input id="prFltQ" type="text" placeholder="商品名称/编号" oninput="prApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 10px;font-size:12px;width:160px"><select id="prFltWh" onchange="prApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><option value="">全部仓库</option></select><button onclick="document.getElementById('prFltFrom').value='';document.getElementById('prFltTo').value='';document.getElementById('prFltQ').value='';document.getElementById('prFltWh').value='';prApplyFilter()" style="height:32px;padding:0 14px;border-radius:6px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary)">重置</button><div id="prSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5"></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;background:var(--color-background-secondary);border-bottom:1px solid var(--color-border-secondary);border-radius:8px 8px 0 0"><input id="soFltFrom" type="date" onchange="soApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px"><span style="font-size:12px;color:var(--color-text-secondary);margin:0 2px">至</span><input id="soFltTo" type="date" onchange="soApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px"><input id="soFltQ" type="text" placeholder="商品名称/编号" oninput="soApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 10px;font-size:12px;width:160px"><select id="soFltWh" onchange="soApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><option value="">全部仓库</option></select><button onclick="document.getElementById('soFltFrom').value='';document.getElementById('soFltTo').value='';document.getElementById('soFltQ').value='';document.getElementById('soFltWh').value='';soApplyFilter()" style="height:32px;padding:0 14px;border-radius:6px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary)">重置</button><div id="soSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5"></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;background:var(--color-background-secondary);border-bottom:1px solid var(--color-border-secondary);border-radius:8px 8px 0 0"><input id="sdFltFrom" type="date" onchange="sdApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px"><span style="font-size:12px;color:var(--color-text-secondary);margin:0 2px">至</span><input id="sdFltTo" type="date" onchange="sdApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px"><input id="sdFltQ" type="text" placeholder="商品名称/编号" oninput="sdApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 10px;font-size:12px;width:160px"><select id="sdFltWh" onchange="sdApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><option value="">全部仓库</option></select><button onclick="document.getElementById('sdFltFrom').value='';document.getElementById('sdFltTo').value='';document.getElementById('sdFltQ').value='';document.getElementById('sdFltWh').value='';sdApplyFilter()" style="height:32px;padding:0 14px;border-radius:6px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary)">重置</button><div id="sdSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5"></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;background:var(--color-background-secondary);border-bottom:1px solid var(--color-border-secondary);border-radius:8px 8px 0 0"><input id="oiFltFrom" type="date" onchange="oiApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px"><span style="font-size:12px;color:var(--color-text-secondary);margin:0 2px">至</span><input id="oiFltTo" type="date" onchange="oiApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px"><input id="oiFltQ" type="text" placeholder="商品名称/编号" oninput="oiApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 10px;font-size:12px;width:160px"><select id="oiFltWh" onchange="oiApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><option value="">全部仓库</option></select><button onclick="document.getElementById('oiFltFrom').value='';document.getElementById('oiFltTo').value='';document.getElementById('oiFltQ').value='';document.getElementById('oiFltWh').value='';oiApplyFilter()" style="height:32px;padding:0 14px;border-radius:6px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary)">重置</button><div id="oiSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5"></div></div>
+      <div class="table-wrap">
             <table><thead><tr>
               <th style="width:32px"><input type="checkbox" onclick="toggleAllCheck('transfer',this)" title="全选"></th>
               <th>调拨单号</th><th>调出仓库</th><th>调入仓库</th><th>经办人</th><th>日期</th>
@@ -674,6 +679,7 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
       <div class="page" id="page-otherOut">
         <div class="card">
           <div class="card-header"><div class="card-title">其他出库单</div><div style="display:flex;gap:6px"><button class="btn btn-success" onclick="exportExcel('otherOut')">📊 导出Excel</button><button class="btn btn-primary" onclick="openModal('otherOut')">+ 新建</button></div></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;background:var(--color-background-secondary);border-bottom:1px solid var(--color-border-secondary);border-radius:8px 8px 0 0"><input id="ooFltFrom" type="date" onchange="ooApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px"><span style="font-size:12px;color:var(--color-text-secondary);margin:0 2px">至</span><input id="ooFltTo" type="date" onchange="ooApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px"><input id="ooFltQ" type="text" placeholder="商品名称/编号" oninput="ooApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 10px;font-size:12px;width:160px"><select id="ooFltWh" onchange="ooApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><option value="">全部仓库</option></select><button onclick="document.getElementById('ooFltFrom').value='';document.getElementById('ooFltTo').value='';document.getElementById('ooFltQ').value='';document.getElementById('ooFltWh').value='';ooApplyFilter()" style="height:32px;padding:0 14px;border-radius:6px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary)">重置</button><div id="ooSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5"></div></div>
           <table><thead><tr><th>单号</th><th>类型</th><th>经办人</th><th>仓库</th><th>日期</th><th>商品编码</th><th>商品名称</th><th style="text-align:right">数量</th><th style="text-align:right">单价</th><th style="text-align:right">行金额</th><th style="text-align:right">订单金额</th><th>备注</th><th>操作</th></tr></thead><tbody id="ooTbl"></tbody></table>
         </div>
       </div>
@@ -2012,9 +2018,9 @@ function lockOS(id){
 }
 
 
-function renderPO(){
+function _renderPORows(data){
   const rows=[];
-  DB.po.forEach(r=>{
+  data.forEach(r=>{
     const items=r.items&&r.items.length?r.items:[{}];
     items.forEach((i)=>{
       const p=DB.products.find(x=>x.id===i.productId)||{};
@@ -2047,9 +2053,9 @@ function renderPO(){
   document.getElementById('poTbl').innerHTML=rows.join('')||'<tr><td colspan="14" style="text-align:center;color:var(--color-text-tertiary)">暂无数据</td></tr>';
 }
 
-function renderPR(){
+function _renderPRRows(data){
   const rows=[];
-  DB.pr.forEach(r=>{
+  data.forEach(r=>{
     const items=r.items&&r.items.length?r.items:[{}];
     items.forEach((i)=>{
       const p=DB.products.find(x=>x.id===i.productId)||{};
@@ -2081,11 +2087,9 @@ function renderPT(){
   document.getElementById('preturnTbl').innerHTML=DB.preturn.map(r=>`<tr><td>${r.no}</td><td>${sname(r.supplierId)}</td><td>${wname(r.warehouseId)}</td><td>${r.date||'-'}</td><td>${fmtMoney(r.totalAmt)}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('preturn','${r.id}')">查看</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('preturn','${r.id}',renderPT)">删除</button>`:''}</td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--color-text-tertiary)">暂无记录</td></tr>';
 }
 
-function renderSO(){
-  const showCP=perms['so_cost_profit']&&perms['so_cost_profit'][currentUser];
-  document.querySelectorAll('.so-cost-col,.so-profit-col').forEach(el=>el.style.display=showCP?'':'none');
+function _renderSORows(data,showCP){
   const rows=[];
-  DB.so.forEach(r=>{
+  data.forEach(r=>{
     let rCost=0;
     if(r.items)r.items.forEach(item=>{const p=DB.products.find(x=>x.id===item.productId);rCost+=fmtNum((p?p.costPrice||0:0)*(item.qty||0));});
     const profit=fmtNum(r.totalAmt-rCost);
@@ -2127,9 +2131,9 @@ function renderSO(){
   document.getElementById('soTbl').innerHTML=rows.join('')||'<tr><td colspan="18" style="text-align:center;color:var(--color-text-tertiary)">暂无销售订单</td></tr>';
 }
 
-function renderSD(){
+function _renderSDRows(data){
   const rows=[];
-  DB.sd.forEach(r=>{
+  data.forEach(r=>{
     const items=r.items&&r.items.length?r.items:[{}];
     items.forEach((i)=>{
       const p=DB.products.find(x=>x.id===i.productId)||{};
@@ -2161,9 +2165,9 @@ function renderSR(){
   document.getElementById('sreturnTbl').innerHTML=(DB.sreturn||[]).map(r=>`<tr><td>${r.no}</td><td>${cname(r.customerId)}</td><td>${wname(r.warehouseId)}</td><td>${r.date||'-'}</td><td>${fmtMoney(r.totalAmt)}</td><td style="white-space:nowrap"><button class="btn" onclick="viewBill('sreturn','${r.id}')">查看</button> ${currentUser==='admin'?`<button class="btn btn-danger" onclick="delBill('sreturn','${r.id}',renderSR)">删除</button>`:''}</td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;color:var(--color-text-tertiary)">暂无记录</td></tr>';
 }
 
-function renderOI(){
+function _renderOIRows(data){
   const rows=[];
-  DB.otherIn.forEach(r=>{
+  data.forEach(r=>{
     const items=r.items&&r.items.length?r.items:[{}];
     items.forEach((i)=>{
       const p=DB.products.find(x=>x.id===i.productId)||{};
@@ -2189,9 +2193,9 @@ function renderOI(){
   document.getElementById('oiTbl').innerHTML=rows.join('')||'<tr><td colspan="13" style="text-align:center;color:var(--color-text-tertiary)">暂无数据</td></tr>';
 }
 
-function renderOO(){
+function _renderOORows(data){
   const rows=[];
-  DB.otherOut.forEach(r=>{
+  data.forEach(r=>{
     const items=r.items&&r.items.length?r.items:[{}];
     items.forEach((i)=>{
       const p=DB.products.find(x=>x.id===i.productId)||{};
@@ -3102,44 +3106,135 @@ function updateBillTotal(containerId){
 
 // 添加一行可编辑明细
 function addEditableLine(containerId, mode){
-  // mode: '采购'|'销售'|'其他'
-  const c = document.getElementById(containerId);
+  var c=document.getElementById(containerId);
   if(!c) return;
-  const idx = c.querySelectorAll('.el-row').length + 1;
-  const lid = containerId + '_el' + idx;
-  const div = document.createElement('div');
-  div.className = 'el-row';
-  div.style.cssText = 'background:#F5F5F3;border:0.5px solid var(--color-border-tertiary);border-radius:6px;padding:8px 10px;margin-bottom:6px;position:relative';
-  div.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 90px 100px auto;gap:8px;align-items:center">
-      <div style="position:relative">
-        <select class="el-prod pi-p" onchange="elOnProductSelect(this,'${lid}')"
-          style="width:100%;font-size:12px;background:#fff;border:0.5px solid var(--color-border-secondary);border-radius:4px;padding:6px 8px">
-          <option value="">— 选择商品 —</option>${getProductOpts()}
-        </select>
-        <div id="${lid}_info" style="font-size:10px;color:var(--color-text-tertiary);margin-top:3px;min-height:14px"></div>
-      </div>
-      <div>
-        <label style="font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:2px">数量*</label>
-        <input class="el-qty" type="number" value="1" min="0.01" step="0.01"
-          style="width:100%;font-size:12px;background:#fff;border:0.5px solid var(--color-border-secondary);border-radius:4px;padding:5px 7px"
-          oninput="updateBillTotal('${containerId}')">
-      </div>
-      <div>
-        <label style="font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:2px">${mode==='采购'?'含税单价':'单价'}</label>
-        <input class="el-price pi-r" type="number" value="0" step="0.01"
-          style="width:100%;font-size:12px;background:#fff;border:0.5px solid var(--color-border-secondary);border-radius:4px;padding:5px 7px"
-          oninput="updateBillTotal('${containerId}')">
-      </div>
-      <div>
-        <button onclick="this.closest('.el-row').remove();updateBillTotal('${containerId}')"
-          class="btn btn-danger" style="padding:4px 8px;font-size:11px;margin-top:16px">✕</button>
-      </div>
-    </div>`;
+  var idx=c.querySelectorAll('.el-row').length+1;
+  var lid=containerId+'_el'+idx;
+  var div=document.createElement('div');
+  div.className='el-row';
+  div.dataset.lid=lid;
+  div.dataset.container=containerId;
+  div.style.cssText='background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:6px;padding:8px 10px;margin-bottom:6px;position:relative';
+
+  var grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:1fr 80px 100px auto;gap:8px;align-items:start';
+
+  // 商品搜索列
+  var col1=document.createElement('div');
+  col1.style.position='relative';
+  var lbl1=document.createElement('label');
+  lbl1.style.cssText='font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:2px';
+  lbl1.textContent='商品（输入搜索）';
+  var searchIn=document.createElement('input');
+  searchIn.className='el-search';
+  searchIn.type='text';
+  searchIn.placeholder='名称或编号...';
+  searchIn.autocomplete='off';
+  searchIn.style.cssText='width:100%;font-size:12px;border:0.5px solid var(--color-border-secondary);border-radius:4px;padding:5px 8px;box-sizing:border-box';
+  searchIn.addEventListener('input',function(){elSearch(this,lid);});
+  searchIn.addEventListener('blur',function(){setTimeout(function(){var d=document.getElementById(lid+'_drop');if(d)d.style.display='none';},200);});
+  var hiddenIn=document.createElement('input');
+  hiddenIn.className='el-prod pi-p';
+  hiddenIn.type='hidden';
+  var dropDiv=document.createElement('div');
+  dropDiv.id=lid+'_drop';
+  dropDiv.style.cssText='display:none;position:absolute;z-index:9999;background:var(--color-background-primary);border:1px solid var(--color-border-secondary);border-radius:4px;max-height:180px;overflow-y:auto;width:100%;box-shadow:0 4px 12px rgba(0,0,0,.15);font-size:11px';
+  var infoDiv=document.createElement('div');
+  infoDiv.id=lid+'_info';
+  infoDiv.style.cssText='font-size:10px;color:#1D9E75;margin-top:2px;min-height:14px';
+  col1.appendChild(lbl1);col1.appendChild(searchIn);col1.appendChild(hiddenIn);col1.appendChild(dropDiv);col1.appendChild(infoDiv);
+
+  // 数量列
+  var col2=document.createElement('div');
+  var lbl2=document.createElement('label');
+  lbl2.style.cssText='font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:2px';
+  lbl2.textContent='数量*';
+  var qtyIn=document.createElement('input');
+  qtyIn.className='el-qty';
+  qtyIn.type='number';
+  qtyIn.value='1';
+  qtyIn.min='0.01';
+  qtyIn.step='0.01';
+  qtyIn.style.cssText='width:100%;font-size:12px;border:0.5px solid var(--color-border-secondary);border-radius:4px;padding:5px 7px;box-sizing:border-box';
+  qtyIn.addEventListener('input',function(){updateBillTotal(containerId);});
+  col2.appendChild(lbl2);col2.appendChild(qtyIn);
+
+  // 单价列
+  var col3=document.createElement('div');
+  var lbl3=document.createElement('label');
+  lbl3.style.cssText='font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:2px';
+  lbl3.textContent=mode==='采购'?'含税单价':'单价';
+  var priceIn=document.createElement('input');
+  priceIn.className='el-price pi-r';
+  priceIn.type='number';
+  priceIn.value='0';
+  priceIn.step='0.01';
+  priceIn.style.cssText='width:100%;font-size:12px;border:0.5px solid var(--color-border-secondary);border-radius:4px;padding:5px 7px;box-sizing:border-box';
+  priceIn.addEventListener('input',function(){updateBillTotal(containerId);});
+  col3.appendChild(lbl3);col3.appendChild(priceIn);
+
+  // 删除按钮列
+  var col4=document.createElement('div');
+  col4.style.cssText='display:flex;align-items:flex-end;padding-bottom:2px';
+  var delBtn=document.createElement('button');
+  delBtn.className='btn btn-danger';
+  delBtn.style.cssText='padding:4px 8px;font-size:11px;margin-top:18px';
+  delBtn.textContent='✕';
+  delBtn.addEventListener('click',function(){div.remove();updateBillTotal(containerId);});
+  col4.appendChild(delBtn);
+
+  grid.appendChild(col1);grid.appendChild(col2);grid.appendChild(col3);grid.appendChild(col4);
+  div.appendChild(grid);
   c.appendChild(div);
 }
 
-// 选中商品时自动填入单价
+
+function elSearch(input, lid){
+  var q=(input.value||'').trim().toLowerCase();
+  var drop=document.getElementById(lid+'_drop');
+  if(!drop) return;
+  if(!q){drop.style.display='none';return;}
+  var matched=DB.products.filter(function(p){
+    return (p.code||'').toLowerCase().indexOf(q)>=0||
+           (p.name||'').toLowerCase().indexOf(q)>=0||
+           (p.spec||'').toLowerCase().indexOf(q)>=0;
+  }).slice(0,12);
+  if(!matched.length){drop.style.display='none';return;}
+  drop.innerHTML='';
+  matched.forEach(function(p){
+    var item=document.createElement('div');
+    item.style.cssText='padding:6px 10px;cursor:pointer;border-bottom:0.5px solid var(--color-border-tertiary)';
+    item.textContent=(p.code||'-')+' | '+(p.name||'-')+(p.spec?' '+p.spec:'');
+    item.dataset.pid=p.id;
+    item.addEventListener('mousedown',function(){elSelectProduct(lid,p.id);});
+    item.addEventListener('mouseover',function(){this.style.background='var(--color-background-secondary)';});
+    item.addEventListener('mouseout',function(){this.style.background='';});
+    drop.appendChild(item);
+  });
+  drop.style.display='block';
+}
+
+
+function elSelectProduct(lid, pid){
+  var p=DB.products.find(function(x){return x.id===pid;});
+  if(!p) return;
+  var drop=document.getElementById(lid+'_drop');
+  if(drop) drop.style.display='none';
+  var row=document.querySelector('.el-row[data-lid="'+lid+'"]');
+  if(!row) return;
+  var se=row.querySelector('.el-search');
+  var he=row.querySelector('.el-prod');
+  var info=document.getElementById(lid+'_info');
+  var pe=row.querySelector('.el-price');
+  if(se) se.value=(p.code||'')+' '+(p.name||'');
+  if(he) he.value=p.id;
+  if(info) info.textContent='✓ '+p.name+(p.spec?' '+p.spec:'');
+  if(pe&&(!pe.value||parseFloat(pe.value)===0)) pe.value=p.costPrice||0;
+  var container=row.parentElement;
+  if(container) updateBillTotal(container.id);
+}
+
+
 function elOnProductSelect(sel, lid){
   const pid = sel.value;
   const infoEl = document.getElementById(lid+'_info');
@@ -4212,49 +4307,134 @@ function editBill(type, id){
 
 // 编辑弹窗：添加一行明细
 function ebAddLine(item){
-  const c = document.getElementById('eb_lines');
+  var c=document.getElementById('eb_lines');
   if(!c) return;
-  const idx = c.querySelectorAll('.eb-row').length + 1;
-  const div = document.createElement('div');
-  div.className = 'eb-row';
-  div.style.cssText = 'background:#F5F5F3;border:0.5px solid var(--color-border-tertiary);border-radius:6px;padding:8px 10px;margin-bottom:6px';
+  var idx=c.querySelectorAll('.eb-row').length+1;
+  var lid='eb_el'+idx;
+  var p=item&&item.productId?DB.products.find(function(x){return x.id===item.productId;})||{}:{};
+  var div=document.createElement('div');
+  div.className='eb-row';
+  div.dataset.lid=lid;
+  div.style.cssText='background:var(--color-background-secondary);border:0.5px solid var(--color-border-tertiary);border-radius:6px;padding:8px;margin-bottom:6px';
 
-  // 预选商品
-  const selectedPid = item ? item.productId : '';
-  const prodOptions = DB.products.map(p =>
-    `<option value="${p.id}"${p.id===selectedPid?' selected':''}>${p.code} — ${p.name}${p.spec?' '+p.spec:''}</option>`
-  ).join('');
+  var grid=document.createElement('div');
+  grid.style.cssText='display:grid;grid-template-columns:1fr 90px 100px auto;gap:8px;align-items:start';
 
-  div.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 90px 100px auto;gap:8px;align-items:center">
-      <div>
-        <select class="eb-prod" onchange="ebOnSelect(this)"
-          style="width:100%;font-size:12px;background:#fff;border:0.5px solid var(--color-border-secondary);border-radius:4px;padding:6px 8px">
-          <option value="">— 选择商品 —</option>${prodOptions}
-        </select>
-        <div class="eb-info" style="font-size:10px;color:#1D9E75;margin-top:3px;min-height:14px">${item&&selectedPid?(()=>{const p=DB.products.find(x=>x.id===selectedPid)||{};return p.code?`✓ ${p.code} | ${p.category||'-'} | ${p.unit||'-'}`:''})():''}</div>
-      </div>
-      <div>
-        <label style="font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:2px">数量*</label>
-        <input class="eb-qty" type="number" value="${item?item.qty:1}" min="0.01" step="0.01"
-          style="width:100%;font-size:12px;background:#fff;border:0.5px solid var(--color-border-secondary);border-radius:4px;padding:5px 7px"
-          oninput="ebUpdateTotal()">
-      </div>
-      <div>
-        <label style="font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:2px">单价</label>
-        <input class="eb-price" type="number" value="${item?item.price||0:0}" step="0.01"
-          style="width:100%;font-size:12px;background:#fff;border:0.5px solid var(--color-border-secondary);border-radius:4px;padding:5px 7px"
-          oninput="ebUpdateTotal()">
-      </div>
-      <div>
-        <button onclick="this.closest('.eb-row').remove();ebUpdateTotal()"
-          class="btn btn-danger" style="padding:4px 8px;font-size:11px;margin-top:16px">✕</button>
-      </div>
-    </div>`;
+  // 商品搜索列
+  var col1=document.createElement('div');
+  col1.style.position='relative';
+  var lbl1=document.createElement('label');
+  lbl1.style.cssText='font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:2px';
+  lbl1.textContent='商品';
+  var searchIn=document.createElement('input');
+  searchIn.className='eb-search';
+  searchIn.type='text';
+  searchIn.placeholder='输入名称或编号搜索';
+  searchIn.autocomplete='off';
+  searchIn.value=p.code?(p.code+' '+p.name):'';
+  searchIn.style.cssText='width:100%;font-size:12px;border:0.5px solid var(--color-border-secondary);border-radius:4px;padding:5px 8px;box-sizing:border-box';
+  searchIn.addEventListener('input',function(){ebSearch(this,lid);});
+  searchIn.addEventListener('blur',function(){setTimeout(function(){var d=document.getElementById(lid+'_drop');if(d)d.style.display='none';},200);});
+  var hiddenIn=document.createElement('input');
+  hiddenIn.className='eb-prod';
+  hiddenIn.type='hidden';
+  hiddenIn.value=item&&item.productId?item.productId:'';
+  var dropDiv=document.createElement('div');
+  dropDiv.id=lid+'_drop';
+  dropDiv.style.cssText='display:none;position:absolute;z-index:9999;background:var(--color-background-primary);border:1px solid var(--color-border-secondary);border-radius:4px;max-height:180px;overflow-y:auto;width:100%;box-shadow:0 4px 12px rgba(0,0,0,.15);font-size:11px';
+  var infoDiv=document.createElement('div');
+  infoDiv.style.cssText='font-size:10px;color:#1D9E75;margin-top:2px';
+  infoDiv.textContent=p.name?('✓ '+p.name+(p.spec?' '+p.spec:'')):'';
+  col1.appendChild(lbl1);col1.appendChild(searchIn);col1.appendChild(hiddenIn);col1.appendChild(dropDiv);col1.appendChild(infoDiv);
+
+  // 数量
+  var col2=document.createElement('div');
+  var lbl2=document.createElement('label');
+  lbl2.style.cssText='font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:2px';
+  lbl2.textContent='数量';
+  var qtyIn=document.createElement('input');
+  qtyIn.className='eb-qty';
+  qtyIn.type='number';
+  qtyIn.value=item?String(item.qty||1):'1';
+  qtyIn.min='0.01';qtyIn.step='0.01';
+  qtyIn.style.cssText='width:100%;font-size:12px;border:0.5px solid var(--color-border-secondary);border-radius:4px;padding:5px 7px;box-sizing:border-box';
+  qtyIn.addEventListener('input',function(){ebUpdateTotal();});
+  col2.appendChild(lbl2);col2.appendChild(qtyIn);
+
+  // 单价
+  var col3=document.createElement('div');
+  var lbl3=document.createElement('label');
+  lbl3.style.cssText='font-size:10px;color:var(--color-text-secondary);display:block;margin-bottom:2px';
+  lbl3.textContent='单价';
+  var priceIn=document.createElement('input');
+  priceIn.className='eb-price';
+  priceIn.type='number';
+  priceIn.value=item?String(item.price||0):'0';
+  priceIn.step='0.01';
+  priceIn.style.cssText='width:100%;font-size:12px;border:0.5px solid var(--color-border-secondary);border-radius:4px;padding:5px 7px;box-sizing:border-box';
+  priceIn.addEventListener('input',function(){ebUpdateTotal();});
+  col3.appendChild(lbl3);col3.appendChild(priceIn);
+
+  // 删除
+  var col4=document.createElement('div');
+  col4.style.cssText='display:flex;align-items:flex-end;padding-bottom:2px';
+  var delBtn=document.createElement('button');
+  delBtn.className='btn btn-danger';
+  delBtn.style.cssText='padding:4px 8px;font-size:11px;margin-top:18px';
+  delBtn.textContent='✕';
+  delBtn.addEventListener('click',function(){div.remove();ebUpdateTotal();});
+  col4.appendChild(delBtn);
+
+  grid.appendChild(col1);grid.appendChild(col2);grid.appendChild(col3);grid.appendChild(col4);
+  div.appendChild(grid);
   c.appendChild(div);
+  ebUpdateTotal();
 }
 
-// 选商品时自动带入成本价
+
+function ebSearch(input, lid){
+  var q=(input.value||'').trim().toLowerCase();
+  var drop=document.getElementById(lid+'_drop');
+  if(!drop) return;
+  if(!q){drop.style.display='none';return;}
+  var matched=DB.products.filter(function(p){
+    return (p.code||'').toLowerCase().indexOf(q)>=0||
+           (p.name||'').toLowerCase().indexOf(q)>=0||
+           (p.spec||'').toLowerCase().indexOf(q)>=0;
+  }).slice(0,12);
+  if(!matched.length){drop.style.display='none';return;}
+  drop.innerHTML='';
+  matched.forEach(function(p){
+    var item=document.createElement('div');
+    item.style.cssText='padding:6px 10px;cursor:pointer;border-bottom:0.5px solid var(--color-border-tertiary)';
+    item.textContent=(p.code||'-')+' | '+(p.name||'-')+(p.spec?' '+p.spec:'');
+    item.dataset.pid=p.id;
+    item.addEventListener('mousedown',function(){ebSelectProduct(lid,p.id);});
+    item.addEventListener('mouseover',function(){this.style.background='var(--color-background-secondary)';});
+    item.addEventListener('mouseout',function(){this.style.background='';});
+    drop.appendChild(item);
+  });
+  drop.style.display='block';
+}
+
+
+function ebSelectProduct(lid, pid){
+  var p=DB.products.find(function(x){return x.id===pid;});
+  if(!p) return;
+  var drop=document.getElementById(lid+'_drop');
+  if(drop) drop.style.display='none';
+  var row=document.querySelector('.eb-row[data-lid="'+lid+'"]');
+  if(!row) return;
+  var se=row.querySelector('.eb-search');
+  var he=row.querySelector('.eb-prod');
+  var pe=row.querySelector('.eb-price');
+  if(se) se.value=(p.code||'')+' '+(p.name||'');
+  if(he) he.value=p.id;
+  if(pe&&(!pe.value||parseFloat(pe.value)===0)) pe.value=p.costPrice||0;
+  ebUpdateTotal();
+}
+
+
 function ebOnSelect(sel){
   const pid = sel.value;
   const row = sel.closest('.eb-row');
@@ -4270,17 +4450,16 @@ function ebOnSelect(sel){
 
 // 实时合计
 function ebUpdateTotal(){
-  let total = 0;
-  document.querySelectorAll('#eb_lines .eb-row').forEach(row=>{
-    const q = parseFloat((row.querySelector('.eb-qty')||{}).value||0);
-    const r = parseFloat((row.querySelector('.eb-price')||{}).value||0);
-    total += q * r;
+  var total=0;
+  document.querySelectorAll('#eb_lines .eb-row').forEach(function(row){
+    var qty=parseFloat((row.querySelector('.eb-qty')||{}).value||0);
+    var price=parseFloat((row.querySelector('.eb-price')||{}).value||0);
+    total+=qty*price;
   });
-  const el = document.getElementById('eb_total');
-  if(el) el.textContent = '合计：¥' + total.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  var el=document.getElementById('eb_total');
+  if(el) el.textContent='合计：'+fmtMoney(total);
 }
 
-// 读取编辑弹窗明细行
 function ebGetItems(){
   return Array.from(document.querySelectorAll('#eb_lines .eb-row')).map(row=>{
     const pid = (row.querySelector('.eb-prod')||{}).value||'';
@@ -4989,6 +5168,143 @@ function exportSQExcel(){
   XLSX.writeFile(wb,`库存收发查询_${(dateFrom||'全部')}_至_${(dateTo||'今日')}.xlsx`);
   showToast('库存收发明细已导出Excel','success');
 }
+
+
+
+// ══════════════════════════════════════════════
+// 通用筛选辅助函数
+// ══════════════════════════════════════════════
+function _fillWhOpts(selId){
+  var sel=document.getElementById(selId);
+  if(!sel||sel.options.length>1) return;
+  var seen={};
+  DB.warehouses.forEach(function(w){
+    if(!seen[w.name]){seen[w.name]=1;var o=document.createElement('option');o.value=w.name;o.textContent=w.name;sel.appendChild(o);}
+  });
+}
+
+function _billMatchFilter(r, q, from, to, wh, whFields){
+  // 日期过滤
+  if(from && r.date < from) return false;
+  if(to   && r.date > to)   return false;
+  // 仓库过滤
+  if(wh){
+    var whMatch = whFields.some(function(f){
+      return _whName(r[f]||'') === wh;
+    });
+    if(!whMatch) return false;
+  }
+  // 商品名称/编号过滤
+  if(q){
+    var ql = q.toLowerCase();
+    var itemMatch = r.items && r.items.some(function(i){
+      var p = DB.products.find(function(x){return x.id===i.productId;})||{};
+      return (p.code||'').toLowerCase().indexOf(ql)>=0 ||
+             (p.name||'').toLowerCase().indexOf(ql)>=0 ||
+             (p.spec||'').toLowerCase().indexOf(ql)>=0;
+    });
+    if(!itemMatch) return false;
+  }
+  return true;
+}
+
+function _renderSummary(elId, filtered){
+  var el=document.getElementById(elId);
+  if(!el) return;
+  var totalAmt=0, totalQty=0, count=filtered.length;
+  filtered.forEach(function(r){
+    totalAmt += r.totalAmt||0;
+    if(r.items) r.items.forEach(function(i){ totalQty += (+i.qty||0); });
+  });
+  el.innerHTML = count + '张单 | 合计数量：' + totalQty.toLocaleString() +
+    ' | 合计金额：' + fmtMoney(totalAmt);
+}
+
+// ── PO ApplyFilter ──
+function poApplyFilter(){
+  _fillWhOpts('poFltWh');
+  var q=(document.getElementById('poFltQ')||{}).value||'';
+  var from=(document.getElementById('poFltFrom')||{}).value||'';
+  var to=(document.getElementById('poFltTo')||{}).value||'';
+  var wh=(document.getElementById('poFltWh')||{}).value||'';
+  var filtered=DB.po.filter(function(r){return _billMatchFilter(r,q,from,to,wh,['warehouseId']);});
+  filtered.sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;});
+  _renderPORows(filtered);
+  _renderSummary('poSummary',filtered);
+}
+function renderPO(){ poApplyFilter(); }
+
+// ── PR ApplyFilter ──
+function prApplyFilter(){
+  _fillWhOpts('prFltWh');
+  var q=(document.getElementById('prFltQ')||{}).value||'';
+  var from=(document.getElementById('prFltFrom')||{}).value||'';
+  var to=(document.getElementById('prFltTo')||{}).value||'';
+  var wh=(document.getElementById('prFltWh')||{}).value||'';
+  var filtered=DB.pr.filter(function(r){return _billMatchFilter(r,q,from,to,wh,['warehouseId']);});
+  filtered.sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;});
+  _renderPRRows(filtered);
+  _renderSummary('prSummary',filtered);
+}
+function renderPR(){ prApplyFilter(); }
+
+// ── SO ApplyFilter ──
+function soApplyFilter(){
+  _fillWhOpts('soFltWh');
+  var q=(document.getElementById('soFltQ')||{}).value||'';
+  var from=(document.getElementById('soFltFrom')||{}).value||'';
+  var to=(document.getElementById('soFltTo')||{}).value||'';
+  var wh=(document.getElementById('soFltWh')||{}).value||'';
+  var showCP=perms['so_cost_profit']&&perms['so_cost_profit'][currentUser];
+  document.querySelectorAll('.so-cost-col,.so-profit-col').forEach(function(el){el.style.display=showCP?'':'none';});
+  var filtered=DB.so.filter(function(r){return _billMatchFilter(r,q,from,to,wh,['warehouseId']);});
+  filtered.sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;});
+  _renderSORows(filtered,showCP);
+  _renderSummary('soSummary',filtered);
+}
+function renderSO(){ soApplyFilter(); }
+
+// ── SD ApplyFilter ──
+function sdApplyFilter(){
+  _fillWhOpts('sdFltWh');
+  var q=(document.getElementById('sdFltQ')||{}).value||'';
+  var from=(document.getElementById('sdFltFrom')||{}).value||'';
+  var to=(document.getElementById('sdFltTo')||{}).value||'';
+  var wh=(document.getElementById('sdFltWh')||{}).value||'';
+  var filtered=DB.sd.filter(function(r){return _billMatchFilter(r,q,from,to,wh,['warehouseId']);});
+  filtered.sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;});
+  _renderSDRows(filtered);
+  _renderSummary('sdSummary',filtered);
+}
+function renderSD(){ sdApplyFilter(); }
+
+// ── OI ApplyFilter ──
+function oiApplyFilter(){
+  _fillWhOpts('oiFltWh');
+  var q=(document.getElementById('oiFltQ')||{}).value||'';
+  var from=(document.getElementById('oiFltFrom')||{}).value||'';
+  var to=(document.getElementById('oiFltTo')||{}).value||'';
+  var wh=(document.getElementById('oiFltWh')||{}).value||'';
+  var filtered=DB.otherIn.filter(function(r){return _billMatchFilter(r,q,from,to,wh,['warehouseId']);});
+  filtered.sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;});
+  _renderOIRows(filtered);
+  _renderSummary('oiSummary',filtered);
+}
+function renderOI(){ oiApplyFilter(); }
+
+// ── OO ApplyFilter ──
+function ooApplyFilter(){
+  _fillWhOpts('ooFltWh');
+  var q=(document.getElementById('ooFltQ')||{}).value||'';
+  var from=(document.getElementById('ooFltFrom')||{}).value||'';
+  var to=(document.getElementById('ooFltTo')||{}).value||'';
+  var wh=(document.getElementById('ooFltWh')||{}).value||'';
+  var filtered=DB.otherOut.filter(function(r){return _billMatchFilter(r,q,from,to,wh,['warehouseId']);});
+  filtered.sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;});
+  _renderOORows(filtered);
+  _renderSummary('ooSummary',filtered);
+}
+function renderOO(){ ooApplyFilter(); }
 
 
 init();
