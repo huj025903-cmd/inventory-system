@@ -596,7 +596,7 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
       <div class="page" id="page-po">
         <div class="card">
           <div class="card-header"><div class="card-title">采购订单</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-warning" onclick="batchGenPR()" title="批量勾选后生成入库单">📥 批量生成入库单</button><button class="btn" onclick="batchPrint('po')">🖨️ 批量打印</button><button class="btn btn-success" onclick="exportExcel('po')">📊 导出Excel</button><button class="btn btn-primary" onclick="openModal('po')">+ 新建</button></div></div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 10px;border:1px solid var(--color-border-secondary)"><input id="poFltFrom" type="date" onchange="poApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="开始日期"><span style="font-size:11px;color:var(--color-text-secondary)">至</span><input id="poFltTo" type="date" onchange="poApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="结束日期"><input id="poFltNo" type="text" placeholder="单号" oninput="poApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:110px" title="单号搜索"><input id="poFltQ" type="text" placeholder="商品名称/编号" oninput="poApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:150px"><button onclick="document.getElementById('poFltFrom').value='';document.getElementById('poFltTo').value='';document.getElementById('poFltNo').value='';document.getElementById('poFltQ').value='';poApplyFilter()" style="height:30px;padding:0 12px;border-radius:5px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary)">重置</button><div id="poSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div></div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 10px;border:1px solid var(--color-border-secondary)"><input id="poFltFrom" type="date" onchange="poApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="开始日期"><span style="font-size:11px;color:var(--color-text-secondary)">至</span><input id="poFltTo" type="date" onchange="poApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="结束日期"><input id="poFltNo" type="text" placeholder="单号" oninput="poApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:110px" title="单号搜索"><input id="poFltQ" type="text" placeholder="商品名称/编号" oninput="poApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:150px"><select id="poFltSup" onchange="poApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);min-width:120px;cursor:pointer"><option value="">全部供应商</option></select><button onclick="document.getElementById('poFltFrom').value='';document.getElementById('poFltTo').value='';document.getElementById('poFltNo').value='';document.getElementById('poFltQ').value='';document.getElementById('poFltSup').value='';poApplyFilter()" style="height:30px;padding:0 12px;border-radius:5px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary)">重置</button><div id="poSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div></div>
           <table><thead><tr><th style="width:32px"><input type="checkbox" onclick="toggleAllCheck('po',this)" title="全选"></th><th>单号</th><th>供应商</th><th>经办人</th><th>日期</th><th>商品编码</th><th>商品名称</th><th style="text-align:right">数量</th><th style="text-align:right">单价</th><th style="text-align:right">行金额</th><th style="text-align:right">订单金额</th><th>到货</th><th>审核</th><th>备注</th><th>操作</th></tr></thead><tbody id="poTbl"></tbody></table>
         </div>
       </div>
@@ -622,7 +622,7 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
       <div class="page" id="page-so">
         <div class="card">
           <div class="card-header"><div class="card-title">销售订单</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-warning" onclick="batchGenSD()" title="批量勾选后生成出库单">📤 批量生成出库单</button><button class="btn" onclick="batchPrint('so')">🖨️ 批量打印</button><button class="btn btn-success" onclick="exportExcel('so')">📊 导出Excel</button><button class="btn btn-primary" onclick="openModal('so')">+ 新建</button></div></div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 10px;border:1px solid var(--color-border-secondary)"><input id="soFltFrom" type="date" onchange="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="开始日期"><span style="font-size:11px;color:var(--color-text-secondary)">至</span><input id="soFltTo" type="date" onchange="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="结束日期"><input id="soFltNo" type="text" placeholder="单号" oninput="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:110px" title="单号搜索"><input id="soFltQ" type="text" placeholder="商品名称/编号" oninput="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:150px"><button onclick="document.getElementById('soFltFrom').value='';document.getElementById('soFltTo').value='';document.getElementById('soFltNo').value='';document.getElementById('soFltQ').value='';soApplyFilter()" style="height:30px;padding:0 12px;border-radius:5px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary)">重置</button><div id="soSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div></div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 10px;border:1px solid var(--color-border-secondary)"><input id="soFltFrom" type="date" onchange="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="开始日期"><span style="font-size:11px;color:var(--color-text-secondary)">至</span><input id="soFltTo" type="date" onchange="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="结束日期"><input id="soFltNo" type="text" placeholder="单号" oninput="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:110px" title="单号搜索"><input id="soFltQ" type="text" placeholder="商品名称/编号" oninput="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:150px"><select id="soFltCust" onchange="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);min-width:120px;cursor:pointer"><option value="">全部客户</option></select><button onclick="document.getElementById('soFltFrom').value='';document.getElementById('soFltTo').value='';document.getElementById('soFltNo').value='';document.getElementById('soFltQ').value='';document.getElementById('soFltCust').value='';soApplyFilter()" style="height:30px;padding:0 12px;border-radius:5px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary)">重置</button><div id="soSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div></div>
           <table id="soTable"><thead><tr><th style="width:32px"><input type="checkbox" onclick="toggleAllCheck('so',this)" title="全选"></th><th>单号</th><th>客户</th><th>经办人</th><th>日期</th><th>仓库</th><th>商品编码</th><th>商品名称</th><th style="text-align:right">数量</th><th style="text-align:right">单价</th><th style="text-align:right">行金额</th><th style="text-align:right">订单金额</th><th class="so-cost-col" style="display:none">成本金额</th><th class="so-profit-col" style="display:none">利润</th><th class="so-profit-col" style="display:none">利润率</th><th>发货</th><th>审核</th><th>备注</th><th>操作</th></tr></thead><tbody id="soTbl"></tbody></table>
         </div>
       </div>
@@ -861,23 +861,10 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
             <div class="card-header"><div class="card-title">数据恢复</div></div>
             <div class="alert alert-danger">⚠ 恢复操作将覆盖当前所有数据！请谨慎操作！</div>
             <div class="form-group" style="margin-bottom:10px"><label>选择备份文件（.json）</label><input type="file" id="restoreFile" accept=".json" onchange="previewRestore(this)"></div>
-            <div id="restoreInfo" style="display:none;margin-bottom:10px;padding:8px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);font-size:11px"></div>
-            <button class="btn btn-danger" id="restoreBtn" onclick="doRestore()" disabled>⬆ 确认恢复</button>
+            <div id="restoreInfo" style="display:none;margin-bottom:10px;padding:8px;background:var(--color-background-secondary);border-radius:var(--border-radius-md);font-size:12px;color:var(--color-text-secondary)">正在读取备份文件...</div>
           </div>
         </div>
-        <div class="card">
-          <div class="card-header"><div class="card-title">IndexedDB 本地数据库状态</div></div>
-          <div id="dbDetailInfo" style="font-size:11px">加载中...</div>
-        </div>
       </div>
-
-    </div>
-  </div>
-</div>
-</div>
-
-<div class="toast" id="toast"><span class="toast-icon" id="toastIcon">✓</span><span id="toastMsg"></span></div>
-<div id="modalContainer" style="position:fixed;inset:0;z-index:9998;pointer-events:none"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
@@ -1676,19 +1663,8 @@ function renderPage(p){
     case 'sd':renderSD();break;
     case 'sreturn':renderSR();break;
     case 'otherIn':renderOI();break;
-    case 'transfer':
-    typeName='调拨单';
-    DB.transfer.forEach(r=>{
-      const fromWH=wname(r.fromWarehouseId), toWH=wname(r.toWarehouseId);
-      (r.items||[]).forEach((item,i)=>{
-        rows.push({'单号':i===0?r.no:'','调出仓库':i===0?fromWH:'','调入仓库':i===0?toWH:'',
-          '经办人':i===0?r.handler||'':'','日期':i===0?r.date||'':'',
-          '商品':pname(item.productId),'数量':item.qty,'单价':fmtNum(item.price),'金额':fmtNum(item.total),
-          '备注':i===0?r.remark||'':''});
-      });
-    });
-    break;
-  case 'otherOut':renderOO();break;
+    case 'transfer':renderTransfer();break;
+    case 'otherOut':renderOO();break;
     case 'bom':renderBOM();break;
     case 'assembly':renderASM();break;
     case 'stockQuery':renderSQ();break;
@@ -5243,17 +5219,25 @@ function _renderSummary(elId, filtered){
 
 // ── PO ApplyFilter ──
 function poApplyFilter(){
-    var q=(document.getElementById('poFltQ')||{}).value||'';
-  var no=(document.getElementById('poFltNo')||{}).value||'';
+  // 填充供应商下拉
+  var supSel=document.getElementById('poFltSup');
+  if(supSel&&supSel.options.length<=1){
+    DB.suppliers.forEach(function(s){var o=document.createElement('option');o.value=s.id;o.textContent=s.name;supSel.appendChild(o);});
+  }
+  var q=   (document.getElementById('poFltQ')||{}).value||'';
+  var no=  (document.getElementById('poFltNo')||{}).value||'';
   var from=(document.getElementById('poFltFrom')||{}).value||'';
-  var to=(document.getElementById('poFltTo')||{}).value||'';
-  var wh='';
-    var filtered=DB.po.filter(function(r){return _billMatchFilter(r,q,no,from,to,wh,[]);});
-  filtered.sort(function(a,b){return (b.date||'')<(a.date||'')?-1:(b.date||'')==(a.date||'')?0:1;});
+  var to=  (document.getElementById('poFltTo')||{}).value||'';
+  var sup= (document.getElementById('poFltSup')||{}).value||'';
+  var filtered=DB.po.filter(function(r){
+    if(!_billMatchFilter(r,q,no,from,to,'',[])) return false;
+    if(sup && r.supplierId!==sup) return false;
+    return true;
+  });
+  filtered.sort(function(a,b){return (a.date||'')>(b.date||'')?-1:1;});
   _renderPORows(filtered);
   _renderSummary('poSummary',filtered);
 }
-
 function renderPO(){ poApplyFilter(); }
 
 // ── PR ApplyFilter ──
@@ -5265,7 +5249,7 @@ function prApplyFilter(){
   var to=(document.getElementById('prFltTo')||{}).value||'';
   var wh=(document.getElementById('prFltWh')||{}).value||'';
     var filtered=DB.pr.filter(function(r){return _billMatchFilter(r,q,no,from,to,wh,['warehouseId']);});
-  filtered.sort(function(a,b){return (b.date||'')<(a.date||'')?-1:(b.date||'')==(a.date||'')?0:1;});
+  filtered.sort(function(a,b){return (a.date||'')>(b.date||'')?-1:1;});
   _renderPRRows(filtered);
   _renderSummary('prSummary',filtered);
 }
@@ -5274,19 +5258,27 @@ function renderPR(){ prApplyFilter(); }
 
 // ── SO ApplyFilter ──
 function soApplyFilter(){
-    var q=(document.getElementById('soFltQ')||{}).value||'';
-  var no=(document.getElementById('soFltNo')||{}).value||'';
+  // 填充客户下拉
+  var custSel=document.getElementById('soFltCust');
+  if(custSel&&custSel.options.length<=1){
+    DB.customers.forEach(function(c){var o=document.createElement('option');o.value=c.id;o.textContent=c.name;custSel.appendChild(o);});
+  }
+  var q=   (document.getElementById('soFltQ')||{}).value||'';
+  var no=  (document.getElementById('soFltNo')||{}).value||'';
   var from=(document.getElementById('soFltFrom')||{}).value||'';
-  var to=(document.getElementById('soFltTo')||{}).value||'';
-  var wh='';
-    var showCP=perms['so_cost_profit']&&perms['so_cost_profit'][currentUser];
+  var to=  (document.getElementById('soFltTo')||{}).value||'';
+  var cust=(document.getElementById('soFltCust')||{}).value||'';
+  var showCP=perms['so_cost_profit']&&perms['so_cost_profit'][currentUser];
   document.querySelectorAll('.so-cost-col,.so-profit-col').forEach(function(el){el.style.display=showCP?'':'none';});
-  var filtered=DB.so.filter(function(r){return _billMatchFilter(r,q,no,from,to,wh,[]);});
-  filtered.sort(function(a,b){return (b.date||'')<(a.date||'')?-1:(b.date||'')==(a.date||'')?0:1;});
+  var filtered=DB.so.filter(function(r){
+    if(!_billMatchFilter(r,q,no,from,to,'',[])) return false;
+    if(cust && r.customerId!==cust) return false;
+    return true;
+  });
+  filtered.sort(function(a,b){return (a.date||'')>(b.date||'')?-1:1;});
   _renderSORows(filtered,showCP);
   _renderSummary('soSummary',filtered);
 }
-
 function renderSO(){ soApplyFilter(); }
 
 // ── SD ApplyFilter ──
@@ -5298,7 +5290,7 @@ function sdApplyFilter(){
   var to=(document.getElementById('sdFltTo')||{}).value||'';
   var wh=(document.getElementById('sdFltWh')||{}).value||'';
     var filtered=DB.sd.filter(function(r){return _billMatchFilter(r,q,no,from,to,wh,['warehouseId']);});
-  filtered.sort(function(a,b){return (b.date||'')<(a.date||'')?-1:(b.date||'')==(a.date||'')?0:1;});
+  filtered.sort(function(a,b){return (a.date||'')>(b.date||'')?-1:1;});
   _renderSDRows(filtered);
   _renderSummary('sdSummary',filtered);
 }
@@ -5314,7 +5306,7 @@ function oiApplyFilter(){
   var to=(document.getElementById('oiFltTo')||{}).value||'';
   var wh=(document.getElementById('oiFltWh')||{}).value||'';
     var filtered=DB.otherIn.filter(function(r){return _billMatchFilter(r,q,no,from,to,wh,['warehouseId']);});
-  filtered.sort(function(a,b){return (b.date||'')<(a.date||'')?-1:(b.date||'')==(a.date||'')?0:1;});
+  filtered.sort(function(a,b){return (a.date||'')>(b.date||'')?-1:1;});
   _renderOIRows(filtered);
   _renderSummary('oiSummary',filtered);
 }
@@ -5330,10 +5322,15 @@ function ooApplyFilter(){
   var to=(document.getElementById('ooFltTo')||{}).value||'';
   var wh=(document.getElementById('ooFltWh')||{}).value||'';
     var filtered=DB.otherOut.filter(function(r){return _billMatchFilter(r,q,no,from,to,wh,['warehouseId']);});
-  filtered.sort(function(a,b){return (b.date||'')<(a.date||'')?-1:(b.date||'')==(a.date||'')?0:1;});
+  filtered.sort(function(a,b){return (a.date||'')>(b.date||'')?-1:1;});
   _renderOORows(filtered);
   _renderSummary('ooSummary',filtered);
 }
+
+function renderOO(){ ooApplyFilter(); }
+
+
+init();
 
 function renderOO(){ ooApplyFilter(); }
 
