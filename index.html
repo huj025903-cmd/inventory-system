@@ -596,7 +596,7 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
       <div class="page" id="page-po">
         <div class="card">
           <div class="card-header"><div class="card-title">采购订单</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-warning" onclick="batchGenPR()" title="批量勾选后生成入库单">📥 批量生成入库单</button><button class="btn" onclick="batchPrint('po')">🖨️ 批量打印</button><button class="btn btn-success" onclick="exportExcel('po')">📊 导出Excel</button><button class="btn btn-primary" onclick="openModal('po')">+ 新建</button></div></div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 8px;border:1px solid var(--color-border-secondary)"><input id="poFltFrom" type="date" onchange="poApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><span style="font-size:12px;color:var(--color-text-secondary)">至</span><input id="poFltTo" type="date" onchange="poApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><input id="poFltQ" type="text" placeholder="🔍 商品名称/编号" oninput="poApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 10px;font-size:12px;width:160px;background:var(--color-background-primary)"><select id="poFltWh" onchange="poApplyFilter()" style="display:none" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary);min-width:100px"><option value="">全部仓库</option></select><button onclick="document.getElementById('poFltFrom').value='';document.getElementById('poFltTo').value='';document.getElementById('poFltQ').value='';document.getElementById('poFltWh').value='';poApplyFilter()" style="height:32px;padding:0 14px;border-radius:6px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary)">重置</button><div id="poSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 10px;border:1px solid var(--color-border-secondary)"><input id="poFltFrom" type="date" onchange="poApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="开始日期"><span style="font-size:11px;color:var(--color-text-secondary)">至</span><input id="poFltTo" type="date" onchange="poApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="结束日期"><input id="poFltNo" type="text" placeholder="单号" oninput="poApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:110px" title="单号搜索"><input id="poFltQ" type="text" placeholder="商品名称/编号" oninput="poApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:150px"><button onclick="document.getElementById('poFltFrom').value='';document.getElementById('poFltTo').value='';document.getElementById('poFltNo').value='';document.getElementById('poFltQ').value='';poApplyFilter()" style="height:30px;padding:0 12px;border-radius:5px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary)">重置</button><div id="poSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div></div>
           <table><thead><tr><th style="width:32px"><input type="checkbox" onclick="toggleAllCheck('po',this)" title="全选"></th><th>单号</th><th>供应商</th><th>经办人</th><th>日期</th><th>商品编码</th><th>商品名称</th><th style="text-align:right">数量</th><th style="text-align:right">单价</th><th style="text-align:right">行金额</th><th style="text-align:right">订单金额</th><th>到货</th><th>审核</th><th>备注</th><th>操作</th></tr></thead><tbody id="poTbl"></tbody></table>
         </div>
       </div>
@@ -605,7 +605,7 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
       <div class="page" id="page-pr">
         <div class="card">
           <div class="card-header"><div class="card-title">采购入库单</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-warning" onclick="openBatchPRModal()" title="选择采购订单批量生成入库单">📥 批量关联生成</button><button class="btn" onclick="batchPrint('pr')">🖨️ 批量打印</button><button class="btn btn-success" onclick="exportExcel('pr')">📊 导出Excel</button><button class="btn btn-primary" onclick="openModal('pr')">+ 新建</button></div></div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 8px;border:1px solid var(--color-border-secondary)"><input id="prFltFrom" type="date" onchange="prApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><span style="font-size:12px;color:var(--color-text-secondary)">至</span><input id="prFltTo" type="date" onchange="prApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><input id="prFltQ" type="text" placeholder="🔍 商品名称/编号" oninput="prApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 10px;font-size:12px;width:160px;background:var(--color-background-primary)"><select id="prFltWh" onchange="prApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary);min-width:100px"><option value="">全部仓库</option></select><button onclick="document.getElementById('prFltFrom').value='';document.getElementById('prFltTo').value='';document.getElementById('prFltQ').value='';document.getElementById('prFltWh').value='';prApplyFilter()" style="height:32px;padding:0 14px;border-radius:6px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary)">重置</button><div id="prSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 10px;border:1px solid var(--color-border-secondary)"><input id="prFltFrom" type="date" onchange="prApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="开始日期"><span style="font-size:11px;color:var(--color-text-secondary)">至</span><input id="prFltTo" type="date" onchange="prApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="结束日期"><input id="prFltNo" type="text" placeholder="单号" oninput="prApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:110px" title="单号搜索"><input id="prFltQ" type="text" placeholder="商品名称/编号" oninput="prApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:150px"><select id="prFltWh" onchange="prApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;min-width:110px"><option value="">全部仓库</option></select><button onclick="document.getElementById('prFltFrom').value='';document.getElementById('prFltTo').value='';document.getElementById('prFltNo').value='';document.getElementById('prFltQ').value='';document.getElementById('prFltWh').value='';prApplyFilter()" style="height:30px;padding:0 12px;border-radius:5px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary)">重置</button><div id="prSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div></div>
           <table><thead><tr><th style="width:32px"><input type="checkbox" onclick="toggleAllCheck('pr',this)" title="全选"></th><th>入库单号</th><th>关联采购单</th><th>供应商</th><th>经办人</th><th>仓库</th><th>日期</th><th>商品编码</th><th>商品名称</th><th style="text-align:right">数量</th><th style="text-align:right">单价</th><th style="text-align:right">行金额</th><th style="text-align:right">订单金额</th><th>状态</th><th>备注</th><th>操作</th></tr></thead><tbody id="prTbl"></tbody></table>
         </div>
       </div>
@@ -622,7 +622,7 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
       <div class="page" id="page-so">
         <div class="card">
           <div class="card-header"><div class="card-title">销售订单</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-warning" onclick="batchGenSD()" title="批量勾选后生成出库单">📤 批量生成出库单</button><button class="btn" onclick="batchPrint('so')">🖨️ 批量打印</button><button class="btn btn-success" onclick="exportExcel('so')">📊 导出Excel</button><button class="btn btn-primary" onclick="openModal('so')">+ 新建</button></div></div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 8px;border:1px solid var(--color-border-secondary)"><input id="soFltFrom" type="date" onchange="soApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><span style="font-size:12px;color:var(--color-text-secondary)">至</span><input id="soFltTo" type="date" onchange="soApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><input id="soFltQ" type="text" placeholder="🔍 商品名称/编号" oninput="soApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 10px;font-size:12px;width:160px;background:var(--color-background-primary)"><select id="soFltWh" onchange="soApplyFilter()" style="display:none" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary);min-width:100px"><option value="">全部仓库</option></select><button onclick="document.getElementById('soFltFrom').value='';document.getElementById('soFltTo').value='';document.getElementById('soFltQ').value='';document.getElementById('soFltWh').value='';soApplyFilter()" style="height:32px;padding:0 14px;border-radius:6px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary)">重置</button><div id="soSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 10px;border:1px solid var(--color-border-secondary)"><input id="soFltFrom" type="date" onchange="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="开始日期"><span style="font-size:11px;color:var(--color-text-secondary)">至</span><input id="soFltTo" type="date" onchange="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="结束日期"><input id="soFltNo" type="text" placeholder="单号" oninput="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:110px" title="单号搜索"><input id="soFltQ" type="text" placeholder="商品名称/编号" oninput="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:150px"><button onclick="document.getElementById('soFltFrom').value='';document.getElementById('soFltTo').value='';document.getElementById('soFltNo').value='';document.getElementById('soFltQ').value='';soApplyFilter()" style="height:30px;padding:0 12px;border-radius:5px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary)">重置</button><div id="soSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div></div>
           <table id="soTable"><thead><tr><th style="width:32px"><input type="checkbox" onclick="toggleAllCheck('so',this)" title="全选"></th><th>单号</th><th>客户</th><th>经办人</th><th>日期</th><th>仓库</th><th>商品编码</th><th>商品名称</th><th style="text-align:right">数量</th><th style="text-align:right">单价</th><th style="text-align:right">行金额</th><th style="text-align:right">订单金额</th><th class="so-cost-col" style="display:none">成本金额</th><th class="so-profit-col" style="display:none">利润</th><th class="so-profit-col" style="display:none">利润率</th><th>发货</th><th>审核</th><th>备注</th><th>操作</th></tr></thead><tbody id="soTbl"></tbody></table>
         </div>
       </div>
@@ -631,7 +631,7 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
       <div class="page" id="page-sd">
         <div class="card">
           <div class="card-header"><div class="card-title">销售出库单</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-warning" onclick="openBatchSDModal()" title="选择销售订单批量生成出库单">📤 批量关联生成</button><button class="btn" onclick="batchPrint('sd')">🖨️ 批量打印</button><button class="btn btn-success" onclick="exportExcel('sd')">📊 导出Excel</button><button class="btn btn-primary" onclick="openModal('sd')">+ 新建</button></div></div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 8px;border:1px solid var(--color-border-secondary)"><input id="sdFltFrom" type="date" onchange="sdApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><span style="font-size:12px;color:var(--color-text-secondary)">至</span><input id="sdFltTo" type="date" onchange="sdApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><input id="sdFltQ" type="text" placeholder="🔍 商品名称/编号" oninput="sdApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 10px;font-size:12px;width:160px;background:var(--color-background-primary)"><select id="sdFltWh" onchange="sdApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary);min-width:100px"><option value="">全部仓库</option></select><button onclick="document.getElementById('sdFltFrom').value='';document.getElementById('sdFltTo').value='';document.getElementById('sdFltQ').value='';document.getElementById('sdFltWh').value='';sdApplyFilter()" style="height:32px;padding:0 14px;border-radius:6px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary)">重置</button><div id="sdSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 10px;border:1px solid var(--color-border-secondary)"><input id="sdFltFrom" type="date" onchange="sdApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="开始日期"><span style="font-size:11px;color:var(--color-text-secondary)">至</span><input id="sdFltTo" type="date" onchange="sdApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="结束日期"><input id="sdFltNo" type="text" placeholder="单号" oninput="sdApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:110px" title="单号搜索"><input id="sdFltQ" type="text" placeholder="商品名称/编号" oninput="sdApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:150px"><select id="sdFltWh" onchange="sdApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;min-width:110px"><option value="">全部仓库</option></select><button onclick="document.getElementById('sdFltFrom').value='';document.getElementById('sdFltTo').value='';document.getElementById('sdFltNo').value='';document.getElementById('sdFltQ').value='';document.getElementById('sdFltWh').value='';sdApplyFilter()" style="height:30px;padding:0 12px;border-radius:5px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary)">重置</button><div id="sdSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div></div>
           <table><thead><tr><th style="width:32px"><input type="checkbox" onclick="toggleAllCheck('sd',this)" title="全选"></th><th>出库单号</th><th>关联销售单</th><th>客户</th><th>仓库</th><th>经办人</th><th>日期</th><th>商品编码</th><th>商品名称</th><th style="text-align:right">数量</th><th style="text-align:right">单价</th><th style="text-align:right">行金额</th><th style="text-align:right">订单金额</th><th>状态</th><th>备注</th><th>操作</th></tr></thead><tbody id="sdTbl"></tbody></table>
         </div>
       </div>
@@ -648,7 +648,7 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
       <div class="page" id="page-otherIn">
         <div class="card">
           <div class="card-header"><div class="card-title">其他入库单</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-warning" onclick="openBatchOIModal()" title="批量录入其他入库">📋 批量录入</button><button class="btn btn-success" onclick="exportExcel('otherIn')">📊 导出Excel</button><button class="btn btn-primary" onclick="openModal('otherIn')">+ 新建</button></div></div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 8px;border:1px solid var(--color-border-secondary)"><input id="oiFltFrom" type="date" onchange="oiApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><span style="font-size:12px;color:var(--color-text-secondary)">至</span><input id="oiFltTo" type="date" onchange="oiApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><input id="oiFltQ" type="text" placeholder="🔍 商品名称/编号" oninput="oiApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 10px;font-size:12px;width:160px;background:var(--color-background-primary)"><select id="oiFltWh" onchange="oiApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary);min-width:100px"><option value="">全部仓库</option></select><button onclick="document.getElementById('oiFltFrom').value='';document.getElementById('oiFltTo').value='';document.getElementById('oiFltQ').value='';document.getElementById('oiFltWh').value='';oiApplyFilter()" style="height:32px;padding:0 14px;border-radius:6px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary)">重置</button><div id="oiSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 10px;border:1px solid var(--color-border-secondary)"><input id="oiFltFrom" type="date" onchange="oiApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="开始日期"><span style="font-size:11px;color:var(--color-text-secondary)">至</span><input id="oiFltTo" type="date" onchange="oiApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="结束日期"><input id="oiFltNo" type="text" placeholder="单号" oninput="oiApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:110px" title="单号搜索"><input id="oiFltQ" type="text" placeholder="商品名称/编号" oninput="oiApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:150px"><select id="oiFltWh" onchange="oiApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;min-width:110px"><option value="">全部仓库</option></select><button onclick="document.getElementById('oiFltFrom').value='';document.getElementById('oiFltTo').value='';document.getElementById('oiFltNo').value='';document.getElementById('oiFltQ').value='';document.getElementById('oiFltWh').value='';oiApplyFilter()" style="height:30px;padding:0 12px;border-radius:5px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary)">重置</button><div id="oiSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div></div>
           <table><thead><tr><th style="width:32px"><input type="checkbox" onclick="toggleAllCheck('otherIn',this)" title="全选"></th><th>单号</th><th>类型</th><th>经办人</th><th>仓库</th><th>日期</th><th>商品编码</th><th>商品名称</th><th style="text-align:right">数量</th><th style="text-align:right">单价</th><th style="text-align:right">行金额</th><th style="text-align:right">订单金额</th><th>备注</th><th>操作</th></tr></thead><tbody id="oiTbl"></tbody></table>
         </div>
       </div>
@@ -684,7 +684,7 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
       <div class="page" id="page-otherOut">
         <div class="card">
           <div class="card-header"><div class="card-title">其他出库单</div><div style="display:flex;gap:6px"><button class="btn btn-success" onclick="exportExcel('otherOut')">📊 导出Excel</button><button class="btn btn-primary" onclick="openModal('otherOut')">+ 新建</button></div></div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 8px;border:1px solid var(--color-border-secondary)"><input id="ooFltFrom" type="date" onchange="ooApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><span style="font-size:12px;color:var(--color-text-secondary)">至</span><input id="ooFltTo" type="date" onchange="ooApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><input id="ooFltQ" type="text" placeholder="🔍 商品名称/编号" oninput="ooApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 10px;font-size:12px;width:160px;background:var(--color-background-primary)"><select id="ooFltWh" onchange="ooApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary);min-width:100px"><option value="">全部仓库</option></select><button onclick="document.getElementById('ooFltFrom').value='';document.getElementById('ooFltTo').value='';document.getElementById('ooFltQ').value='';document.getElementById('ooFltWh').value='';ooApplyFilter()" style="height:32px;padding:0 14px;border-radius:6px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary)">重置</button><div id="ooSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 10px;border:1px solid var(--color-border-secondary)"><input id="ooFltFrom" type="date" onchange="ooApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="开始日期"><span style="font-size:11px;color:var(--color-text-secondary)">至</span><input id="ooFltTo" type="date" onchange="ooApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="结束日期"><input id="ooFltNo" type="text" placeholder="单号" oninput="ooApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:110px" title="单号搜索"><input id="ooFltQ" type="text" placeholder="商品名称/编号" oninput="ooApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:150px"><select id="ooFltWh" onchange="ooApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);cursor:pointer;min-width:110px"><option value="">全部仓库</option></select><button onclick="document.getElementById('ooFltFrom').value='';document.getElementById('ooFltTo').value='';document.getElementById('ooFltNo').value='';document.getElementById('ooFltQ').value='';document.getElementById('ooFltWh').value='';ooApplyFilter()" style="height:30px;padding:0 12px;border-radius:5px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary)">重置</button><div id="ooSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div></div>
           </div>
           <table><thead><tr><th>单号</th><th>类型</th><th>经办人</th><th>仓库</th><th>日期</th><th>商品编码</th><th>商品名称</th><th style="text-align:right">数量</th><th style="text-align:right">单价</th><th style="text-align:right">行金额</th><th style="text-align:right">订单金额</th><th>备注</th><th>操作</th></tr></thead><tbody id="ooTbl"></tbody></table>
         </div>
@@ -5202,12 +5202,14 @@ function _fillWhOpts(selId){
   });
 }
 
-function _billMatchFilter(r, q, from, to, wh, whFields){
+function _billMatchFilter(r, q, no, from, to, wh, whFields){
+  // 单号过滤
+  if(no && !(r.no||'').toLowerCase().includes(no.toLowerCase())) return false;
   // 日期过滤
   if(from && r.date < from) return false;
   if(to   && r.date > to)   return false;
   // 仓库过滤
-  if(wh){
+  if(wh && whFields && whFields.length){
     var whMatch = whFields.some(function(f){
       return _whName(r[f]||'') === wh;
     });
@@ -5241,114 +5243,98 @@ function _renderSummary(elId, filtered){
 
 // ── PO ApplyFilter ──
 function poApplyFilter(){
-  var q=(document.getElementById('poFltQ')||{}).value||'';
+    var q=(document.getElementById('poFltQ')||{}).value||'';
+  var no=(document.getElementById('poFltNo')||{}).value||'';
   var from=(document.getElementById('poFltFrom')||{}).value||'';
   var to=(document.getElementById('poFltTo')||{}).value||'';
-  // PO 本身无仓库字段，只按日期和商品过滤
-  var filtered=DB.po.filter(function(r){
-    if(from && r.date < from) return false;
-    if(to   && r.date > to)   return false;
-    if(q){
-      var ql=q.toLowerCase();
-      var match=r.items&&r.items.some(function(i){
-        var p=DB.products.find(function(x){return x.id===i.productId;})||{};
-        return (p.code||'').toLowerCase().indexOf(ql)>=0||
-               (p.name||'').toLowerCase().indexOf(ql)>=0||
-               (p.spec||'').toLowerCase().indexOf(ql)>=0;
-      });
-      if(!match) return false;
-    }
-    return true;
-  });
-  filtered.sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;});
+  var wh='';
+    var filtered=DB.po.filter(function(r){return _billMatchFilter(r,q,no,from,to,wh,[]);});
+  filtered.sort(function(a,b){return (b.date||'')<(a.date||'')?-1:(b.date||'')==(a.date||'')?0:1;});
   _renderPORows(filtered);
   _renderSummary('poSummary',filtered);
 }
+function renderPO(){ poApplyFilter(); }
 function renderPO(){ poApplyFilter(); }
 
 // ── PR ApplyFilter ──
 function prApplyFilter(){
   _fillWhOpts('prFltWh');
-  var q=(document.getElementById('prFltQ')||{}).value||'';
+    var q=(document.getElementById('prFltQ')||{}).value||'';
+  var no=(document.getElementById('prFltNo')||{}).value||'';
   var from=(document.getElementById('prFltFrom')||{}).value||'';
   var to=(document.getElementById('prFltTo')||{}).value||'';
   var wh=(document.getElementById('prFltWh')||{}).value||'';
-  var filtered=DB.pr.filter(function(r){return _billMatchFilter(r,q,from,to,wh,['warehouseId']);});
-  filtered.sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;});
+    var filtered=DB.pr.filter(function(r){return _billMatchFilter(r,q,no,from,to,wh,['warehouseId']);});
+  filtered.sort(function(a,b){return (b.date||'')<(a.date||'')?-1:(b.date||'')==(a.date||'')?0:1;});
   _renderPRRows(filtered);
   _renderSummary('prSummary',filtered);
 }
 function renderPR(){ prApplyFilter(); }
+function renderPR(){ prApplyFilter(); }
 
 // ── SO ApplyFilter ──
 function soApplyFilter(){
-  var q=(document.getElementById('soFltQ')||{}).value||'';
+    var q=(document.getElementById('soFltQ')||{}).value||'';
+  var no=(document.getElementById('soFltNo')||{}).value||'';
   var from=(document.getElementById('soFltFrom')||{}).value||'';
   var to=(document.getElementById('soFltTo')||{}).value||'';
-  var showCP=perms['so_cost_profit']&&perms['so_cost_profit'][currentUser];
+  var wh='';
+    var showCP=perms['so_cost_profit']&&perms['so_cost_profit'][currentUser];
   document.querySelectorAll('.so-cost-col,.so-profit-col').forEach(function(el){el.style.display=showCP?'':'none';});
-  // SO 无仓库字段，只按日期和商品过滤
-  var filtered=DB.so.filter(function(r){
-    if(from && r.date < from) return false;
-    if(to   && r.date > to)   return false;
-    if(q){
-      var ql=q.toLowerCase();
-      var match=r.items&&r.items.some(function(i){
-        var p=DB.products.find(function(x){return x.id===i.productId;})||{};
-        return (p.code||'').toLowerCase().indexOf(ql)>=0||
-               (p.name||'').toLowerCase().indexOf(ql)>=0||
-               (p.spec||'').toLowerCase().indexOf(ql)>=0;
-      });
-      if(!match) return false;
-    }
-    return true;
-  });
-  filtered.sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;});
+  var filtered=DB.so.filter(function(r){return _billMatchFilter(r,q,no,from,to,wh,[]);});
+  filtered.sort(function(a,b){return (b.date||'')<(a.date||'')?-1:(b.date||'')==(a.date||'')?0:1;});
   _renderSORows(filtered,showCP);
   _renderSummary('soSummary',filtered);
 }
+function renderSO(){ soApplyFilter(); }
 function renderSO(){ soApplyFilter(); }
 
 // ── SD ApplyFilter ──
 function sdApplyFilter(){
   _fillWhOpts('sdFltWh');
-  var q=(document.getElementById('sdFltQ')||{}).value||'';
+    var q=(document.getElementById('sdFltQ')||{}).value||'';
+  var no=(document.getElementById('sdFltNo')||{}).value||'';
   var from=(document.getElementById('sdFltFrom')||{}).value||'';
   var to=(document.getElementById('sdFltTo')||{}).value||'';
   var wh=(document.getElementById('sdFltWh')||{}).value||'';
-  var filtered=DB.sd.filter(function(r){return _billMatchFilter(r,q,from,to,wh,['warehouseId']);});
-  filtered.sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;});
+    var filtered=DB.sd.filter(function(r){return _billMatchFilter(r,q,no,from,to,wh,['warehouseId']);});
+  filtered.sort(function(a,b){return (b.date||'')<(a.date||'')?-1:(b.date||'')==(a.date||'')?0:1;});
   _renderSDRows(filtered);
   _renderSummary('sdSummary',filtered);
 }
+function renderSD(){ sdApplyFilter(); }
 function renderSD(){ sdApplyFilter(); }
 
 // ── OI ApplyFilter ──
 function oiApplyFilter(){
   _fillWhOpts('oiFltWh');
-  var q=(document.getElementById('oiFltQ')||{}).value||'';
+    var q=(document.getElementById('oiFltQ')||{}).value||'';
+  var no=(document.getElementById('oiFltNo')||{}).value||'';
   var from=(document.getElementById('oiFltFrom')||{}).value||'';
   var to=(document.getElementById('oiFltTo')||{}).value||'';
   var wh=(document.getElementById('oiFltWh')||{}).value||'';
-  var filtered=DB.otherIn.filter(function(r){return _billMatchFilter(r,q,from,to,wh,['warehouseId']);});
-  filtered.sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;});
+    var filtered=DB.otherIn.filter(function(r){return _billMatchFilter(r,q,no,from,to,wh,['warehouseId']);});
+  filtered.sort(function(a,b){return (b.date||'')<(a.date||'')?-1:(b.date||'')==(a.date||'')?0:1;});
   _renderOIRows(filtered);
   _renderSummary('oiSummary',filtered);
 }
+function renderOI(){ oiApplyFilter(); }
 function renderOI(){ oiApplyFilter(); }
 
 // ── OO ApplyFilter ──
 function ooApplyFilter(){
   _fillWhOpts('ooFltWh');
-  var q=(document.getElementById('ooFltQ')||{}).value||'';
+    var q=(document.getElementById('ooFltQ')||{}).value||'';
+  var no=(document.getElementById('ooFltNo')||{}).value||'';
   var from=(document.getElementById('ooFltFrom')||{}).value||'';
   var to=(document.getElementById('ooFltTo')||{}).value||'';
   var wh=(document.getElementById('ooFltWh')||{}).value||'';
-  var filtered=DB.otherOut.filter(function(r){return _billMatchFilter(r,q,from,to,wh,['warehouseId']);});
-  filtered.sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;});
+    var filtered=DB.otherOut.filter(function(r){return _billMatchFilter(r,q,no,from,to,wh,['warehouseId']);});
+  filtered.sort(function(a,b){return (b.date||'')<(a.date||'')?-1:(b.date||'')==(a.date||'')?0:1;});
   _renderOORows(filtered);
   _renderSummary('ooSummary',filtered);
 }
+function renderOO(){ ooApplyFilter(); }
 function renderOO(){ ooApplyFilter(); }
 
 
