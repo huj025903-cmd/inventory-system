@@ -596,7 +596,7 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
       <div class="page" id="page-po">
         <div class="card">
           <div class="card-header"><div class="card-title">采购订单</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-warning" onclick="batchGenPR()" title="批量勾选后生成入库单">📥 批量生成入库单</button><button class="btn" onclick="batchPrint('po')">🖨️ 批量打印</button><button class="btn btn-success" onclick="exportExcel('po')">📊 导出Excel</button><button class="btn btn-primary" onclick="openModal('po')">+ 新建</button></div></div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 8px;border:1px solid var(--color-border-secondary)"><input id="poFltFrom" type="date" onchange="poApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><span style="font-size:12px;color:var(--color-text-secondary)">至</span><input id="poFltTo" type="date" onchange="poApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><input id="poFltQ" type="text" placeholder="🔍 商品名称/编号" oninput="poApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 10px;font-size:12px;width:160px;background:var(--color-background-primary)"><select id="poFltWh" onchange="poApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary);min-width:100px"><option value="">全部仓库</option></select><button onclick="document.getElementById('poFltFrom').value='';document.getElementById('poFltTo').value='';document.getElementById('poFltQ').value='';document.getElementById('poFltWh').value='';poApplyFilter()" style="height:32px;padding:0 14px;border-radius:6px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary)">重置</button><div id="poSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 8px;border:1px solid var(--color-border-secondary)"><input id="poFltFrom" type="date" onchange="poApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><span style="font-size:12px;color:var(--color-text-secondary)">至</span><input id="poFltTo" type="date" onchange="poApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><input id="poFltQ" type="text" placeholder="🔍 商品名称/编号" oninput="poApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 10px;font-size:12px;width:160px;background:var(--color-background-primary)"><select id="poFltWh" onchange="poApplyFilter()" style="display:none" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary);min-width:100px"><option value="">全部仓库</option></select><button onclick="document.getElementById('poFltFrom').value='';document.getElementById('poFltTo').value='';document.getElementById('poFltQ').value='';document.getElementById('poFltWh').value='';poApplyFilter()" style="height:32px;padding:0 14px;border-radius:6px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary)">重置</button><div id="poSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div>
           <table><thead><tr><th style="width:32px"><input type="checkbox" onclick="toggleAllCheck('po',this)" title="全选"></th><th>单号</th><th>供应商</th><th>经办人</th><th>日期</th><th>商品编码</th><th>商品名称</th><th style="text-align:right">数量</th><th style="text-align:right">单价</th><th style="text-align:right">行金额</th><th style="text-align:right">订单金额</th><th>到货</th><th>审核</th><th>备注</th><th>操作</th></tr></thead><tbody id="poTbl"></tbody></table>
         </div>
       </div>
@@ -622,7 +622,7 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
       <div class="page" id="page-so">
         <div class="card">
           <div class="card-header"><div class="card-title">销售订单</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-warning" onclick="batchGenSD()" title="批量勾选后生成出库单">📤 批量生成出库单</button><button class="btn" onclick="batchPrint('so')">🖨️ 批量打印</button><button class="btn btn-success" onclick="exportExcel('so')">📊 导出Excel</button><button class="btn btn-primary" onclick="openModal('so')">+ 新建</button></div></div>
-          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 8px;border:1px solid var(--color-border-secondary)"><input id="soFltFrom" type="date" onchange="soApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><span style="font-size:12px;color:var(--color-text-secondary)">至</span><input id="soFltTo" type="date" onchange="soApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><input id="soFltQ" type="text" placeholder="🔍 商品名称/编号" oninput="soApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 10px;font-size:12px;width:160px;background:var(--color-background-primary)"><select id="soFltWh" onchange="soApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary);min-width:100px"><option value="">全部仓库</option></select><button onclick="document.getElementById('soFltFrom').value='';document.getElementById('soFltTo').value='';document.getElementById('soFltQ').value='';document.getElementById('soFltWh').value='';soApplyFilter()" style="height:32px;padding:0 14px;border-radius:6px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary)">重置</button><div id="soSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 8px;border:1px solid var(--color-border-secondary)"><input id="soFltFrom" type="date" onchange="soApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><span style="font-size:12px;color:var(--color-text-secondary)">至</span><input id="soFltTo" type="date" onchange="soApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary)"><input id="soFltQ" type="text" placeholder="🔍 商品名称/编号" oninput="soApplyFilter()" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 10px;font-size:12px;width:160px;background:var(--color-background-primary)"><select id="soFltWh" onchange="soApplyFilter()" style="display:none" style="height:32px;border:1px solid var(--color-border-secondary);border-radius:6px;padding:0 8px;font-size:12px;background:var(--color-background-primary);min-width:100px"><option value="">全部仓库</option></select><button onclick="document.getElementById('soFltFrom').value='';document.getElementById('soFltTo').value='';document.getElementById('soFltQ').value='';document.getElementById('soFltWh').value='';soApplyFilter()" style="height:32px;padding:0 14px;border-radius:6px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary)">重置</button><div id="soSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div>
           <table id="soTable"><thead><tr><th style="width:32px"><input type="checkbox" onclick="toggleAllCheck('so',this)" title="全选"></th><th>单号</th><th>客户</th><th>经办人</th><th>日期</th><th>仓库</th><th>商品编码</th><th>商品名称</th><th style="text-align:right">数量</th><th style="text-align:right">单价</th><th style="text-align:right">行金额</th><th style="text-align:right">订单金额</th><th class="so-cost-col" style="display:none">成本金额</th><th class="so-profit-col" style="display:none">利润</th><th class="so-profit-col" style="display:none">利润率</th><th>发货</th><th>审核</th><th>备注</th><th>操作</th></tr></thead><tbody id="soTbl"></tbody></table>
         </div>
       </div>
@@ -4478,32 +4478,31 @@ function ebGetItems(){
 
 // 保存编辑
 async function saveBillEdit(type, id){
-  const r = DB[type].find(x=>x.id===id);
+  const r = DB[type==='so'?'so':type==='po'?'po':type].find(x=>x.id===id);
   if(!r){ showToast('记录不存在','error'); return; }
 
   const items = ebGetItems();
   if(!items.length){ showToast('请至少保留一行有效明细','error'); return; }
 
-  // eb_wh.value 现在直接是仓库名称（唯一），直接存名称，_whName() 能正确解析
-  // PO/SO 无仓库字段，特殊处理
-  if(type==='po'){
-    const sup=(document.getElementById('eb_sup')||{}).value;
-    if(sup) r.supplierId=sup;
-  } else if(type==='so'){
-    const cust=(document.getElementById('eb_cust')||{}).value;
-    if(cust) r.customerId=cust;
-  } else if(type==='otherOut'){
-    r.type=(document.getElementById('eb_otype')||{}).value||r.type;
-    r.note=(document.getElementById('eb_note')||{}).value||'';
-  }
   const warehouseName = (document.getElementById('eb_wh')||{}).value || '';
   const noWhTypes = ['po','so'];
   if(!warehouseName && !noWhTypes.includes(type)){ showToast('请选择仓库','error'); return; }
-  const handler = (document.getElementById('eb_handler')||{}).value || r.handler || '';
-  const date = (document.getElementById('eb_date')||{}).value || r.date || '';
-  const totalAmt = items.reduce((s,i)=>s+i.total, 0);
 
-  if(type==='pr'){
+  const handler   = (document.getElementById('eb_handler')||{}).value || r.handler || '';
+  const date      = (document.getElementById('eb_date')||{}).value    || r.date    || '';
+  const totalAmt  = items.reduce((s,i)=>s+i.total, 0);
+
+  if(type==='po'){
+    const supplierId = (document.getElementById('eb_sup')||{}).value || r.supplierId;
+    if(!supplierId){ showToast('请选择供应商','error'); return; }
+    Object.assign(r, {supplierId, handler, date, items, totalAmt});
+
+  } else if(type==='so'){
+    const customerId = (document.getElementById('eb_cust')||{}).value || r.customerId;
+    if(!customerId){ showToast('请选择客户','error'); return; }
+    Object.assign(r, {customerId, handler, date, items, totalAmt});
+
+  } else if(type==='pr'){
     const supplierId = (document.getElementById('eb_sup')||{}).value;
     if(!supplierId){ showToast('请选择供应商','error'); return; }
     const poId = (document.getElementById('eb_po')||{}).value || '';
@@ -4515,12 +4514,12 @@ async function saveBillEdit(type, id){
     if(!customerId){ showToast('请选择客户','error'); return; }
     for(const item of items){
       const origItem = r.items.find(x=>x.productId===item.productId);
-      const origQty = origItem ? origItem.qty : 0;
+      const origQty  = origItem ? origItem.qty : 0;
       const extraQty = item.qty - origQty;
       if(extraQty > 0){
         const stock = getStock(item.productId, warehouseName);
         if(stock < extraQty){
-          showToast(`${pname(item.productId)} 库存不足，新增出库量 ${extraQty}，当前可用库存 ${stock}`,'error');
+          showToast(pname(item.productId)+' 库存不足，新增出库量 '+extraQty+'，当前可用库存 '+stock,'error');
           return;
         }
       }
@@ -4530,24 +4529,38 @@ async function saveBillEdit(type, id){
     Object.assign(r, {customerId, warehouseId:warehouseName, handler, date, soId, soNo, items, totalAmt});
 
   } else if(type==='otherIn'){
-    const note = (document.getElementById('eb_note')||{}).value || r.note || '';
-    const otype = (document.getElementById('eb_otype')||{}).value || r.type || '';
+    const note  = (document.getElementById('eb_note')||{}).value  || r.note  || '';
+    const otype = (document.getElementById('eb_otype')||{}).value || r.type  || '';
+    Object.assign(r, {type:otype, warehouseId:warehouseName, handler, date, items, totalAmt, note});
+
+  } else if(type==='otherOut'){
+    const note  = (document.getElementById('eb_note')||{}).value  || r.note  || '';
+    const otype = (document.getElementById('eb_otype')||{}).value || r.type  || '';
     Object.assign(r, {type:otype, warehouseId:warehouseName, handler, date, items, totalAmt, note});
   }
 
-  // ── 关键：await saveStore，确保云端写入成功后再刷新页面 ──
   closeModal();
   showToast('保存中...');
-  await saveStore(type);
-  if(type==='pr') renderPR();
-  else if(type==='sd') renderSD();
-  else if(type==='otherIn') renderOI();
-  renderDashboard();
-  writeLog('编辑', type==='pr'?'采购':type==='sd'?'销售':'其他', `编辑${type==='pr'?'采购入库单':type==='sd'?'销售出库单':'其他入库单'} ${r.no}`);
-  showToast('✓ 修改已保存');
+
+  // 保存到云端
+  const storeKey = type==='so'?'so':type==='po'?'po':type==='sd'?'sd':type==='pr'?'pr':type==='otherIn'?'otherIn':'otherOut';
+  saveStore(storeKey).then(()=>{
+    // 刷新对应列表
+    if(type==='po')      renderPO();
+    else if(type==='pr') renderPR();
+    else if(type==='so') renderSO();
+    else if(type==='sd') renderSD();
+    else if(type==='otherIn')  renderOI();
+    else if(type==='otherOut') renderOO();
+    renderDashboard();
+    writeLog('编辑', type, '编辑单据 '+r.no);
+    showToast('✓ 修改已保存');
+  }).catch(err=>{
+    console.error('保存失败:', err);
+    showToast('⚠ 保存失败，请检查网络','error');
+  });
 }
 
-// ── 批量打印 ──
 function toggleAllCheck(type, masterCb){
   document.querySelectorAll(`.bill-check[data-type="${type}"]`).forEach(cb=>cb.checked=masterCb.checked);
 }
@@ -5228,12 +5241,25 @@ function _renderSummary(elId, filtered){
 
 // ── PO ApplyFilter ──
 function poApplyFilter(){
-  _fillWhOpts('poFltWh');
   var q=(document.getElementById('poFltQ')||{}).value||'';
   var from=(document.getElementById('poFltFrom')||{}).value||'';
   var to=(document.getElementById('poFltTo')||{}).value||'';
-  var wh=(document.getElementById('poFltWh')||{}).value||'';
-  var filtered=DB.po.filter(function(r){return _billMatchFilter(r,q,from,to,wh,['warehouseId']);});
+  // PO 本身无仓库字段，只按日期和商品过滤
+  var filtered=DB.po.filter(function(r){
+    if(from && r.date < from) return false;
+    if(to   && r.date > to)   return false;
+    if(q){
+      var ql=q.toLowerCase();
+      var match=r.items&&r.items.some(function(i){
+        var p=DB.products.find(function(x){return x.id===i.productId;})||{};
+        return (p.code||'').toLowerCase().indexOf(ql)>=0||
+               (p.name||'').toLowerCase().indexOf(ql)>=0||
+               (p.spec||'').toLowerCase().indexOf(ql)>=0;
+      });
+      if(!match) return false;
+    }
+    return true;
+  });
   filtered.sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;});
   _renderPORows(filtered);
   _renderSummary('poSummary',filtered);
@@ -5256,14 +5282,27 @@ function renderPR(){ prApplyFilter(); }
 
 // ── SO ApplyFilter ──
 function soApplyFilter(){
-  _fillWhOpts('soFltWh');
   var q=(document.getElementById('soFltQ')||{}).value||'';
   var from=(document.getElementById('soFltFrom')||{}).value||'';
   var to=(document.getElementById('soFltTo')||{}).value||'';
-  var wh=(document.getElementById('soFltWh')||{}).value||'';
   var showCP=perms['so_cost_profit']&&perms['so_cost_profit'][currentUser];
   document.querySelectorAll('.so-cost-col,.so-profit-col').forEach(function(el){el.style.display=showCP?'':'none';});
-  var filtered=DB.so.filter(function(r){return _billMatchFilter(r,q,from,to,wh,['warehouseId']);});
+  // SO 无仓库字段，只按日期和商品过滤
+  var filtered=DB.so.filter(function(r){
+    if(from && r.date < from) return false;
+    if(to   && r.date > to)   return false;
+    if(q){
+      var ql=q.toLowerCase();
+      var match=r.items&&r.items.some(function(i){
+        var p=DB.products.find(function(x){return x.id===i.productId;})||{};
+        return (p.code||'').toLowerCase().indexOf(ql)>=0||
+               (p.name||'').toLowerCase().indexOf(ql)>=0||
+               (p.spec||'').toLowerCase().indexOf(ql)>=0;
+      });
+      if(!match) return false;
+    }
+    return true;
+  });
   filtered.sort(function(a,b){return (b.date||'')>(a.date||'')?1:-1;});
   _renderSORows(filtered,showCP);
   _renderSummary('soSummary',filtered);
