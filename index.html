@@ -626,7 +626,7 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
       <div class="page" id="page-so">
         <div class="card">
           <div class="card-header"><div class="card-title">销售订单</div><div style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn btn-warning" onclick="batchGenSD()" title="批量勾选后生成出库单">📤 批量生成出库单</button><button class="btn" onclick="batchPrint('so')">🖨️ 批量打印</button><button class="btn btn-success" onclick="exportExcel('so')">📊 导出Excel</button><button class="btn btn-primary" onclick="openModal('so')">+ 新建</button></div></div>
-          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 10px;border:1px solid var(--color-border-secondary)"><input id="soFltFrom" type="date" onchange="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="开始日期"><span style="font-size:11px;color:var(--color-text-secondary)">至</span><input id="soFltTo" type="date" onchange="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="结束日期"><input id="soFltNo" type="text" placeholder="单号" oninput="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:110px" title="单号搜索"><input id="soFltQ" type="text" placeholder="商品名称/编号" oninput="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:150px"><select id="soFltCust" onchange="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);min-width:120px;cursor:pointer"><option value="">全部客户</option></select><button onclick="document.getElementById('soFltFrom').value='';document.getElementById('soFltTo').value='';document.getElementById('soFltNo').value='';document.getElementById('soFltQ').value='';document.getElementById('soFltCust').value='';soApplyFilter()" style="height:30px;padding:0 12px;border-radius:5px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary)">重置</button><div id="soSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 16px;background:var(--color-background-secondary);border-radius:6px;margin:0 16px 10px;border:1px solid var(--color-border-secondary)"><input id="soFltFrom" type="date" onchange="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="开始日期"><span style="font-size:11px;color:var(--color-text-secondary)">至</span><input id="soFltTo" type="date" onchange="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary)" title="结束日期"><input id="soFltNo" type="text" placeholder="单号" oninput="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:110px" title="单号搜索"><input id="soFltQ" type="text" placeholder="商品名称/编号" oninput="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);width:150px"><select id="soFltWh" onchange="soApplyFilter()" style="height:30px;border:1px solid var(--color-border-secondary);border-radius:5px;padding:0 8px;font-size:12px;background:var(--color-background-primary);color:var(--color-text-primary);min-width:120px;cursor:pointer"><option value="">全部仓库</option></select><button onclick="document.getElementById('soFltFrom').value='';document.getElementById('soFltTo').value='';document.getElementById('soFltNo').value='';document.getElementById('soFltQ').value='';document.getElementById('soFltWh').value='';soApplyFilter()" style="height:30px;padding:0 12px;border-radius:5px;border:1px solid var(--color-border-secondary);font-size:12px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-primary)">重置</button><div id="soSummary" style="margin-left:auto;font-size:12px;font-weight:600;color:#185FA5;white-space:nowrap"></div></div>
           <div class="table-wrap">
             <table><thead><tr><th style="width:32px"><input type="checkbox" onclick="toggleAllCheck('so',this)" title="全选"></th><th>单号</th><th>客户</th><th>经办人</th><th>日期</th><th>仓库</th><th>商品编码</th><th>商品名称</th><th style="text-align:right">数量</th><th style="text-align:right">单价</th><th style="text-align:right">行金额</th><th style="text-align:right">订单金额</th><th class="so-cost-col" style="display:none">成本金额</th><th class="so-profit-col" style="display:none">利润</th><th class="so-profit-col" style="display:none">利润率</th><th>发货</th><th>审核</th><th>备注</th><th>操作</th></tr></thead><tbody id="soTbl"></tbody></table>
           </div>
@@ -2098,7 +2098,10 @@ function _renderSORows(data,showCP){
       tr+=`<td style="border-bottom:0.5px solid var(--color-border-tertiary)">${cname(r.customerId)}</td>`;
       tr+=`<td style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.handler||'-'}</td>`;
       tr+=`<td style="border-bottom:0.5px solid var(--color-border-tertiary)">${r.date||'-'}</td>`;
-      tr+=`<td style="border-bottom:0.5px solid var(--color-border-tertiary)">${wname&&wname(r.warehouseId)||'-'}</td>`;
+      // 仓库：从关联 SD 出库单查
+      const soSD=DB.sd.find(function(s){return s.soId===r.id||s.soNo===r.no;});
+      const soWH=soSD?wname(soSD.warehouseId):'-';
+      tr+=`<td style="border-bottom:0.5px solid var(--color-border-tertiary)">${soWH}</td>`;
       tr+=`<td style="font-size:11px;border-bottom:0.5px solid var(--color-border-tertiary)">${p.code||'-'}</td>`;
       tr+=`<td style="font-size:11px;border-bottom:0.5px solid var(--color-border-tertiary)" title="${(p.name||'')+' '+(p.spec||'')}">${p.name||'-'}${p.spec?'<span style="color:var(--color-text-tertiary);font-size:10px"> '+p.spec+'</span>':''}</td>`;
       tr+=`<td style="text-align:right;border-bottom:0.5px solid var(--color-border-tertiary)">${(+i.qty||0).toLocaleString()}</td>`;
@@ -3343,9 +3346,10 @@ function batchGenSD(){
   const checked = Array.from(document.querySelectorAll('.bill-check[data-type="so"]:checked'));
   if(!checked.length){ showToast('请先勾选要生成出库单的销售订单','error'); return; }
   const ids = checked.map(cb=>cb.dataset.id);
-  const pendingSOs = ids.map(id=>DB.so.find(s=>s.id===id)).filter(s=>s&&s.approved&&s.shipStatus!=='done');
-  if(!pendingSOs.length){ showToast('所选订单均未审核或已全部发货','error'); return; }
-  openBatchSDModal(pendingSOs.map(s=>s.id));
+  // 允许未审核订单进入弹窗，在弹窗里提示审核状态
+  const validSOs = ids.map(id=>DB.so.find(s=>s.id===id)).filter(s=>s&&s.shipStatus!=='done');
+  if(!validSOs.length){ showToast('所选订单均已全部发货','error'); return; }
+  openBatchSDModal(validSOs.map(s=>s.id));
 }
 
 // ── 采购订单行「生成入库单」按钮（单条）──
@@ -3362,7 +3366,9 @@ function openGenPR(poId){
 function openGenSD(soId){
   const so = DB.so.find(s=>s.id===soId);
   if(!so){ showToast('找不到销售订单','error'); return; }
-  if(!so.approved){ showToast('订单尚未审核，无法生成出库单','error'); return; }
+  if(!so.approved){
+    if(!confirm('该订单尚未审核，确定仍要生成出库单吗？')) return;
+  }
   if(so.shipStatus==='done'){ showToast('该订单已全部发货','error'); return; }
   // 打开销售出库单新建弹窗，预填该 SO 数据
   openModal('sd', {soId: so.id});
@@ -3420,6 +3426,7 @@ function openBatchPRModal(preIds){
                 <th style="padding:8px;font-size:11px;font-weight:500;border-bottom:0.5px solid var(--color-border-tertiary)">日期</th>
                 <th style="padding:8px;font-size:11px;font-weight:500;border-bottom:0.5px solid var(--color-border-tertiary);text-align:right">金额</th>
                 <th style="padding:8px;font-size:11px;font-weight:500;border-bottom:0.5px solid var(--color-border-tertiary);text-align:center">明细</th>
+                <th style="padding:8px;font-size:11px;font-weight:500;border-bottom:0.5px solid var(--color-border-tertiary);text-align:center">审核</th>
               </tr>
             </thead>
             <tbody>${rows}</tbody>
@@ -3469,19 +3476,23 @@ function execBatchPR(){
 // 批量生成销售出库单
 function openBatchSDModal(preIds){
   const mc = document.getElementById('modalContainer');
-  const pendingSOs = DB.so.filter(s=>s.approved && s.shipStatus!=='done');
+  const pendingSOs = DB.so.filter(s=>s.shipStatus!=='done');
   if(!pendingSOs.length){
     showToast('暂无待出库的已审核销售订单','error'); return;
   }
   const rows = pendingSOs.map(so=>{
     const cust = DB.customers.find(c=>c.id===so.customerId);
+    const approvedBadge = so.approved
+      ? '<span style="color:#1D9E75;font-size:10px;font-weight:600">已审核</span>'
+      : '<span style="color:#E24B4A;font-size:10px;font-weight:600">待审核</span>';
     return `<tr>
-      <td style="text-align:center;padding:8px"><input type="checkbox" class="batch-so-cb" value="${so.id}"></td>
+      <td style="text-align:center;padding:8px"><input type="checkbox" class="batch-so-cb" value="${so.id}" ${so.approved?'checked':''}></td>
       <td style="padding:8px;font-size:12px">${so.no}</td>
       <td style="padding:8px;font-size:12px">${cust?cust.name:'-'}</td>
       <td style="padding:8px;font-size:12px">${so.date||'-'}</td>
       <td style="padding:8px;font-size:12px;text-align:right">¥${(so.totalAmt||0).toLocaleString(undefined,{minimumFractionDigits:2})}</td>
       <td style="padding:8px;font-size:12px;text-align:center">${so.items?so.items.length:0}种</td>
+      <td style="padding:8px;text-align:center">${approvedBadge}</td>
     </tr>`;
   }).join('');
   const whOpts = getWHOpts();
@@ -3547,6 +3558,11 @@ function execBatchSD(){
   const handler = (document.getElementById('batchSDHandler')||{}).value||'';
   const checked = Array.from(document.querySelectorAll('.batch-so-cb:checked'));
   if(!checked.length){showToast('请至少勾选一张销售订单','error');return;}
+  // 检查未审核订单
+  const unapproved = checked.filter(cb=>{const s=DB.so.find(x=>x.id===cb.value);return s&&!s.approved;});
+  if(unapproved.length){
+    if(!confirm(`有 ${unapproved.length} 张订单尚未审核，确定仍要生成出库单吗？`)) return;
+  }
   // 库存预检
   for(const cb of checked){
     const so = DB.so.find(s=>s.id===cb.value);
@@ -5183,7 +5199,8 @@ function exportSQExcel(){
 // ══════════════════════════════════════════════
 function _fillWhOpts(selId){
   var sel=document.getElementById(selId);
-  if(!sel||sel.options.length>1) return;
+  if(!sel) return;
+  if(sel.options.length>1) return;  // 已填充过则跳过
   var seen={};
   DB.warehouses.forEach(function(w){
     if(!seen[w.name]){seen[w.name]=1;var o=document.createElement('option');o.value=w.name;o.textContent=w.name;sel.appendChild(o);}
@@ -5270,21 +5287,31 @@ function renderPR(){ prApplyFilter(); }
 
 // ── SO ApplyFilter ──
 function soApplyFilter(){
-  // 填充客户下拉
-  var custSel=document.getElementById('soFltCust');
-  if(custSel&&custSel.options.length<=1){
-    DB.customers.forEach(function(c){var o=document.createElement('option');o.value=c.id;o.textContent=c.name;custSel.appendChild(o);});
+  var whSel=document.getElementById('soFltWh');
+  if(whSel&&whSel.options.length<=1){
+    var seen={};
+    DB.warehouses.forEach(function(w){
+      if(!seen[w.name]){seen[w.name]=1;
+        var o=document.createElement('option');
+        o.value=w.name;o.textContent=w.name;whSel.appendChild(o);
+      }
+    });
   }
   var q=   (document.getElementById('soFltQ')||{}).value||'';
   var no=  (document.getElementById('soFltNo')||{}).value||'';
   var from=(document.getElementById('soFltFrom')||{}).value||'';
   var to=  (document.getElementById('soFltTo')||{}).value||'';
-  var cust=(document.getElementById('soFltCust')||{}).value||'';
+  var wh=  (document.getElementById('soFltWh')||{}).value||'';
   var showCP=perms['so_cost_profit']&&perms['so_cost_profit'][currentUser];
-  document.querySelectorAll('.so-cost-col,.so-profit-col').forEach(function(el){el.style.display=showCP?'':'none';});
+  document.querySelectorAll('.so-cost-col,.so-profit-col').forEach(function(el){
+    el.style.display=showCP?'':'none';
+  });
   var filtered=DB.so.filter(function(r){
     if(!_billMatchFilter(r,q,no,from,to,'',[])) return false;
-    if(cust && r.customerId!==cust) return false;
+    if(wh){
+      var sd=DB.sd.find(function(s){return s.soId===r.id||s.soNo===r.no;});
+      if(!sd||_whName(sd.warehouseId)!==wh) return false;
+    }
     return true;
   });
   filtered.sort(function(a,b){return (a.date||'')>(b.date||'')?-1:1;});
@@ -5338,11 +5365,6 @@ function ooApplyFilter(){
   _renderOORows(filtered);
   _renderSummary('ooSummary',filtered);
 }
-
-function renderOO(){ ooApplyFilter(); }
-
-
-init();
 
 function renderOO(){ ooApplyFilter(); }
 
