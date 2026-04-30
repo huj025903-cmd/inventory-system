@@ -378,6 +378,8 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
   #poLines [id$="_drop"] div,
   [id$="_drop"] div{font-size:15px!important;padding:12px 14px!important}
 }
+
+#toast.show{opacity:1;transform:translateY(0);}
 </style>
 
 <!-- 登录界面 -->
@@ -880,6 +882,10 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
 
 
 <div id="modalContainer" style="pointer-events:none"></div>
+<div id="toast" style="position:fixed;bottom:24px;right:24px;z-index:10000;padding:12px 20px;border-radius:8px;border:1.5px solid #C0DD97;background:var(--color-background-primary);box-shadow:0 4px 16px rgba(0,0,0,0.12);display:flex;align-items:center;gap:10px;font-size:13px;transition:opacity 0.3s,transform 0.3s;opacity:0;transform:translateY(8px);pointer-events:none">
+  <span id="toastIcon" style="font-size:15px;font-weight:700">✓</span>
+  <span id="toastMsg"></span>
+</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const SUPABASE_URL='https://vythjeptvpyorstgtkuk.supabase.co';
@@ -1457,7 +1463,10 @@ const PAGE_TITLES={dashboard:'仪表盘',products:'商品管理',warehouses:'仓
 let currentUser='admin';let currentPage='dashboard';
 
 function showToast(msg,type='success'){
-  const t=document.getElementById('toast');const ic=document.getElementById('toastIcon');const tm=document.getElementById('toastMsg');
+  const t=document.getElementById('toast');
+  const ic=document.getElementById('toastIcon');
+  const tm=document.getElementById('toastMsg');
+  if(!t||!ic||!tm){console.log('[Toast]',type,msg);return;}
   ic.textContent=type==='success'?'✓':type==='error'?'✕':'ℹ';
   t.style.borderColor=type==='success'?'#C0DD97':type==='error'?'#F7C1C1':'#B5D4F4';
   tm.textContent=msg;t.classList.add('show');
