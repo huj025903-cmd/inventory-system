@@ -878,6 +878,8 @@ input::placeholder,textarea::placeholder{color:var(--color-text-secondary);font-
         </div>
       </div>
 
+
+<div id="modalContainer" style="pointer-events:none"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const SUPABASE_URL='https://vythjeptvpyorstgtkuk.supabase.co';
@@ -1298,6 +1300,8 @@ function setSysDecimal(n){
 function changePasswordModal(){
   const mc=document.getElementById('modalContainer');
   mc.innerHTML=`<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal" style="width:360px"><div class="modal-header"><span>🔑 修改密码</span><button class="btn" onclick="closeModal()">✕</button></div><div class="modal-body"><div class="form-group" style="margin-bottom:10px"><label>当前密码</label><input id="cpOld" type="password"></div><div class="form-group" style="margin-bottom:10px"><label>新密码（至少4位）</label><input id="cpNew" type="password"></div><div class="form-group"><label>确认新密码</label><input id="cpNew2" type="password"></div></div><div class="modal-footer"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="doChangePassword()">确认修改</button></div></div></div>`;
+  mc.style.pointerEvents='all';
+  document.body.style.overflow='hidden';
 }
 
 async function doChangePassword(){
@@ -1340,6 +1344,8 @@ function openAddUserModal(userData){
     ${!isEdit?'<div class="form-group" style="margin-top:8px"><label>初始密码</label><input id="uPwd" value="123456" placeholder="初始密码"></div>':''}
     <div class="alert alert-info" style="margin-top:10px;font-size:10px">管理员(全权) / 采购员 / 销售员 / 仓库员 / 财务(查看导出) / 只读</div>
   </div><div class="modal-footer"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="saveUser('${isEdit?userData.id:''}')">${isEdit?'保存':'创建'}</button></div></div></div>`;
+  mc.style.pointerEvents='all';
+  document.body.style.overflow='hidden';
   if(isEdit){document.getElementById('uRole').value=userData.role;document.getElementById('uActive').value=String(userData.active);}
 }
 
@@ -4100,6 +4106,8 @@ function viewBill(type,id){
       </div>
     </div>
   </div>`;
+  mc.style.pointerEvents='all';
+  document.body.style.overflow='hidden';
 }
 
 // ── 独立打印窗口函数（全局，避免闭包序列化）──
@@ -4742,6 +4750,8 @@ function editRemark(store, id, renderFn){
       </div>
     </div>
   </div>`;
+  mc.style.pointerEvents='all';
+  document.body.style.overflow='hidden';
   // store renderFn reference
   document.getElementById('remarkInput').dataset.store = store;
   document.getElementById('remarkInput').dataset.id = id;
